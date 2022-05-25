@@ -1,4 +1,5 @@
 import database from '#libs/database';
+import textile from 'textile-js'
 
 /**
  * Fetch article
@@ -45,7 +46,8 @@ export const getArticleById = async (id) => {
  * @returns {object[]|null} Articles
  */
 
-export const getArticlesByModule = (id, limit = 500) => {
+export const getArticlesByModule = (id, { expanded = false, limit = 500 }) => {
+
   const query = `
     SELECT
       _id, module, title, date,
@@ -74,7 +76,9 @@ export const getArticlesByModule = (id, limit = 500) => {
 
     rows.forEach(async (article, index) => {
       article = articleAdapter(article);
-      article = await appendContent(article);
+      if (expanded) {
+        article = await appendContent(article);
+      }
       articles.push(article);
 
       if (rows.length === index + 1) {
@@ -124,22 +128,21 @@ const articleAdapter = (a) => {
     id: a._id,
     title: a.title,
     date: a.date,
-    text: a.text || null,
+    text: textile.parse(a.text) || null,
     image: a.image
       ? {
-          src: a.image || null,
-          thumbSrc: a.imageSmall || null,
-          alt: a.imageDescription || null
-        }
+        src: a.image || null,
+        thumbSrc: a.imageSmall || null,
+        alt: a.imageDescription || null
+      }
       : null,
     pdf: a.pdf
       ? {
-          src: a.pdf || null,
-          name: a.pdfName || null,
-          title: a.pdfTitle || null
-        }
+        src: a.pdf || null,
+        name: a.pdfName || null,
+        title: a.pdfTitle || null
+      }
       : null,
-    content: null,
     web: a.web || null,
     author: a.author || null
   };
@@ -155,13 +158,13 @@ const articleAdapter = (a) => {
 export const paragraphAdapter = (p) => {
   return {
     id: p._id,
-    text: p.text || null,
+    text: textile.parse(p.text) || null,
     image: p.image
       ? {
-          src: p.image,
-          alt: p.imageDescription || null,
-          position: p.imageAlign || null
-        }
+        src: p.image,
+        alt: p.imageDescription || null,
+        position: p.imageAlign || null
+      }
       : null
   };
 };

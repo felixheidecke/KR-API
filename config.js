@@ -10,6 +10,13 @@ export const API = {
   PREFIX: 'v1'
 };
 
+export const REDIS = {
+  HOST: env.REDIS_HOST || 'localhost',
+  PORT: env.REDIS_PORT || 6379,
+  USER: env.REDIS_USER || null,
+  PASSWORD: env.REDIS_PASSWORD || null
+}
+
 export const DB = {
   HOST: env.DB_HOST || 'localhost',
   USER: env.DB_USER || null,

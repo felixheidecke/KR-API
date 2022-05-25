@@ -1,9 +1,8 @@
-// Klickrhein API
-
 import Fastify from 'fastify';
 import fs from 'fs';
 
 import { API as API_CONFIG } from '#config';
+import { HEADER } from '#libs/constants'
 
 const App = Fastify({
   logger: true,
@@ -17,6 +16,13 @@ const App = Fastify({
     : false
 });
 
+App.addHook('onRequest', async (_, response) => {
+  response.headers({
+    [HEADER.MESSAGE]: 'Klickrhein.de | Ihre Webagentur im Rheingau',
+  });
+});
+
+
 // Handling CORS
 App.register(import('@fastify/cors'), {
   methods: ['GET', 'POST'],
@@ -24,9 +30,9 @@ App.register(import('@fastify/cors'), {
 });
 
 // Register routes
-App.register(import('#routes/form'), { prefix: API_CONFIG.PREFIX });
-App.register(import('#routes/article'), { prefix: API_CONFIG.PREFIX });
-App.register(import('#routes/articles'), { prefix: API_CONFIG.PREFIX });
+App.register(import('#routes/form'));
+App.register(import('#routes/article'));
+App.register(import('#routes/articles'));
 
 // Startup
 App.listen(API_CONFIG.PORT, API_CONFIG.HOST, (err, address) => {

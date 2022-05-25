@@ -1,7 +1,33 @@
 import { getArticlesByModule } from '#libs/articles';
+import cache from '#hooks/cache';
 
-// Hooks
-import { handler as authHandler, schema as authSchema } from '#hooks/authentication';
+const handler = async (request, response) => {
+
+  // Request params
+  const { id } = request.params
+  const { limit, expanded } = request.query
+
+  if (request.cache.data) {
+    response.send(request.cache.data)
+    return
+  }
+
+  try {
+    const articles = await getArticlesByModule(id, { expanded, limit });
+
+    if (!articles) {
+      response.code(400).send({ error: `No articles found for id ${id}` });
+    } else {
+      response.send(articles);
+
+      request.cache.data = articles
+      request.cache.shouldSave = true
+    }
+  } catch (error) {
+    console.error({ error });
+    response.code(500).send({ error: 'Internal Server Error!' });
+  }
+}
 
 export default async (App) => {
   App.route({
@@ -15,35 +41,28 @@ export default async (App) => {
         properties: {
           id: {
             type: 'number'
-          }
+          },
         }
       },
       query: {
         type: 'object',
         properties: {
-          limit: { type: 'number' }
+          limit: {
+            type: 'number'
+          },
+          expanded: {
+            type: 'boolean',
+          }
         }
       },
-      ...authSchema
     },
 
-    // --- Authentication required --------------------------------------------
-    onRequest: authHandler,
+    onRequest: cache.onRequest,
 
-    // --- Fetch articles -----------------------------------------------------
-    async handler({ params, query }, response) {
-      try {
-        const articles = await getArticlesByModule(params.id, query.limit);
+    preHandler: cache.preHandler,
 
-        if (!articles) {
-          response.code(400).send({ error: `No articles found for id ${params.id}` });
-        } else {
-          response.send(articles);
-        }
-      } catch (error) {
-        console.error({ error });
-        response.code(500).send({ error: 'Internal Server Error!' });
-      }
-    }
+    onResponse: cache.onResponse,
+
+    handler
   });
 };
