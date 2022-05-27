@@ -1,5 +1,8 @@
-import database from '#libs/database';
+import database from '#libs/database'
 import textile from 'textile-js'
+import slugify from 'slugify'
+
+const ASSET_BASE_URL = 'https://www.rheingau.de/data/'
 
 /**
  * Fetch article
@@ -18,8 +21,6 @@ export const getArticleById = async (id) => {
     Article
   WHERE
     _id = ?
-  ORDER BY
-    date DESC
   LIMIT
     1`;
 
@@ -108,7 +109,7 @@ const appendContent = async (article) => {
 
     return {
       ...article,
-      content: content.length ? content.map((c) => paragraphAdapter(c)) : null
+      content: content.map((c) => paragraphAdapter(c))
     };
   } catch (error) {
     console.error(error);
@@ -124,23 +125,30 @@ const appendContent = async (article) => {
  */
 
 const articleAdapter = (a) => {
+  const slugifyConfig = {
+    lower: true,
+    remove: /[*+~.,/()'"!?:@]/g
+  }
+
   return {
     id: a._id,
+    module: a.module,
+    slug: slugify(a.title, slugifyConfig),
     title: a.title,
     date: a.date,
     text: textile.parse(a.text) || null,
     image: a.image
       ? {
-        src: a.image || null,
-        thumbSrc: a.imageSmall || null,
+        src: ASSET_BASE_URL + a.image,
+        thumbSrc: (a.imageSmall) ? ASSET_BASE_URL + a.imageSmall : null,
         alt: a.imageDescription || null
       }
       : null,
     pdf: a.pdf
       ? {
-        src: a.pdf || null,
+        src: ASSET_BASE_URL + a.pdf || null,
         name: a.pdfName || null,
-        title: a.pdfTitle || null
+        title: (a.pdfTitle) ? a.pdfTitle.trim() : a.pdfName
       }
       : null,
     web: a.web || null,
@@ -161,7 +169,7 @@ export const paragraphAdapter = (p) => {
     text: textile.parse(p.text) || null,
     image: p.image
       ? {
-        src: p.image,
+        src: ASSET_BASE_URL + p.image,
         alt: p.imageDescription || null,
         position: p.imageAlign || null
       }

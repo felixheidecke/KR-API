@@ -26,7 +26,7 @@ const onRequest = async (request) => {
     data: null, // Data
     wasHit: false,
     shouldSave: false, // Data should be put in cache
-    ttl: 6000 // 1 hour
+    ttl: 60 // 1 minute
   });
 };
 
