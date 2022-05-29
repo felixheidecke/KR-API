@@ -1,12 +1,12 @@
 import nodemailer from 'nodemailer';
-import { MAILER } from '#config';
+import { host, port, secure, user, password } from '#config/nodemailer.config';
 
 export default nodemailer.createTransport({
-  host: MAILER.HOST,
-  port: MAILER.PORT,
-  secure: MAILER.SECURE,
+  host,
+  port,
+  secure,
   auth: {
-    user: MAILER.USER,
-    pass: MAILER.PASSWORD
+    user,
+    pass: password
   }
 });

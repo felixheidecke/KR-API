@@ -1,11 +1,5 @@
-import { omit } from 'lodash-es';
-import { jsonToText } from '#utils';
-import database from '#libs/database';
-import mailer from '#libs/mailer';
-import { MAILER } from '#config'
-
-// Hooks
-import { handler as authHandler, schema as authSchema } from '#hooks/authentication';
+import handler from './form.handler';
+import schema from './form.schema';
 
 export default async (App) => {
   App.route({
@@ -21,26 +15,19 @@ export default async (App) => {
           subject: { type: 'string' },
           required: { type: 'array' }
         }
-      },
-      ...authSchema
+      }
     },
 
-    // --- Authentication required
-    onRequest: authHandler,
-
-    // --- Adjust the body prior to validation
-    preValidation(request, _, next) {
+    preValidation: async (request, _) => {
       request.body = {
         ...request.body,
         required: JSON.parse(request.body.required)
       };
-
-      next();
     },
 
-    // --- Check if required fields are filled.
-    async preHandler({ body }, response) {
-      const missing = body.required.filter((field) => !body[field].length) || [];
+    preHandler: async ({ body }, response) => {
+      const missing =
+        body.required.filter((field) => !body[field].length) || [];
 
       try {
         if (!missing.length) return;
@@ -55,19 +42,22 @@ export default async (App) => {
       }
     },
 
-    async handler({ body }, response) {
+    handler: async ({ body }, response) => {
       // Get corresponding email from databse
       try {
-        const [result] = await database.execute(`SELECT email FROM Formmail WHERE ID = ?`, [
-          body.id
-        ]);
+        const [result] = await database.execute(
+          `SELECT email FROM Formmail WHERE ID = ?`,
+          [body.id]
+        );
 
         if (!result.length) {
-          response.code(400).send({ message: `No entry found for id ${body.id}` });
+          response
+            .code(400)
+            .send({ message: `No entry found for id ${body.id}` });
         }
 
         mailer.sendMail({
-          from: MAILER.FROM,
+          from,
           to: result[0].email,
           subject: body.subject,
           text: jsonToText(omit(body, ['id', 'subject', 'required']))

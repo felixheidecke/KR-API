@@ -2,7 +2,7 @@ import database from '#libs/database'
 import textile from 'textile-js'
 import slugify from 'slugify'
 
-const ASSET_BASE_URL = 'https://www.rheingau.de/data/'
+import { ASSET_BASE_URL } from '#utils/constants'
 
 /**
  * Fetch article

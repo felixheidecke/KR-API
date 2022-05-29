@@ -1,33 +1,5 @@
-import { getArticlesByModule } from '#libs/articles';
 import cache from '#hooks/cache';
-
-const handler = async (request, response) => {
-
-  // Request params
-  const { id } = request.params
-  const { limit, expanded } = request.query
-
-  if (request.cache.data) {
-    response.send(request.cache.data)
-    return
-  }
-
-  try {
-    const articles = await getArticlesByModule(id, { expanded, limit });
-
-    if (!articles) {
-      response.code(400).send({ error: `No articles found for id ${id}` });
-    } else {
-      response.send(articles);
-
-      request.cache.data = articles
-      request.cache.shouldSave = true
-    }
-  } catch (error) {
-    console.error({ error });
-    response.code(500).send({ error: 'Internal Server Error!' });
-  }
-}
+import { getArticlesByModule } from '#data/articles';
 
 export default async (App) => {
   App.route({
@@ -41,7 +13,7 @@ export default async (App) => {
         properties: {
           id: {
             type: 'number'
-          },
+          }
         }
       },
       query: {
@@ -51,18 +23,51 @@ export default async (App) => {
             type: 'number'
           },
           expanded: {
-            type: 'boolean',
+            type: 'boolean'
           }
         }
-      },
+      }
     },
 
     onRequest: cache.onRequest,
 
     preHandler: cache.preHandler,
 
-    onResponse: cache.onResponse,
+    /**
+     * Getting a single article by its _id
+     *
+     * @param {object} request Fastify request object
+     * @param {object} response Fastify response object
+     * @returns {Promise<void>}
+     */
 
-    handler
+    handler: async (request, response) => {
+      // Request params
+      const { id } = request.params;
+      const { limit, expanded } = request.query;
+
+      if (request.cache.data) {
+        response.send(request.cache.data);
+        return;
+      }
+
+      try {
+        const articles = await getArticlesByModule(id, { expanded, limit });
+
+        if (!articles) {
+          response.code(400).send({ error: `No articles found for id ${id}` });
+        } else {
+          response.send(articles);
+
+          request.cache.data = articles;
+          request.cache.shouldSave = true;
+        }
+      } catch (error) {
+        console.error({ error });
+        response.code(500).send({ error: 'Internal Server Error!' });
+      }
+    },
+
+    onResponse: cache.onResponse
   });
 };

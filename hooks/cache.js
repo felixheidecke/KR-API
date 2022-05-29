@@ -1,16 +1,5 @@
-import { HEADER, MIME_TYPE_JSON } from '#libs/constants'
-import { REDIS } from '#config'
-
-import { createClient } from 'redis';
-
-export const redis = createClient({
-  socket: {
-    host: REDIS.HOST,
-    port: REDIS.PORT
-  },
-  username: REDIS.USER,
-  password: REDIS.PASSWORD
-});
+import { HEADER, MIME_TYPE_JSON } from '#utils/constants'
+import redis from '#libs/redis'
 
 redis.connect();
 

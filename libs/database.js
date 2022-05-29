@@ -1,11 +1,6 @@
 import mysql from 'mysql2';
-import { DB } from '#config';
+import { host, user, database, password } from '#config/mysql.config';
 
-const dbConnect = mysql.createPool({
-  host: DB.HOST,
-  user: DB.USER,
-  database: DB.DATABASE,
-  password: DB.PASSWORD
-});
+const dbConnect = mysql.createPool({ host, user, database, password });
 
 export default dbConnect.promise();

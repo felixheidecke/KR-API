@@ -2,11 +2,12 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "#config": ["config.js"],
-      "#utils": ["utils/utils.js"],
-      "#libs/*": ["libs/*"],
+      "#config": ["config/*"],
+      "#data": ["data/*"],
       "#hooks/*": ["hooks/*"],
-      "#routes/*": ["routes/*"]
+      "#libs/*": ["libs/*"],
+      "#routes/*": ["routes/*"],
+      "#utils": ["utils/*"]
     }
   }
 }
