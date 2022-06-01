@@ -1,11 +1,13 @@
-import { HEADER, MIME_TYPE_JSON } from '#utils/constants'
-import redis from '#libs/redis'
+import { HEADER, MIME_TYPE_JSON } from '#utils/constants';
+import redis from '#libs/redis';
+
+const TTL = 60 * 15; // 15 minutes
 
 redis.connect();
 
 /**
  * Add cache model to request models
- * 
+ *
  * @param {object} request Fastify request object
  * @returns {Promise<object>} request.cache added
  */
@@ -15,7 +17,7 @@ const onRequest = async (request) => {
     data: null, // Data
     wasHit: false,
     shouldSave: false, // Data should be put in cache
-    ttl: 60 // 1 minute
+    ttl: TTL // 1 minute
   });
 };
 
@@ -28,20 +30,21 @@ const onRequest = async (request) => {
 
 const preHandler = async (request, response) => {
   try {
-    const data = await redis.get(request.url)
+    const data = await redis.get(request.url);
 
     response.headers({
       [HEADER.CONTENT_TYPE]: MIME_TYPE_JSON,
       [HEADER.CACHE]: data ? HEADER.CACHE_HIT : HEADER.CACHE_MISS,
+      [HEADER.CACHE_CONTROL]: [HEADER.PUBLIC, HEADER.MAX_AGE(TTL)].join(', ')
     });
 
     // Update cache info
-    request.cache.wasHit = !!data
-    request.cache.data = data
+    request.cache.wasHit = !!data;
+    request.cache.data = data;
   } catch (error) {
     console.error('[KR-API]', error);
     response.headers({
-      [HEADER.CACHE]: HEADER.CACHE_FAIL,
+      [HEADER.CACHE]: HEADER.CACHE_FAIL
     });
   }
 };
@@ -68,4 +71,4 @@ export default {
   onRequest,
   preHandler,
   onResponse
-}
+};

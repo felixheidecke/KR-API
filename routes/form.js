@@ -1,6 +1,3 @@
-import handler from './form.handler';
-import schema from './form.schema';
-
 export default async (App) => {
   App.route({
     method: 'POST',
@@ -16,6 +13,13 @@ export default async (App) => {
           required: { type: 'array' }
         }
       }
+    },
+
+    onRequest: async (_, response) => {
+      response.headers({
+        [HEADER.CONTENT_TYPE]: MIME_TYPE_JSON,
+        [HEADER.CACHE_CONTROL]: [HEADER.PRIVATE, HEADER.NO_STORE].join(', ')
+      });
     },
 
     preValidation: async (request, _) => {

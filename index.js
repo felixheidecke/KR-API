@@ -14,8 +14,8 @@ App.register(import('@fastify/cors'), {
 });
 
 // Register routes
-// App.register(import('#routes/form/form'));
-App.register(import('#routes/article/article'));
+// App.register(import('#routes/form'));
+App.register(import('#routes/article'));
 App.register(import('#routes/articles'));
 
 // Startup
