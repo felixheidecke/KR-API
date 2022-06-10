@@ -18,7 +18,9 @@ export default async (App) => {
       }
     },
 
-    onRequest: cache.onRequest,
+    onRequest: async (request) => {
+      return cache.onRequest(request, { ttl: 60 })
+    },
 
     preHandler: cache.preHandler,
 
@@ -34,16 +36,13 @@ export default async (App) => {
       // Request params
       const { id } = request.params;
 
-      // if (request.cache.data) {
-      //   console.log(request.cache)
-      //   response.send(request.cache.data);
-      //   return;
-      // }
+      if (request.cache.data) {
+        response.send(request.cache.data);
+        return;
+      }
 
       try {
         const data = await getDetails(id);
-
-        console.log({ data });
 
         response.send(data);
         request.cache.data = data;

@@ -12,12 +12,13 @@ redis.connect();
  * @returns {Promise<object>} request.cache added
  */
 
-const onRequest = async (request) => {
+const onRequest = async (request, config = {}) => {
   return (request.cache = {
     data: null, // Data
     wasHit: false,
     shouldSave: false, // Data should be put in cache
-    ttl: TTL // 1 minute
+    ttl: TTL,
+    ...config
   });
 };
 
@@ -35,7 +36,7 @@ const preHandler = async (request, response) => {
     response.headers({
       [HEADER.CONTENT_TYPE]: MIME_TYPE_JSON,
       [HEADER.CACHE]: data ? HEADER.CACHE_HIT : HEADER.CACHE_MISS,
-      [HEADER.CACHE_CONTROL]: [HEADER.PUBLIC, HEADER.MAX_AGE(TTL)].join(', ')
+      [HEADER.CACHE_CONTROL]: [HEADER.PUBLIC, HEADER.MAX_AGE(request.cache.ttl)].join(', ')
     });
 
     // Update cache info
