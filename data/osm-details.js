@@ -66,7 +66,7 @@ const extendOpeningHours = async ({ coordinates, countryCode }, openingHours) =>
     const nextChange = hours.getNextChange()
 
     return {
-      table: openingHours.split(';').map(i => i.trim()),
+      table: localiseOpeningHours(openingHours).split(';').map(i => i.trim()),
       openNow,
       nextChange: {
         formatted: format(nextChange, "EEEE 'um' p 'Uhr'", { locale }),
@@ -78,4 +78,14 @@ const extendOpeningHours = async ({ coordinates, countryCode }, openingHours) =>
     console.error(error);
     return null
   }
+}
+
+const localiseOpeningHours = (openingHours) => {
+  return openingHours
+    .replace(/Tu/g, "Di")
+    .replace(/We/g, "Mi")
+    .replace(/Th/g, "Do")
+    .replace(/Su/g, "So")
+    .replace(/off/g, "geschlossen")
+    .replace(/PH/g, "Feiertags")
 }
