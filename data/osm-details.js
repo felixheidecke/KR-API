@@ -1,4 +1,8 @@
 import fetch from 'node-fetch';
+import { format } from "date-fns";
+import { formatDistance } from 'date-fns'
+import { de as locale } from 'date-fns/locale/index.js'
+import oh from "opening_hours";
 
 export default async (osmid) => {
   try {
@@ -12,7 +16,7 @@ export default async (osmid) => {
     const data = await fetch(`${baseUrl}?${params}`)
     const resJson = await data.json()
 
-    return adapter(resJson)
+    return await adapter(resJson)
   }
   catch (e) {
     console.error(e);
@@ -27,18 +31,51 @@ export default async (osmid) => {
  * @returns {object} Remodled node
  */
 
-const adapter = (data) => {
-  return {
+const adapter = async (data) => {
+  const extras = data.extratags || {}
+  const [lat, lon] = data.geometry.coordinates
+
+  const model = {
     placeId: data.place_id,
     type: data.type,
-    names: data.names,
+    name: data.localname,
+    address: data.addresstags,
+    countryCode: data.country_code,
+    coordinates: [lat, lon]
+  }
+
+  if (extras.fax) model.address.fax = extras.fax
+  if (extras.operator) model.operator = extras.operator
+  if (extras.opening_hours) model.openingHours = await extendOpeningHours(model, extras.opening_hours)
+
+  return model
+}
+
+const extendOpeningHours = async ({ coordinates, countryCode }, openingHours) => {
+  const nominatim = {
+    lat: coordinates[0],
+    lon: coordinates[1],
     address: {
-      ...data.addresstags,
-      fax: data.extratags?.fax || null,
-      countryCode: data.country_code,
-    },
-    operator: data.extratags?.operator || null,
-    openingHours: data.extratags?.opening_hours || null,
-    geometry: data.geometry
+      country_code: countryCode
+    }
+  }
+
+  try {
+    const hours = new oh(openingHours, nominatim)
+    const openNow = hours.getState()
+    const nextChange = hours.getNextChange()
+
+    return {
+      table: openingHours.split(';').map(i => i.trim()),
+      openNow,
+      nextChange: {
+        formatted: format(nextChange, "EEEE 'um' p 'Uhr'", { locale }),
+        distance: formatDistance(new Date(), nextChange, { locale })
+      }
+    }
+  }
+  catch (error) {
+    console.error(error);
+    return null
   }
 }
