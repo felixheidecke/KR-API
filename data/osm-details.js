@@ -65,10 +65,11 @@ const extendOpeningHours = async ({ coordinates, countryCode }, openingHours) =>
     const nextChange = hours.getNextChange()
 
     return {
-      string: openingHours,
+      raw: openingHours,
       localized: localiseOpeningHours(openingHours),
       openNow,
       nextChange: {
+        raw: nextChange,
         formatted: format(nextChange, "EEEE 'um' p 'Uhr'", { locale }),
         distance: formatDistance(nextChange)
       }
