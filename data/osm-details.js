@@ -1,6 +1,5 @@
 import fetch from 'node-fetch';
-import { format } from "date-fns";
-import { formatDistance } from 'date-fns'
+import { format, formatDistance as fd } from "date-fns";
 import { de as locale } from 'date-fns/locale/index.js'
 import oh from "opening_hours";
 
@@ -66,11 +65,12 @@ const extendOpeningHours = async ({ coordinates, countryCode }, openingHours) =>
     const nextChange = hours.getNextChange()
 
     return {
-      table: localiseOpeningHours(openingHours).split(';').map(i => i.trim()),
+      string: openingHours,
+      localized: localiseOpeningHours(openingHours),
       openNow,
       nextChange: {
         formatted: format(nextChange, "EEEE 'um' p 'Uhr'", { locale }),
-        distance: formatDistance(new Date(), nextChange, { locale })
+        distance: formatDistance(nextChange)
       }
     }
   }
@@ -88,4 +88,14 @@ const localiseOpeningHours = (openingHours) => {
     .replace(/Su/g, "So")
     .replace(/off/g, "geschlossen")
     .replace(/PH/g, "Feiertags")
+}
+
+const formatDistance = (nextChange) => {
+  const distance = 'in ' + fd(new Date(), nextChange, { locale })
+
+  if (distance.includes('Tage')) {
+    return distance + 'n'
+  }
+
+  return distance;
 }
