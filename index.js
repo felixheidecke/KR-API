@@ -23,11 +23,12 @@ App.register(import('#routes/menu'));
 App.register(import('#routes/osm/details'));
 
 // Startup
-App.listen(port, host, (err, address) => {
-  if (err) {
-    App.log.error(err);
-    return process.exit(1);
-  }
 
-  console.log('[KR-API]', 'listening on', address);
-});
+(async () => {
+  try {
+    await App.listen({ port, host })
+  } catch (err) {
+    App.log.error(err)
+    process.exit(1)
+  }
+})()
