@@ -1,7 +1,7 @@
 import { HEADER, MIME_TYPE_JSON } from '#utils/constants';
 import redis from '#libs/redis';
 
-const TTL = 60 * 15; // 15 minutes
+const TTL = 60; // 1 minute
 
 redis.connect();
 

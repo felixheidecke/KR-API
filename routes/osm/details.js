@@ -18,9 +18,7 @@ export default async (App) => {
       }
     },
 
-    onRequest: async (request) => {
-      return cache.onRequest(request, { ttl: 60 })
-    },
+    onRequest: cache.onRequest,
 
     preHandler: cache.preHandler,
 
