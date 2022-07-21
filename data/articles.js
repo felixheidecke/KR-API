@@ -1,8 +1,8 @@
-import database from '#libs/database'
-import textile from 'textile-js'
-import slugify from 'slugify'
+import textile from 'textile-js';
+import slugify from 'slugify';
 
-import { ASSET_BASE_URL } from '#utils/constants'
+import database from '#libs/database';
+import { ASSET_BASE_URL } from '#utils/constants';
 
 /**
  * Fetch article
@@ -48,7 +48,6 @@ export const getArticleById = async (id) => {
  */
 
 export const getArticlesByModule = (id, { expanded = false, limit = 500 }) => {
-
   const query = `
     SELECT
       _id, module, title, date,
@@ -74,15 +73,17 @@ export const getArticlesByModule = (id, { expanded = false, limit = 500 }) => {
     }
 
     const articles = [];
+    let index = 1;
 
-    rows.forEach(async (article, index) => {
+    rows.forEach(async (article) => {
       article = articleAdapter(article);
       if (expanded) {
         article = await appendContent(article);
       }
       articles.push(article);
+      index++;
 
-      if (rows.length === index + 1) {
+      if (rows.length === index) {
         return resolve(articles);
       }
     });
@@ -128,7 +129,7 @@ const articleAdapter = (a) => {
   const slugifyConfig = {
     lower: true,
     remove: /[*+~.,/()'"!?:@]/g
-  }
+  };
 
   return {
     id: a._id,
@@ -139,17 +140,17 @@ const articleAdapter = (a) => {
     text: textile.parse(a.text) || null,
     image: a.image
       ? {
-        src: ASSET_BASE_URL + a.image,
-        thumbSrc: (a.imageSmall) ? ASSET_BASE_URL + a.imageSmall : null,
-        alt: a.imageDescription || null
-      }
+          src: ASSET_BASE_URL + a.image,
+          thumbSrc: a.imageSmall ? ASSET_BASE_URL + a.imageSmall : null,
+          alt: a.imageDescription || null
+        }
       : null,
     pdf: a.pdf
       ? {
-        src: ASSET_BASE_URL + a.pdf || null,
-        name: a.pdfName || null,
-        title: (a.pdfTitle) ? a.pdfTitle.trim() : a.pdfName
-      }
+          src: ASSET_BASE_URL + a.pdf || null,
+          name: a.pdfName || null,
+          title: a.pdfTitle ? a.pdfTitle.trim() : a.pdfName
+        }
       : null,
     web: a.web || null,
     author: a.author || null
@@ -169,10 +170,10 @@ export const paragraphAdapter = (p) => {
     text: textile.parse(p.text) || null,
     image: p.image
       ? {
-        src: ASSET_BASE_URL + p.image,
-        alt: p.imageDescription || null,
-        position: p.imageAlign || null
-      }
+          src: ASSET_BASE_URL + p.image,
+          alt: p.imageDescription || null,
+          position: p.imageAlign || null
+        }
       : null
   };
 };
