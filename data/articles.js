@@ -73,7 +73,7 @@ export const getArticlesByModule = (id, { expanded = false, limit = 500 }) => {
     }
 
     const articles = [];
-    let index = 1;
+    let index = 0;
 
     rows.forEach(async (article) => {
       article = articleAdapter(article);
