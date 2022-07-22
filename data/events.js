@@ -3,45 +3,64 @@ import slugify from 'slugify'
 import { getUnixTime } from 'date-fns'
 import { upperFirst } from 'lodash-es'
 
-import mysqlQuery from "#utils/sql-query-builder";
+import mysqlQuery, { orGroup } from '#utils/sql-query-builder'
 import database from '#libs/database'
 import { ASSET_BASE_URL } from '#utils/constants'
+import asyncMap from '#utils/async-map'
 
 export const getEvents = async (options) => {
-  const db = new mysqlQuery();
-  const { communes, ids, limit, modules } = {
-    communes: [],
-    ids: [],
-    limit: 1000,
-    modules: [],
-    ...options
-  }
+  const db = new mysqlQuery()
 
   // --- Build query ------------------
 
-  db.select('*')
-    .from('rtd.Event')
-    .where('endDate < ?')
-    .order('startDate')
-    .limit(limit)
+  db.select('*').from('rtd.Event').where('endDate > ?').order('startDate')
 
-  ids.forEach(i => (db.or(`_id = "${i}"`)))
+  if (options.commune) {
+    const commune = [options.commune].flat()
+    const communes = commune.map((c) => `commune = '${c}'`)
+    db.and(orGroup(communes))
+  }
 
-  communes.forEach(c => (db.or(`commune = "${c}"`)))
+  if (options.module) {
+    const module = [options.module].flat()
+    const modules = module.map((c) => `module = '${c}'`)
+    db.and(orGroup(modules))
+  }
 
-  modules.forEach(m => (db.or(`module = "${m}"`)))
+  if (options.limit) {
+    db.limit(options.limit)
+  }
+
+  console.log(db.query())
 
   try {
-    const [rows] = await database.execute(db.query(), [getUnixTime(new Date())]);
+    const [rows] = await database.execute(db.query(), [getUnixTime(new Date())])
 
     if (!rows.length) {
-      return null;
+      return null
     }
 
-    return rows.map(event => eventAdapter(event));
+    return asyncMap(rows, async (event) => await eventAdapter(event))
   } catch (error) {
-    console.error(error);
-    return error;
+    console.error(error)
+    return error
+  }
+}
+
+const getFlags = async (id) => {
+  const db = new mysqlQuery()
+
+  try {
+    db.select('title').from('rtd.Flag').where('flagset = ?')
+
+    const [rows] = await database.execute(db.query(), [id])
+
+    if (!rows.length) return null
+
+    return rows
+  } catch (error) {
+    console.error(error)
+    return error
   }
 }
 
@@ -52,7 +71,7 @@ export const getEvents = async (options) => {
  * @returns {object} Remodled event
  */
 
-const eventAdapter = (e) => {
+const eventAdapter = async (e) => {
   const slugifyConfig = {
     lower: true,
     remove: /[*+~.,/()'"!?:@]/g
@@ -68,24 +87,28 @@ const eventAdapter = (e) => {
     details: e.details ? textile.parse(e.details) : null,
     image: e.image
       ? {
-        src: ASSET_BASE_URL + e.image,
-        thumbSrc: (e.thumb) ? ASSET_BASE_URL + e.thumb : null,
-        alt: e.imageDescription || null
-      }
+          src: ASSET_BASE_URL + e.image,
+          thumbSrc: e.thumb ? ASSET_BASE_URL + e.thumb : null,
+          alt: e.imageDescription || null
+        }
       : null,
     pdf: e.pdf
       ? {
-        src: ASSET_BASE_URL + e.pdf || null,
-        name: e.pdfName || null,
-        title: (e.pdfTitle) ? e.pdfTitle.trim() : e.pdfName
-      }
+          src: ASSET_BASE_URL + e.pdf || null,
+          name: e.pdfName || null,
+          title: e.pdfTitle ? e.pdfTitle.trim() : e.pdfName
+        }
       : null,
     commune: e.commune !== '-' ? upperFirst(e.commune) : null,
     website: e.url || null,
     organizer: e.presenter || null,
-    coordinates: +e.lat > 0 && +e.lng > 0 ? {
-      lat: +e.lat,
-      lng: +e.lng
-    } : null
-  };
-};
+    flags: await getFlags(e.flagset),
+    coordinates:
+      +e.lat > 0 && +e.lng > 0
+        ? {
+            lat: +e.lat,
+            lng: +e.lng
+          }
+        : null
+  }
+}

@@ -8,11 +8,17 @@ export default async (App) => {
     url: '/events',
 
     schema: {
-      params: {
+      query: {
         type: 'object',
         properties: {
           limit: {
             type: 'number'
+          },
+          module: {
+            type: 'array'
+          },
+          communes: {
+            type: 'array'
           }
         }
       }
@@ -31,27 +37,20 @@ export default async (App) => {
      */
 
     handler: async (request, response) => {
-      // Request params
-      const config = {}
-
-      if (request.query.limit) {
-        config.limit = request.query.limit
-      }
-
       if (request.cache.data) {
         response.send(request.cache.data);
         return;
       }
 
       try {
-        const events = await getEvents(config);
+        const events = await getEvents(request.query);
 
         if (!events) {
-          response.code(400).send({ error: `No events found ` });
+          response.code(400).send({ error: `No events found` });
         } else {
           response.send(events);
           request.cache.data = events;
-          request.cache.shouldSave = false;
+          request.cache.shouldSave = true;
         }
       } catch (error) {
         console.error({ error });

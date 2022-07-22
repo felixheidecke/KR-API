@@ -18,12 +18,10 @@ App.register(import('@fastify/cors'), {
 App.register(import('#routes/article'));
 App.register(import('#routes/articles'));
 App.register(import('#routes/menu'));
-// App.register(import('#routes/event'));
-// App.register(import('#routes/events'));
+App.register(import('#routes/events'));
 App.register(import('#routes/osm/details'));
 
 // Startup
-
 (async () => {
   try {
     await App.listen({ port, host });

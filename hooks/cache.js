@@ -1,7 +1,7 @@
 import { HEADER, MIME_TYPE_JSON } from '#utils/constants';
 import redis from '#libs/redis';
 
-const TTL = 60; // 1 minute
+const TTL = 90; // 1.5 minutes
 
 redis.connect();
 
@@ -36,7 +36,10 @@ const preHandler = async (request, response) => {
     response.headers({
       [HEADER.CONTENT_TYPE]: MIME_TYPE_JSON,
       [HEADER.CACHE]: data ? HEADER.CACHE_HIT : HEADER.CACHE_MISS,
-      [HEADER.CACHE_CONTROL]: [HEADER.PUBLIC, HEADER.MAX_AGE(request.cache.ttl)].join(', ')
+      [HEADER.CACHE_CONTROL]: [
+        HEADER.PUBLIC,
+        HEADER.MAX_AGE(request.cache.ttl)
+      ].join(', ')
     });
 
     // Update cache info
