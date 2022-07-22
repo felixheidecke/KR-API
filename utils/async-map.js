@@ -6,9 +6,11 @@ export default function (arrayIn, callback) {
   return new Promise((resolve) => {
     const arrayOut = []
 
-    arrayIn.forEach(async (element, index) => {
+    let i = 0
+    arrayIn.forEach(async (element) => {
       arrayOut.push(await callback(element))
-      if (arrayIn.length === index + 1) {
+      i++
+      if (arrayIn.length === i) {
         resolve(arrayOut)
       }
     })
