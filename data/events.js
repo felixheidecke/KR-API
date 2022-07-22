@@ -47,6 +47,13 @@ export const getEvents = async (options) => {
   }
 }
 
+/**
+ * Fetch flags by id
+ *
+ * @param {number} id
+ * @returns {Promise<String[]>} list of flag titles
+ */
+
 const getFlags = async (id) => {
   const db = new mysqlQuery()
 
@@ -57,7 +64,7 @@ const getFlags = async (id) => {
 
     if (!rows.length) return null
 
-    return rows
+    return rows.map((flag) => flag.title)
   } catch (error) {
     console.error(error)
     return error
