@@ -1,9 +1,9 @@
-import { HEADER, MIME_TYPE_JSON } from '#utils/constants';
-import redis from '#libs/redis';
+import { HEADER, MIME_TYPE_JSON } from '#utils/constants'
+import redis from '#libs/redis'
 
-const TTL = 90; // 1.5 minutes
+const TTL = 90 // 1.5 minutes
 
-redis.connect();
+redis.connect()
 
 /**
  * Add cache model to request models
@@ -19,8 +19,8 @@ const onRequest = async (request, config = {}) => {
     shouldSave: false, // Data should be put in cache
     ttl: TTL,
     ...config
-  });
-};
+  })
+}
 
 /**
  * Checks if the the requested url exists in the redis. If so, it writes the data to ospx.data
@@ -31,7 +31,7 @@ const onRequest = async (request, config = {}) => {
 
 const preHandler = async (request, response) => {
   try {
-    const data = await redis.get(request.url);
+    const data = await redis.get(request.url)
 
     response.headers({
       [HEADER.CONTENT_TYPE]: MIME_TYPE_JSON,
@@ -40,18 +40,18 @@ const preHandler = async (request, response) => {
         HEADER.PUBLIC,
         HEADER.MAX_AGE(request.cache.ttl)
       ].join(', ')
-    });
+    })
 
     // Update cache info
-    request.cache.wasHit = !!data;
-    request.cache.data = data;
+    request.cache.wasHit = !!data
+    request.cache.data = data
   } catch (error) {
-    console.error('[KR-API]', error);
+    console.error('[KR-API]', error)
     response.headers({
       [HEADER.CACHE]: HEADER.CACHE_FAIL
-    });
+    })
   }
-};
+}
 
 /**
  * Writes data to Redis cache
@@ -60,19 +60,19 @@ const preHandler = async (request, response) => {
  */
 const onResponse = async ({ cache, url }) => {
   // Skip if data came from cache or data (should not be cached)
-  if (cache.wasHit || !cache.shouldSave) return;
+  if (cache.wasHit || !cache.shouldSave) return
 
-  const data = JSON.stringify(cache.data);
+  const data = JSON.stringify(cache.data)
 
   try {
-    await redis.SETEX(url, cache.ttl, data);
+    await redis.SETEX(url, cache.ttl, data)
   } catch (error) {
-    console.error({ error });
+    console.error({ error })
   }
-};
+}
 
 export default {
   onRequest,
   preHandler,
   onResponse
-};
+}

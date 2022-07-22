@@ -1,6 +1,6 @@
 import database from '#libs/database'
 
-import { groupBy, reduce } from 'lodash-es';
+import { groupBy, reduce } from 'lodash-es'
 
 /**
  * Fetch article
@@ -10,7 +10,6 @@ import { groupBy, reduce } from 'lodash-es';
  */
 
 export const getMenuByModule = async (id) => {
-
   const query = `
     SELECT
       menu._id as id, menu.title, menu.description,
@@ -25,37 +24,44 @@ export const getMenuByModule = async (id) => {
   AND
     menu.module = ?
   ORDER BY
-    menu.priority ASC`;
+    menu.priority ASC`
 
   try {
-    const [rows] = await database.execute(query, [id]);
+    const [rows] = await database.execute(query, [id])
 
     if (!rows.length) {
-      return null;
+      return null
     }
 
-    return menuAdapter(rows);
+    return menuAdapter(rows)
   } catch (error) {
-    console.error(error);
-    return error;
+    console.error(error)
+    return error
   }
-};
+}
 
 const menuAdapter = function (rows) {
   const groups = groupBy(rows, 'category')
 
-  const data = reduce(groups, (menu, items) => {
-    return [...menu, {
-      name: items[0].category,
-      items: itemsAdapter(items)
-    }]
-  }, [])
+  const data = reduce(
+    groups,
+    (menu, items) => {
+      return [
+        ...menu,
+        {
+          name: items[0].category,
+          items: itemsAdapter(items)
+        }
+      ]
+    },
+    []
+  )
 
   return data
 }
 
-const itemsAdapter = items => {
-  return items.map(item => {
+const itemsAdapter = (items) => {
+  return items.map((item) => {
     return {
       id: item.id,
       name: item.title,

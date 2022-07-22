@@ -1,4 +1,4 @@
-import { createClient } from 'redis';
+import { createClient } from 'redis'
 import { host, port, username, password } from '#config/redis.config'
 
 export default createClient({
@@ -8,4 +8,4 @@ export default createClient({
   },
   username,
   password
-});
+})

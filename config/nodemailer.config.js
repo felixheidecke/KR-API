@@ -1,4 +1,4 @@
-const { env } = process;
+const { env } = process
 
 export const host = env.MAILER_HOST || 'localhost'
 export const port = env.MAILER_PORT || 25

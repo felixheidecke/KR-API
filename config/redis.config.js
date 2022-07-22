@@ -1,4 +1,4 @@
-const { env } = process;
+const { env } = process
 
 export const host = env.REDIS_HOST || 'localhost'
 export const port = env.REDIS_PORT || 6379

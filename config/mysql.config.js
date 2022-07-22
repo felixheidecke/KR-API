@@ -1,4 +1,4 @@
-const { env } = process;
+const { env } = process
 
 export const host = env.MYSQL_HOST || 'localhost'
 export const user = env.MYSQL_USER || null

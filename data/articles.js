@@ -1,8 +1,8 @@
-import textile from 'textile-js';
-import slugify from 'slugify';
+import textile from 'textile-js'
+import slugify from 'slugify'
 
-import database from '#libs/database';
-import { ASSET_BASE_URL } from '#utils/constants';
+import database from '#libs/database'
+import { ASSET_BASE_URL } from '#utils/constants'
 
 /**
  * Fetch article
@@ -22,23 +22,23 @@ export const getArticleById = async (id) => {
   WHERE
     _id = ?
   LIMIT
-    1`;
+    1`
 
   try {
-    const [rows] = await database.execute(query, [id]);
+    const [rows] = await database.execute(query, [id])
 
     if (!rows.length) {
-      return null;
+      return null
     }
 
-    let article = articleAdapter(rows[0]);
-    article = await appendContent(article);
-    return article;
+    let article = articleAdapter(rows[0])
+    article = await appendContent(article)
+    return article
   } catch (error) {
-    console.error(error);
-    return error;
+    console.error(error)
+    return error
   }
-};
+}
 
 /**
  * Fetch articles
@@ -63,32 +63,32 @@ export const getArticlesByModule = (id, { expanded = false, limit = 500 }) => {
     ORDER BY
       date DESC
     LIMIT
-      ?`;
+      ?`
 
   return new Promise(async (resolve) => {
-    const [rows] = await database.execute(query, [id, Date.now(), limit]);
+    const [rows] = await database.execute(query, [id, Date.now(), limit])
 
     if (!rows.length) {
-      return resolve(null);
+      return resolve(null)
     }
 
-    const articles = [];
-    let index = 0;
+    const articles = []
+    let index = 0
 
     rows.forEach(async (article) => {
-      article = articleAdapter(article);
+      article = articleAdapter(article)
       if (expanded) {
-        article = await appendContent(article);
+        article = await appendContent(article)
       }
-      articles.push(article);
-      index++;
+      articles.push(article)
+      index++
 
       if (rows.length === index) {
-        return resolve(articles);
+        return resolve(articles)
       }
-    });
-  });
-};
+    })
+  })
+}
 
 /**
  * Add content to article
@@ -103,20 +103,20 @@ const appendContent = async (article) => {
     FROM ArticleParagraph
       WHERE
         article = ?
-  ORDER BY position`;
+  ORDER BY position`
 
   try {
-    const [content] = await database.execute(query, [article.id]);
+    const [content] = await database.execute(query, [article.id])
 
     return {
       ...article,
       content: content.map((c) => paragraphAdapter(c))
-    };
+    }
   } catch (error) {
-    console.error(error);
-    return error;
+    console.error(error)
+    return error
   }
-};
+}
 
 /**
  * Remodel the structure of an article
@@ -129,7 +129,7 @@ const articleAdapter = (a) => {
   const slugifyConfig = {
     lower: true,
     remove: /[*+~.,/()'"!?:@]/g
-  };
+  }
 
   return {
     id: a._id,
@@ -154,8 +154,8 @@ const articleAdapter = (a) => {
       : null,
     web: a.web || null,
     author: a.author || null
-  };
-};
+  }
+}
 
 /**
  * Remodel the structure of paragraphs
@@ -175,5 +175,5 @@ export const paragraphAdapter = (p) => {
           position: p.imageAlign || null
         }
       : null
-  };
-};
+  }
+}

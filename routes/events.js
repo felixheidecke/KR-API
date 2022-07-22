@@ -1,5 +1,5 @@
-import cache from '#hooks/cache';
-import { getEvents } from '#data/events';
+import cache from '#hooks/cache'
+import { getEvents } from '#data/events'
 
 export default async (App) => {
   App.route({
@@ -38,26 +38,26 @@ export default async (App) => {
 
     handler: async (request, response) => {
       if (request.cache.data) {
-        response.send(request.cache.data);
-        return;
+        response.send(request.cache.data)
+        return
       }
 
       try {
-        const events = await getEvents(request.query);
+        const events = await getEvents(request.query)
 
         if (!events) {
-          response.code(400).send({ error: `No events found` });
+          response.code(400).send({ error: `No events found` })
         } else {
-          response.send(events);
-          request.cache.data = events;
-          request.cache.shouldSave = true;
+          response.send(events)
+          request.cache.data = events
+          request.cache.shouldSave = true
         }
       } catch (error) {
-        console.error({ error });
-        response.code(500).send({ error: 'Internal Server Error!' });
+        console.error({ error })
+        response.code(500).send({ error: 'Internal Server Error!' })
       }
     },
 
     onResponse: cache.onResponse
-  });
-};
+  })
+}

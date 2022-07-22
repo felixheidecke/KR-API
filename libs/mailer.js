@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import { host, port, secure, user, password } from '#config/nodemailer.config';
+import nodemailer from 'nodemailer'
+import { host, port, secure, user, password } from '#config/nodemailer.config'
 
 export default nodemailer.createTransport({
   host,
@@ -9,4 +9,4 @@ export default nodemailer.createTransport({
     user,
     pass: password
   }
-});
+})

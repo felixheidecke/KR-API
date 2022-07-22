@@ -1,5 +1,5 @@
-import cache from '#hooks/cache';
-import { getMenuByModule } from '#data/menu';
+import cache from '#hooks/cache'
+import { getMenuByModule } from '#data/menu'
 
 export default async (App) => {
   App.route({
@@ -32,29 +32,29 @@ export default async (App) => {
 
     handler: async (request, response) => {
       // Request params
-      const { id } = request.params;
+      const { id } = request.params
 
       if (request.cache.data) {
-        response.send(request.cache.data);
-        return;
+        response.send(request.cache.data)
+        return
       }
 
       try {
-        const article = await getMenuByModule(id);
+        const article = await getMenuByModule(id)
 
         if (!article) {
-          response.code(400).send({ error: `No menu found for id ${id}` });
+          response.code(400).send({ error: `No menu found for id ${id}` })
         } else {
-          response.send(article);
-          request.cache.data = article;
-          request.cache.shouldSave = true;
+          response.send(article)
+          request.cache.data = article
+          request.cache.shouldSave = true
         }
       } catch (error) {
-        console.error({ error });
-        response.code(500).send({ error: 'Internal Server Error!' });
+        console.error({ error })
+        response.code(500).send({ error: 'Internal Server Error!' })
       }
     },
 
     onResponse: cache.onResponse
-  });
-};
+  })
+}

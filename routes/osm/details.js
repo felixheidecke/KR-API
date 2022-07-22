@@ -1,5 +1,5 @@
-import cache from '#hooks/cache';
-import getDetails from '#data/osm-details';
+import cache from '#hooks/cache'
+import getDetails from '#data/osm-details'
 
 export default async (App) => {
   App.route({
@@ -32,25 +32,25 @@ export default async (App) => {
 
     handler: async (request, response) => {
       // Request params
-      const { id } = request.params;
+      const { id } = request.params
 
       if (request.cache.data) {
-        response.send(request.cache.data);
-        return;
+        response.send(request.cache.data)
+        return
       }
 
       try {
-        const data = await getDetails(id);
+        const data = await getDetails(id)
 
-        response.send(data);
-        request.cache.data = data;
-        request.cache.shouldSave = true;
+        response.send(data)
+        request.cache.data = data
+        request.cache.shouldSave = true
       } catch (error) {
-        console.error({ error });
-        response.code(500).send({ error: 'Internal Server Error!' });
+        console.error({ error })
+        response.code(500).send({ error: 'Internal Server Error!' })
       }
     },
 
     onResponse: cache.onResponse
-  });
-};
+  })
+}

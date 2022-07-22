@@ -11,8 +11,8 @@ export const HEADER = {
   PRIVATE: 'private',
   NO_STORE: 'no-store',
   VERSION: 'x-version'
-};
+}
 
-export const MIME_TYPE_JSON = 'application/json';
+export const MIME_TYPE_JSON = 'application/json'
 
-export const ASSET_BASE_URL = 'https://www.rheingau.de/data/';
+export const ASSET_BASE_URL = 'https://www.rheingau.de/data/'

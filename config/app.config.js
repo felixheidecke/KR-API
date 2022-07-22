@@ -1,4 +1,4 @@
-const { env } = process;
+const { env } = process
 
 export const host = env.APP_HOST || 'localhost'
 export const port = env.APP_PORT || 8300

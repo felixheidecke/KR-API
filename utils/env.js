@@ -1,4 +1,4 @@
-import { config as dotenv } from 'dotenv';
+import { config as dotenv } from 'dotenv'
 
 // make use of .env files
-dotenv();
+dotenv()

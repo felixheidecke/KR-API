@@ -1,7 +1,7 @@
-import fetch from 'node-fetch';
-import { format, formatDistance as fd } from "date-fns";
+import fetch from 'node-fetch'
+import { format, formatDistance as fd } from 'date-fns'
 import { de as locale } from 'date-fns/locale/index.js'
-import oh from "opening_hours";
+import oh from 'opening_hours'
 
 export default async (osmid) => {
   try {
@@ -16,9 +16,8 @@ export default async (osmid) => {
     const resJson = await data.json()
 
     return await adapter(resJson)
-  }
-  catch (e) {
-    console.error(e);
+  } catch (e) {
+    console.error(e)
     return e
   }
 }
@@ -45,12 +44,16 @@ const adapter = async (data) => {
 
   if (extras.fax) model.address.fax = extras.fax
   if (extras.operator) model.operator = extras.operator
-  if (extras.opening_hours) model.openingHours = await extendOpeningHours(model, extras.opening_hours)
+  if (extras.opening_hours)
+    model.openingHours = await extendOpeningHours(model, extras.opening_hours)
 
   return model
 }
 
-const extendOpeningHours = async ({ coordinates, countryCode }, openingHours) => {
+const extendOpeningHours = async (
+  { coordinates, countryCode },
+  openingHours
+) => {
   const nominatim = {
     lat: coordinates[0],
     lon: coordinates[1],
@@ -74,21 +77,20 @@ const extendOpeningHours = async ({ coordinates, countryCode }, openingHours) =>
         distance: formatDistance(nextChange)
       }
     }
-  }
-  catch (error) {
-    console.error(error);
+  } catch (error) {
+    console.error(error)
     return null
   }
 }
 
 const localiseOpeningHours = (openingHours) => {
   return openingHours
-    .replace(/Tu/g, "Di")
-    .replace(/We/g, "Mi")
-    .replace(/Th/g, "Do")
-    .replace(/Su/g, "So")
-    .replace(/off/g, "geschlossen")
-    .replace(/PH/g, "Feiertags")
+    .replace(/Tu/g, 'Di')
+    .replace(/We/g, 'Mi')
+    .replace(/Th/g, 'Do')
+    .replace(/Su/g, 'So')
+    .replace(/off/g, 'geschlossen')
+    .replace(/PH/g, 'Feiertags')
 }
 
 const formatDistance = (nextChange) => {
@@ -98,5 +100,5 @@ const formatDistance = (nextChange) => {
     return distance + 'n'
   }
 
-  return distance;
+  return distance
 }

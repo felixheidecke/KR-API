@@ -1,4 +1,4 @@
-import { forEach } from 'lodash-es';
+import { forEach } from 'lodash-es'
 
 /**
  * Converts key-value pairs to simple
@@ -10,11 +10,11 @@ import { forEach } from 'lodash-es';
  */
 
 export const jsonToText = (json) => {
-  const text = [];
+  const text = []
 
   forEach(json, (value, key) => {
-    text.push(`${key.toUpperCase()}: ${value}`);
-  });
+    text.push(`${key.toUpperCase()}: ${value}`)
+  })
 
-  return text.join('\n');
-};
+  return text.join('\n')
+}

@@ -1,5 +1,5 @@
-import cache from '#hooks/cache';
-import { getArticlesByModule } from '#data/articles';
+import cache from '#hooks/cache'
+import { getArticlesByModule } from '#data/articles'
 
 export default async (App) => {
   App.route({
@@ -43,31 +43,31 @@ export default async (App) => {
 
     handler: async (request, response) => {
       // Request params
-      const { id } = request.params;
-      const { limit, expanded } = request.query;
+      const { id } = request.params
+      const { limit, expanded } = request.query
 
       if (request.cache.data) {
-        response.send(request.cache.data);
-        return;
+        response.send(request.cache.data)
+        return
       }
 
       try {
-        const articles = await getArticlesByModule(id, { expanded, limit });
+        const articles = await getArticlesByModule(id, { expanded, limit })
 
         if (!articles) {
-          response.code(400).send({ error: `No articles found for id ${id}` });
+          response.code(400).send({ error: `No articles found for id ${id}` })
         } else {
-          response.send(articles);
+          response.send(articles)
 
-          request.cache.data = articles;
-          request.cache.shouldSave = true;
+          request.cache.data = articles
+          request.cache.shouldSave = true
         }
       } catch (error) {
-        console.error({ error });
-        response.code(500).send({ error: 'Internal Server Error!' });
+        console.error({ error })
+        response.code(500).send({ error: 'Internal Server Error!' })
       }
     },
 
     onResponse: cache.onResponse
-  });
-};
+  })
+}
