@@ -86,6 +86,7 @@ const eventAdapter = async (e) => {
 
   return {
     id: e._id,
+    module: e.module,
     slug: slugify(e.title, slugifyConfig),
     title: e.title,
     starts: e.startDate,
