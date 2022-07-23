@@ -31,8 +31,6 @@ export const getEvents = async (options) => {
     db.limit(options.limit)
   }
 
-  console.log(db.query())
-
   try {
     const [rows] = await database.execute(db.query(), [getUnixTime(new Date())])
 
@@ -95,17 +93,17 @@ const eventAdapter = async (e) => {
     details: e.details ? textile.parse(e.details) : null,
     image: e.image
       ? {
-          src: ASSET_BASE_URL + e.image,
-          thumbSrc: e.thumb ? ASSET_BASE_URL + e.thumb : null,
-          alt: e.imageDescription || null
-        }
+        src: ASSET_BASE_URL + e.image,
+        thumbSrc: e.thumb ? ASSET_BASE_URL + e.thumb : null,
+        alt: e.imageDescription || null
+      }
       : null,
     pdf: e.pdf
       ? {
-          src: ASSET_BASE_URL + e.pdf || null,
-          name: e.pdfName || null,
-          title: e.pdfTitle ? e.pdfTitle.trim() : e.pdfName
-        }
+        src: ASSET_BASE_URL + e.pdf || null,
+        name: e.pdfName || null,
+        title: e.pdfTitle ? e.pdfTitle.trim() : e.pdfName
+      }
       : null,
     commune: e.commune !== '-' ? upperFirst(e.commune) : null,
     website: e.url || null,
@@ -114,9 +112,9 @@ const eventAdapter = async (e) => {
     coordinates:
       +e.lat > 0 && +e.lng > 0
         ? {
-            lat: +e.lat,
-            lng: +e.lng
-          }
+          lat: +e.lat,
+          lng: +e.lng
+        }
         : null
   }
 }
