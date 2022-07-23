@@ -106,7 +106,7 @@ const eventAdapter = async (e) => {
       }
       : null,
     commune: e.commune !== '-' ? upperFirst(e.commune) : null,
-    website: e.url || null,
+    website: e.detailsURL || null,
     organizer: e.presenter || null,
     flags: await getFlags(e.flagset),
     coordinates:
