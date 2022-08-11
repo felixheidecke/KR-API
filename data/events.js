@@ -60,7 +60,7 @@ const getFlags = async (id) => {
 
     const [rows] = await database.execute(db.query(), [id])
 
-    if (!rows.length) return null
+    if (!rows.length) return []
 
     return rows.map((flag) => flag.title)
   } catch (error) {
