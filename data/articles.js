@@ -140,17 +140,17 @@ const articleAdapter = (a) => {
     text: textile.parse(a.text) || null,
     image: a.image
       ? {
-          src: ASSET_BASE_URL + a.image,
-          thumbSrc: a.imageSmall ? ASSET_BASE_URL + a.imageSmall : null,
-          alt: a.imageDescription || null
-        }
+        src: ASSET_BASE_URL + a.image,
+        thumbSrc: a.imageSmall ? ASSET_BASE_URL + a.imageSmall : null,
+        alt: a.imageDescription || null
+      }
       : null,
     pdf: a.pdf
       ? {
-          src: ASSET_BASE_URL + a.pdf || null,
-          name: a.pdfName || null,
-          title: a.pdfTitle ? a.pdfTitle.trim() : a.pdfName
-        }
+        src: ASSET_BASE_URL + a.pdf || null,
+        name: a.pdfName || null,
+        title: a.pdfTitle ? a.pdfTitle.trim() : 'Weitere Infos'
+      }
       : null,
     web: a.web || null,
     author: a.author || null
@@ -170,10 +170,10 @@ export const paragraphAdapter = (p) => {
     text: textile.parse(p.text) || null,
     image: p.image
       ? {
-          src: ASSET_BASE_URL + p.image,
-          alt: p.imageDescription || null,
-          position: p.imageAlign || null
-        }
+        src: ASSET_BASE_URL + p.image,
+        alt: p.imageDescription || null,
+        position: p.imageAlign || null
+      }
       : null
   }
 }
