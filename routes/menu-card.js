@@ -1,11 +1,11 @@
 import cache from '#hooks/cache'
-import { getMenuByModule } from '#data/menu'
+import { getMenuByModule } from '#data/menu-card'
 
 export default async (App) => {
   App.route({
     method: 'GET',
 
-    url: '/menu/:id',
+    url: '/menu-card/:id',
 
     schema: {
       params: {

@@ -1,3 +1,4 @@
+import textile from 'textile-js'
 import database from '#libs/database'
 
 import { groupBy, reduce } from 'lodash-es'
@@ -14,17 +15,18 @@ export const getMenuByModule = async (id) => {
     SELECT
       menu._id as id, menu.title, menu.description,
       menu.price, category.title as category,
+      category.description as category_description,
       category._id as category_id
-  FROM
-    rtd.MenuItem AS menu
-  LEFT JOIN
-    rtd.MenuSection AS category ON menu.section = category._id
-  WHERE
-    menu.active = 1
-  AND
-    menu.module = ?
-  ORDER BY
-    menu.priority ASC`
+    FROM
+      rtd.MenuItem AS menu
+    LEFT JOIN
+      rtd.MenuSection AS category ON menu.section = category._id
+    WHERE
+      menu.active = 1
+    AND
+      menu.module = ?
+    ORDER BY
+      menu.priority ASC`
 
   try {
     const [rows] = await database.execute(query, [id])
@@ -46,10 +48,16 @@ const menuAdapter = function (rows) {
   const data = reduce(
     groups,
     (menu, items) => {
+      const name = items[0].category.trim()
+      const description = items[0].category_description.trim().length
+        ? textile.parse(items[0].category_description)
+        : null
+
       return [
         ...menu,
         {
-          name: items[0].category,
+          name,
+          description,
           items: itemsAdapter(items)
         }
       ]
@@ -65,7 +73,9 @@ const itemsAdapter = (items) => {
     return {
       id: item.id,
       name: item.title,
-      description: item.description,
+      description: item.description.trim().length
+        ? textile.parse(item.description)
+        : null,
       price: item.price
     }
   })

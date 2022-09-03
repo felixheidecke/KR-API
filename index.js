@@ -17,7 +17,7 @@ App.register(import('@fastify/cors'), {
 // App.register(import('#routes/form'));
 App.register(import('#routes/article'))
 App.register(import('#routes/articles'))
-App.register(import('#routes/menu'))
+App.register(import('#routes/menu-card'))
 App.register(import('#routes/events'))
 App.register(import('#routes/osm/details'))
 
