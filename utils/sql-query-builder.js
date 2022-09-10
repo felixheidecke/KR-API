@@ -55,7 +55,7 @@ export default class mysqlQuery {
   }
 
   order(order, dir = 'ASC') {
-    this._order = `ORDER BY '${order}' ${dir}`
+    this._order = `ORDER BY ${order} ${dir}`
     return this
   }
 

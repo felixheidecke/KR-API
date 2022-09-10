@@ -47,7 +47,7 @@ export const getArticleById = async (id) => {
  * @returns {object[]|null} Articles
  */
 
-export const getArticlesByModule = (id, { expanded = false, limit = 500 }) => {
+export const getArticlesByModule = async (id, { limit = 500 }) => {
   const query = `
     SELECT
       _id, module, title, date,
@@ -65,29 +65,20 @@ export const getArticlesByModule = (id, { expanded = false, limit = 500 }) => {
     LIMIT
       ?`
 
-  return new Promise(async (resolve) => {
+  try {
     const [rows] = await database.execute(query, [id, Date.now(), limit])
+
+    console.log(rows)
 
     if (!rows.length) {
       return resolve(null)
     }
 
-    const articles = []
-    let index = 0
-
-    rows.forEach(async (article) => {
-      article = articleAdapter(article)
-      if (expanded) {
-        article = await appendContent(article)
-      }
-      articles.push(article)
-      index++
-
-      if (rows.length === index) {
-        return resolve(articles)
-      }
-    })
-  })
+    return await Promise.all(rows.map(async (article) => await articleAdapter(article)))
+  } catch (error) {
+    console.error(error)
+    return error
+  }
 }
 
 /**
@@ -97,7 +88,7 @@ export const getArticlesByModule = (id, { expanded = false, limit = 500 }) => {
  * @returns {object} enriched article
  */
 
-const appendContent = async (article) => {
+const appendContent = async (id) => {
   const query = `
   SELECT _id, text, image, imageDescription, imageAlign
     FROM ArticleParagraph
@@ -106,12 +97,13 @@ const appendContent = async (article) => {
   ORDER BY position`
 
   try {
-    const [content] = await database.execute(query, [article.id])
+    const [rows] = await database.execute(query, [id])
 
-    return {
-      ...article,
-      content: content.map((c) => paragraphAdapter(c))
+    if (!rows.length) {
+      return []
     }
+
+    return rows.map((content) => paragraphAdapter(content))
   } catch (error) {
     console.error(error)
     return error
@@ -125,7 +117,7 @@ const appendContent = async (article) => {
  * @returns {object} Remodled article
  */
 
-const articleAdapter = (a) => {
+const articleAdapter = async (a) => {
   const slugifyConfig = {
     lower: true,
     remove: /[*+~.,/()'"!?:@]/g
@@ -152,6 +144,7 @@ const articleAdapter = (a) => {
         title: a.pdfTitle ? a.pdfTitle.trim() : 'Weitere Infos'
       }
       : null,
+    content: await appendContent(a._id),
     web: a.web || null,
     author: a.author || null
   }

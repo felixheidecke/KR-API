@@ -1,22 +1,11 @@
 import cache from '#hooks/cache'
-import getDetails from '#data/osm-details'
+import { getEvent } from '#data/events'
 
 export default async (App) => {
   App.route({
     method: 'GET',
 
-    url: '/osm/details/:id',
-
-    schema: {
-      params: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'number'
-          }
-        }
-      }
-    },
+    url: '/event/:id',
 
     onRequest: cache.onRequest,
 
@@ -40,11 +29,15 @@ export default async (App) => {
       }
 
       try {
-        const data = await getDetails(id)
+        let events = await getEvent(id)
 
-        response.send(data)
-        request.cache.data = data
-        request.cache.shouldSave = true
+        if (!events) {
+          response.code(400).send({ error: `No event found for id ${id}` })
+        } else {
+          response.send(events)
+          request.cache.data = events
+          request.cache.shouldSave = true
+        }
       } catch (error) {
         console.error({ error })
         response.code(500).send({ error: 'Internal Server Error!' })

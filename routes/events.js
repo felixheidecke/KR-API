@@ -1,12 +1,11 @@
 import cache from '#hooks/cache'
 import { getEvents } from '#data/events'
-import { sortBy } from 'lodash-es'
 
 export default async (App) => {
   App.route({
     method: 'GET',
 
-    url: '/events',
+    url: '/events/:module',
 
     schema: {
       query: {
@@ -15,12 +14,6 @@ export default async (App) => {
           limit: {
             type: 'number'
           },
-          module: {
-            type: 'array'
-          },
-          communes: {
-            type: 'array'
-          }
         }
       }
     },
@@ -38,19 +31,21 @@ export default async (App) => {
      */
 
     handler: async (request, response) => {
+      // Request params
+      const { module } = request.params
+      const { query } = request
+
       if (request.cache.data) {
         response.send(request.cache.data)
         return
       }
 
       try {
-        let events = await getEvents(request.query)
+        let events = await getEvents(module, query)
 
         if (!events) {
           response.code(400).send({ error: `No events found` })
         } else {
-          events = sortBy(events, 'starts')
-
           response.send(events)
           request.cache.data = events
           request.cache.shouldSave = true

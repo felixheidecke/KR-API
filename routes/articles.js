@@ -5,7 +5,7 @@ export default async (App) => {
   App.route({
     method: 'GET',
 
-    url: '/articles/:id',
+    url: '/articles/:module',
 
     schema: {
       params: {
@@ -21,9 +21,6 @@ export default async (App) => {
         properties: {
           limit: {
             type: 'number'
-          },
-          expanded: {
-            type: 'boolean'
           }
         }
       }
@@ -43,8 +40,8 @@ export default async (App) => {
 
     handler: async (request, response) => {
       // Request params
-      const { id } = request.params
-      const { limit, expanded } = request.query
+      const { module } = request.params
+      const { limit } = request.query
 
       if (request.cache.data) {
         response.send(request.cache.data)
@@ -52,10 +49,10 @@ export default async (App) => {
       }
 
       try {
-        const articles = await getArticlesByModule(id, { expanded, limit })
+        const articles = await getArticlesByModule(module, { limit })
 
         if (!articles) {
-          response.code(400).send({ error: `No articles found for id ${id}` })
+          response.code(400).send({ error: `No articles found for module ${module}` })
         } else {
           response.send(articles)
 
