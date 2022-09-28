@@ -1,31 +1,45 @@
-import textile from 'textile-js'
-import slugify from 'slugify'
 import { getUnixTime } from 'date-fns'
-import { upperFirst } from 'lodash-es'
-
 import mysqlQuery from '#utils/sql-query-builder'
 import database from '#libs/database'
 import { ASSET_BASE_URL } from '#utils/constants'
+import { event as eventAdapter } from '#utils/adapter'
 
 export const getEvents = async (module, options) => {
   const db = new mysqlQuery()
 
   // --- Build query ------------------
 
-  db.select('*').from('rtd.Event').where('endDate > ?').and(`module = ?`).order('startDate')
+  db.select(`
+    _id, title, startDate, endDate, description,
+    details, image, thumb, imageDescription,
+    pdf, pdfName, pdfTitle, module, flagset,
+    detailsURL, presenter, lat, lng`)
+    .from('rtd.Event')
+    .where('endDate > ?')
+    .and(`module = ?`)
+    .order('startDate')
 
   if (options.limit) {
     db.limit(options.limit)
   }
 
   try {
-    const [rows] = await database.execute(db.query(), [getUnixTime(new Date()), module])
+    const [rows] = await database.execute(db.query(),
+      [getUnixTime(new Date()), module])
 
     if (!rows.length) {
       return null
     }
 
-    return await Promise.all(rows.map(async (event) => await eventAdapter(event)))
+    return await Promise.all(rows.map(async (event) => {
+      const normalizedEvent = eventAdapter(event)
+
+      return {
+        ...normalizedEvent,
+        images: await appendContent(event._id),
+        flags: await getFlags(event.flagset),
+      }
+    }))
 
   } catch (error) {
     console.error(error)
@@ -38,9 +52,13 @@ export const getEvent = async (id) => {
 
   // --- Build query ------------------
 
-  db.select('*').from('rtd.Event').where('_id = ?')
-
-  console.log(db.query());
+  db.select(`
+    _id, title, startDate, endDate, description,
+    details, image, thumb, imageDescription,
+    pdf, pdfName, pdfTitle, module, flagset,
+    detailsURL, presenter, lat, lng`)
+    .from('rtd.Event')
+    .where('_id = ?')
 
   try {
     const [rows] = await database.execute(db.query(), [id])
@@ -49,8 +67,43 @@ export const getEvent = async (id) => {
       return null
     }
 
-    return await eventAdapter(rows[0])
+    const event = eventAdapter(rows[0])
 
+    return {
+      ...event,
+      images: await appendContent(rows[0]._id),
+      flags: await getFlags(rows[0].flagset),
+    }
+
+  } catch (error) {
+    console.error(error)
+    return error
+  }
+}
+
+/**
+ * Add further images to event
+ *
+ * @param {object} id
+ * @returns {object} enriched article
+ */
+
+const appendContent = async (id) => {
+  const db = new mysqlQuery()
+
+  db.select('image, description').from('rtd.EventImage').where('event = ?').order('position')
+
+  try {
+    const [rows] = await database.execute(db.query(), [id])
+
+    if (!rows.length) return []
+
+    return rows.map(row => {
+      return {
+        src: ASSET_BASE_URL + row.image,
+        alt: row.description
+      }
+    })
   } catch (error) {
     console.error(error)
     return error
@@ -78,55 +131,5 @@ const getFlags = async (id) => {
   } catch (error) {
     console.error(error)
     return error
-  }
-}
-
-/**
- * Remodel the structure of an event
- *
- * @param {object} e Event (from DB)
- * @returns {object} Remodled event
- */
-
-const eventAdapter = async (e) => {
-  const slugifyConfig = {
-    lower: true,
-    remove: /[*+~.,/()'"!?:@]/g
-  }
-
-  return {
-    id: e._id,
-    module: e.module,
-    slug: slugify(e.title, slugifyConfig),
-    title: e.title,
-    starts: e.startDate,
-    ends: e.endDate,
-    description: e.description ? textile.parse(e.description) : null,
-    details: e.details ? textile.parse(e.details) : null,
-    image: e.image
-      ? {
-        src: ASSET_BASE_URL + e.image,
-        thumbSrc: e.thumb ? ASSET_BASE_URL + e.thumb : null,
-        alt: e.imageDescription || null
-      }
-      : null,
-    pdf: e.pdf
-      ? {
-        src: ASSET_BASE_URL + e.pdf || null,
-        name: e.pdfName || null,
-        title: e.pdfTitle ? e.pdfTitle.trim() : 'Weitere Infos'
-      }
-      : null,
-    commune: e.commune !== '-' ? upperFirst(e.commune) : null,
-    website: e.detailsURL || null,
-    organizer: e.presenter || null,
-    flags: await getFlags(e.flagset),
-    coordinates:
-      +e.lat > 0 && +e.lng > 0
-        ? {
-          lat: +e.lat,
-          lng: +e.lng
-        }
-        : null
   }
 }

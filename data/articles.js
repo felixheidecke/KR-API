@@ -1,8 +1,7 @@
-import textile from 'textile-js'
-import slugify from 'slugify'
-
 import database from '#libs/database'
-import { ASSET_BASE_URL } from '#utils/constants'
+import mysqlQuery from '#utils/sql-query-builder'
+
+import { paragraph as paragraphAdapter, article as articleAdapter } from '#utils/adapter'
 
 /**
  * Fetch article
@@ -12,28 +11,31 @@ import { ASSET_BASE_URL } from '#utils/constants'
  */
 
 export const getArticleById = async (id) => {
-  const query = `
-  SELECT
-    _id, module, title, date,
-    text, image, imageSmall, imageDescription,
-    pdf, pdfName, pdfTitle, web, author
-  FROM
-    Article
-  WHERE
-    _id = ?
-  LIMIT
-    1`
+  const db = new mysqlQuery()
+
+  db
+    .select(`
+      _id, module, title, date,
+      text, image, imageSmall, imageDescription,
+      pdf, pdfName, pdfTitle, web, author`)
+    .from('rtd.Article')
+    .where('_id = ?')
+    .limit(1)
 
   try {
-    const [rows] = await database.execute(query, [id])
+    const [rows] = await database.execute(db.query(), [id])
 
     if (!rows.length) {
       return null
     }
 
-    let article = articleAdapter(rows[0])
-    article = await appendContent(article)
-    return article
+    const article = articleAdapter(rows[0])
+
+    return {
+      ...article,
+      content: await appendContent(rows[0]._id)
+    }
+
   } catch (error) {
     console.error(error)
     return error
@@ -48,33 +50,38 @@ export const getArticleById = async (id) => {
  */
 
 export const getArticlesByModule = async (id, { limit = 500 }) => {
-  const query = `
-    SELECT
+  const db = new mysqlQuery()
+
+  db
+    .select(`
       _id, module, title, date,
       text, image, imageSmall, imageDescription,
-      pdf, pdfName, pdfTitle, web, author
-    FROM
-      Article
-    WHERE
-      module = ? AND
-      active = 1 AND
-      date IS NOT NULL AND
-      (archiveDate = 0 OR archiveDate > ?)
-    ORDER BY
-      date DESC
-    LIMIT
-      ?`
+      pdf, pdfName, pdfTitle, web, author`)
+    .from('rtd.Article')
+    .where('module = ?')
+    .and('active = 1')
+    .and('date IS NOT NULL')
+    .and('(archiveDate = 0 OR archiveDate > ?)')
+    .order('date')
+    .limit('?')
+
+  console.log({ query: db.query() })
 
   try {
-    const [rows] = await database.execute(query, [id, Date.now(), limit])
-
-    console.log(rows)
+    const [rows] = await database.execute(db.query(), [id, Date.now(), limit])
 
     if (!rows.length) {
       return resolve(null)
     }
 
-    return await Promise.all(rows.map(async (article) => await articleAdapter(article)))
+    return await Promise.all(rows.map(async (article) => {
+      const normalizedArticle = articleAdapter(article)
+
+      return {
+        ...normalizedArticle,
+        content: await appendContent(article._id)
+      }
+    }))
   } catch (error) {
     console.error(error)
     return error
@@ -82,22 +89,23 @@ export const getArticlesByModule = async (id, { limit = 500 }) => {
 }
 
 /**
- * Add content to article
+ * Fetch content by module id
  *
- * @param {object} article
- * @returns {object} enriched article
+ * @param {string|number} id article id
+ * @returns {object} content
  */
 
 const appendContent = async (id) => {
-  const query = `
-  SELECT _id, text, image, imageDescription, imageAlign
-    FROM ArticleParagraph
-      WHERE
-        article = ?
-  ORDER BY position`
+  const db = new mysqlQuery()
+
+  db
+    .select('_id, text, image, imageDescription, imageAlign')
+    .from('rtd.ArticleParagraph')
+    .where('article = ?')
+    .order('position')
 
   try {
-    const [rows] = await database.execute(query, [id])
+    const [rows] = await database.execute(db.query(), [id])
 
     if (!rows.length) {
       return []
@@ -107,66 +115,5 @@ const appendContent = async (id) => {
   } catch (error) {
     console.error(error)
     return error
-  }
-}
-
-/**
- * Remodel the structure of an article
- *
- * @param {object} a Article (from DB)
- * @returns {object} Remodled article
- */
-
-const articleAdapter = async (a) => {
-  const slugifyConfig = {
-    lower: true,
-    remove: /[*+~.,/()'"!?:@]/g
-  }
-
-  return {
-    id: a._id,
-    module: a.module,
-    slug: slugify(a.title, slugifyConfig),
-    title: a.title,
-    date: a.date,
-    text: textile.parse(a.text) || null,
-    image: a.image
-      ? {
-        src: ASSET_BASE_URL + a.image,
-        thumbSrc: a.imageSmall ? ASSET_BASE_URL + a.imageSmall : null,
-        alt: a.imageDescription || null
-      }
-      : null,
-    pdf: a.pdf
-      ? {
-        src: ASSET_BASE_URL + a.pdf || null,
-        name: a.pdfName || null,
-        title: a.pdfTitle ? a.pdfTitle.trim() : 'Weitere Infos'
-      }
-      : null,
-    content: await appendContent(a._id),
-    web: a.web || null,
-    author: a.author || null
-  }
-}
-
-/**
- * Remodel the structure of paragraphs
- *
- * @param {object[]} paragraphs List of paragraphs (from DB)
- * @returns {object} Restructured list of paragraphs
- */
-
-export const paragraphAdapter = (p) => {
-  return {
-    id: p._id,
-    text: textile.parse(p.text) || null,
-    image: p.image
-      ? {
-        src: ASSET_BASE_URL + p.image,
-        alt: p.imageDescription || null,
-        position: p.imageAlign || null
-      }
-      : null
   }
 }

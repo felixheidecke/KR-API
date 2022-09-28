@@ -50,7 +50,7 @@ export default class mysqlQuery {
   }
 
   limit(limit) {
-    this._limit = `LIMIT ${parseInt(limit)}`
+    this._limit = `LIMIT ${limit}`
     return this
   }
 
