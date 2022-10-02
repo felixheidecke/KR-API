@@ -1,5 +1,5 @@
 import cache from '#hooks/cache'
-import { getArticleById } from '#data/articles'
+import { getArticleById } from '#data/articles.data'
 
 export default async (App) => {
   App.route({

@@ -1,25 +1,17 @@
 import cache from '#hooks/cache'
-import { getArticlesByModule } from '#data/articles'
+import { getMenuByModule } from '#data/menu-card.data'
 
 export default async (App) => {
   App.route({
     method: 'GET',
 
-    url: '/articles/:module',
+    url: '/menu-card/:id',
 
     schema: {
       params: {
         type: 'object',
         properties: {
           id: {
-            type: 'number'
-          }
-        }
-      },
-      query: {
-        type: 'object',
-        properties: {
-          limit: {
             type: 'number'
           }
         }
@@ -31,7 +23,7 @@ export default async (App) => {
     preHandler: cache.preHandler,
 
     /**
-     * Getting a single article by its _id
+     * Getting articles by their module (id)
      *
      * @param {object} request Fastify request object
      * @param {object} response Fastify response object
@@ -40,8 +32,7 @@ export default async (App) => {
 
     handler: async (request, response) => {
       // Request params
-      const { module } = request.params
-      const { limit } = request.query
+      const { id } = request.params
 
       if (request.cache.data) {
         response.send(request.cache.data)
@@ -49,14 +40,13 @@ export default async (App) => {
       }
 
       try {
-        const articles = await getArticlesByModule(module, { limit })
+        const article = await getMenuByModule(id)
 
-        if (!articles) {
-          response.code(400).send({ error: `No articles found for module ${module}` })
+        if (!article) {
+          response.code(400).send({ error: `No menu found for id ${id}` })
         } else {
-          response.send(articles)
-
-          request.cache.data = articles
+          response.send(article)
+          request.cache.data = article
           request.cache.shouldSave = true
         }
       } catch (error) {

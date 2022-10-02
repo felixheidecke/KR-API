@@ -1,4 +1,4 @@
-import { forEach } from 'lodash-es'
+import { forEach, toUpper } from 'lodash-es'
 
 /**
  * Converts key-value pairs to simple
@@ -17,4 +17,19 @@ export const jsonToText = (json) => {
   })
 
   return text.join('\n')
+}
+
+
+/**
+ * Converts key-value pair to simple CSV
+ *
+ * @param {object} json Simple key-value pair
+ * @returns {string} CSV formated text
+ */
+
+export const jsonToCSV = (json) => {
+  const names = Object.keys(json).map(key => `"${toUpper(key)}"`).join(',')
+  const values = Object.values(json).map(value => `"${value}"`).join(',')
+
+  return `${names}\n${values}`
 }

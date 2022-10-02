@@ -14,12 +14,12 @@ App.register(import('@fastify/cors'), {
 })
 
 // Register routes
-// App.register(import('#routes/form'));
-App.register(import('#routes/article'))
-App.register(import('#routes/articles'))
-App.register(import('#routes/menu-card'))
-App.register(import('#routes/event'))
-App.register(import('#routes/events'))
+App.register(import('#routes/form.route'));
+App.register(import('#routes/article.route'))
+App.register(import('#routes/articles.route'))
+App.register(import('#routes/menu-card.route'))
+App.register(import('#routes/event.route'))
+App.register(import('#routes/events.route'))
 
   // Startup
   ; (async () => {

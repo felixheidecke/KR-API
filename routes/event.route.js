@@ -1,22 +1,11 @@
 import cache from '#hooks/cache'
-import { getMenuByModule } from '#data/menu-card'
+import { getEvent } from '#data/events.data'
 
 export default async (App) => {
   App.route({
     method: 'GET',
 
-    url: '/menu-card/:id',
-
-    schema: {
-      params: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'number'
-          }
-        }
-      }
-    },
+    url: '/event/:id',
 
     onRequest: cache.onRequest,
 
@@ -40,13 +29,13 @@ export default async (App) => {
       }
 
       try {
-        const article = await getMenuByModule(id)
+        let events = await getEvent(id)
 
-        if (!article) {
-          response.code(400).send({ error: `No menu found for id ${id}` })
+        if (!events) {
+          response.code(400).send({ error: `No event found for id ${id}` })
         } else {
-          response.send(article)
-          request.cache.data = article
+          response.send(events)
+          request.cache.data = events
           request.cache.shouldSave = true
         }
       } catch (error) {

@@ -1,19 +1,27 @@
 import cache from '#hooks/cache'
-import { getEvents } from '#data/events'
+import { getArticlesByModule } from '#data/articles.data'
 
 export default async (App) => {
   App.route({
     method: 'GET',
 
-    url: '/events/:module',
+    url: '/articles/:module',
 
     schema: {
+      params: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'number'
+          }
+        }
+      },
       query: {
         type: 'object',
         properties: {
           limit: {
             type: 'number'
-          },
+          }
         }
       }
     },
@@ -23,7 +31,7 @@ export default async (App) => {
     preHandler: cache.preHandler,
 
     /**
-     * Getting articles by their module (id)
+     * Getting a single article by its _id
      *
      * @param {object} request Fastify request object
      * @param {object} response Fastify response object
@@ -33,7 +41,7 @@ export default async (App) => {
     handler: async (request, response) => {
       // Request params
       const { module } = request.params
-      const { query } = request
+      const { limit } = request.query
 
       if (request.cache.data) {
         response.send(request.cache.data)
@@ -41,13 +49,14 @@ export default async (App) => {
       }
 
       try {
-        let events = await getEvents(module, query)
+        const articles = await getArticlesByModule(module, { limit })
 
-        if (!events) {
-          response.code(400).send({ error: `No events found` })
+        if (!articles) {
+          response.code(400).send({ error: `No articles found for module ${module}` })
         } else {
-          response.send(events)
-          request.cache.data = events
+          response.send(articles)
+
+          request.cache.data = articles
           request.cache.shouldSave = true
         }
       } catch (error) {

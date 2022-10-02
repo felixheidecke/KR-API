@@ -1,11 +1,22 @@
 import cache from '#hooks/cache'
-import { getEvent } from '#data/events'
+import { getEvents } from '#data/events.data'
 
 export default async (App) => {
   App.route({
     method: 'GET',
 
-    url: '/event/:id',
+    url: '/events/:module',
+
+    schema: {
+      query: {
+        type: 'object',
+        properties: {
+          limit: {
+            type: 'number'
+          },
+        }
+      }
+    },
 
     onRequest: cache.onRequest,
 
@@ -21,7 +32,8 @@ export default async (App) => {
 
     handler: async (request, response) => {
       // Request params
-      const { id } = request.params
+      const { module } = request.params
+      const { query } = request
 
       if (request.cache.data) {
         response.send(request.cache.data)
@@ -29,10 +41,10 @@ export default async (App) => {
       }
 
       try {
-        let events = await getEvent(id)
+        let events = await getEvents(module, query)
 
         if (!events) {
-          response.code(400).send({ error: `No event found for id ${id}` })
+          response.code(400).send({ error: `No events found` })
         } else {
           response.send(events)
           request.cache.data = events
