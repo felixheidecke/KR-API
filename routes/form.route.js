@@ -5,7 +5,6 @@ import { HEADER, MIME_TYPE_JSON } from "#utils/constants"
 import { jsonToCSV, jsonToText } from "#utils/helper"
 import { from } from '#config/nodemailer.config'
 import { getEmailAddress } from '#data/formmail.data'
-import { authenticate as authHook, schema as authSchema } from '#hooks/authentication'
 
 export default async (App) => {
   App.route({
@@ -28,21 +27,15 @@ export default async (App) => {
           attach: { type: 'string' }
         }
       },
-      ...authSchema
     },
 
-    onRequest: [
-      // Authentication required
-      await authHook,
+    onRequest: async (_, response) => {
       // Make sure the response won't be cached
-      (_, response, next) => {
-        response.headers({
-          [HEADER.CONTENT_TYPE]: MIME_TYPE_JSON,
-          [HEADER.CACHE_CONTROL]: [HEADER.PRIVATE, HEADER.NO_STORE].join(', ')
-        })
-        next()
-      }
-    ],
+      response.headers({
+        [HEADER.CONTENT_TYPE]: MIME_TYPE_JSON,
+        [HEADER.CACHE_CONTROL]: [HEADER.PRIVATE, HEADER.NO_STORE].join(', ')
+      })
+    },
 
     preValidation: async (request, _) => {
       request.body = {
