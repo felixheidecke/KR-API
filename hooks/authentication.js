@@ -1,19 +1,18 @@
-import database from '#libs/database'
+import { apiKeys } from "#config/app.config"
 
-export const onRequest = async (request, response) => {
-  const apiKey = request.headers['x-api-key'] || ''
+export const authenticate = async (request, response) => {
+  const key = request.headers['x-api-key']
+  const ips = apiKeys[key] || []
 
-  try {
-    const query = `SELECT _id, name FROM Customer WHERE api_key = ? AND api_allowed_ips like ?`
-    const [result] = await database.query(query, [apiKey, `%${request.ip}%`])
+  // No IP matching required
+  if (ips === 'any') return
 
-    if (!result.length) {
-      response.code(403).send('Forbidden')
-      return
-    }
-  } catch (error) {
-    console.error(error)
-    response.code(500).send({ error })
+  // Key and IP do not match
+  if (!ips.includes(request.ip)) {
+    const msg = 'Forbidden'
+    response.code(403).send(msg)
+    console.error('[ERR:403]', msg)
+    return
   }
 }
 
@@ -23,7 +22,7 @@ export const schema = {
     properties: {
       'x-api-key': {
         type: 'string',
-        pattern: '^[a-z0-9]{32}$'
+        pattern: '^[a-z0-9]{16}$'
       }
     }
   }

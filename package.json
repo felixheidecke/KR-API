@@ -1,6 +1,6 @@
 {
   "name": "kr-api",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "private": true,
   "description": "Klickrhein feature API",
   "main": "index.js",
@@ -24,21 +24,21 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/cors": "^8.1.0",
-    "date-fns": "^2.29.2",
-    "dotenv": "^16.0.1",
-    "fastify": "^4.5.3",
+    "date-fns": "^2.29.3",
+    "dotenv": "^16.0.3",
+    "fastify": "^4.7.0",
     "lodash-es": "^4.17.21",
     "mysql2": "^2.3.3",
     "node-fetch": "^3.2.10",
-    "nodemailer": "^6.7.8",
-    "redis": "^4.3.0",
+    "nodemailer": "^6.8.0",
+    "redis": "^4.3.1",
     "slugify": "^1.6.5",
     "textile-js": "^2.1.1"
   },
   "devDependencies": {
-    "eslint": "^8.23.0",
-    "nodemon": "^2.0.19",
-    "npm-check-updates": "^16.0.6",
+    "eslint": "^8.24.0",
+    "nodemon": "^2.0.20",
+    "npm-check-updates": "^16.3.4",
     "prettier": "^2.7.1"
   },
   "imports": {

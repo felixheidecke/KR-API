@@ -1,10 +1,11 @@
 import { omit } from 'lodash-es'
 
-import database from '#libs/database'
 import mailer from '#libs/mailer'
 import { HEADER, MIME_TYPE_JSON } from "#utils/constants"
 import { jsonToCSV, jsonToText } from "#utils/helper"
 import { from } from '#config/nodemailer.config'
+import { getEmailAddress } from '#data/formmail.data'
+import { authenticate as authHook, schema as authSchema } from '#hooks/authentication'
 
 export default async (App) => {
   App.route({
@@ -26,17 +27,22 @@ export default async (App) => {
         properties: {
           attach: { type: 'string' }
         }
+      },
+      ...authSchema
+    },
+
+    onRequest: [
+      // Authentication required
+      await authHook,
+      // Make sure the response won't be cached
+      (_, response, next) => {
+        response.headers({
+          [HEADER.CONTENT_TYPE]: MIME_TYPE_JSON,
+          [HEADER.CACHE_CONTROL]: [HEADER.PRIVATE, HEADER.NO_STORE].join(', ')
+        })
+        next()
       }
-    },
-
-    onRequest: async (_, response) => {
-      console.log(_.body);
-
-      response.headers({
-        [HEADER.CONTENT_TYPE]: MIME_TYPE_JSON,
-        [HEADER.CACHE_CONTROL]: [HEADER.PRIVATE, HEADER.NO_STORE].join(', ')
-      })
-    },
+    ],
 
     preValidation: async (request, _) => {
       request.body = {
@@ -62,16 +68,10 @@ export default async (App) => {
     },
 
     handler: async ({ body, query }, response) => {
-      const attCSV = query.attach === 'csv'
-
-      // Get corresponding email from databse
       try {
-        const [result] = await database.execute(
-          `SELECT email FROM Formmail WHERE ID = ?`,
-          [body.id]
-        )
+        const to = await getEmailAddress(body.id)
 
-        if (!result.length) {
+        if (!to) {
           response
             .code(400)
             .send({ message: `No entry found for id ${body.id}` })
@@ -81,16 +81,16 @@ export default async (App) => {
 
         mailer.sendMail({
           from,
-          to: result[0].email,
+          to,
           subject: body.subject,
           text: jsonToText(content),
-          attachments: attCSV ? [{
+          attachments: (query.attach === 'csv') ? [{
             filename: body.subject + '.csv',
             content: jsonToCSV(content)
           }] : []
         })
 
-        // Don't wait for
+        // Don't wait for email being send
         response.code(202).send({ message: 'success' })
       } catch (error) {
         console.error({ error })
