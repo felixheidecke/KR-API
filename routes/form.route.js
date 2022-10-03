@@ -2,7 +2,7 @@ import { omit } from 'lodash-es'
 
 import mailer from '#libs/mailer'
 import { HEADER, MIME_TYPE_JSON } from "#utils/constants"
-import { jsonToCSV, jsonToText } from "#utils/helper"
+import { jsonToCSV, jsonToText, toFilenameWithDate } from "#utils/helper"
 import { from } from '#config/nodemailer.config'
 import { getEmailAddress } from '#data/formmail.data'
 
@@ -40,19 +40,20 @@ export default async (App) => {
     preValidation: async (request, _) => {
       request.body = {
         ...request.body,
-        required: JSON.parse(request.body?.required)
+        id: request.body?.id.split(',').map(id => +id),
+        required: request.body?.required.split(',')
       }
     },
 
     preHandler: async ({ body }, response) => {
-      const missing = body.required.filter((field) => !body[field].length) || []
+      const missing = body.required.filter((field) => !body[field]?.length) || []
 
       try {
         if (!missing.length) return
 
-        response.code(400).send({
-          message: 'Missing required fields',
-          fields: missing
+        response.code(200).send({
+          error: 'Missing required fields',
+          message: missing.join(',')
         })
       } catch (error) {
         console.error('[KR-API]', error)
@@ -62,23 +63,22 @@ export default async (App) => {
 
     handler: async ({ body, query }, response) => {
       try {
-        const to = await getEmailAddress(body.id)
+        const emailAddresses = await getEmailAddress(body.id)
+        const content = omit(body, ['id', 'subject', 'required'])
 
-        if (!to) {
+        if (emailAddresses.length === 0) {
           response
             .code(400)
-            .send({ message: `No entry found for id ${body.id}` })
+            .send({ message: `No entry/s found for id ${body.id}` })
         }
-
-        const content = omit(body, ['id', 'subject', 'required'])
 
         mailer.sendMail({
           from,
-          to,
-          subject: body.subject,
+          to: emailAddresses.join(','),
+          subject: body.subject.trim(),
           text: jsonToText(content),
           attachments: (query.attach === 'csv') ? [{
-            filename: body.subject + '.csv',
+            filename: toFilenameWithDate(body.subject, 'csv'),
             content: jsonToCSV(content)
           }] : []
         })

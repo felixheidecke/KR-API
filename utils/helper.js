@@ -1,4 +1,6 @@
+import { format } from 'date-fns'
 import { forEach, toUpper } from 'lodash-es'
+import slugify from 'slugify'
 
 /**
  * Converts key-value pairs to simple
@@ -32,4 +34,18 @@ export const jsonToCSV = (json) => {
   const values = Object.values(json).map(value => `"${value}"`).join(',')
 
   return `${names}\n${values}`
+}
+
+export const toFilenameWithDate = (name, appendix = false) => {
+
+  const filename = [
+    slugify(name, { lower: true, strict: true, trim: true }),
+    format(new Date(), 't')
+  ]
+
+  if (appendix) {
+    filename.push(appendix)
+  }
+
+  return filename.join('.')
 }

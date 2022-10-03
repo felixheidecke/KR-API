@@ -41,11 +41,13 @@ export default class mysqlQuery {
   }
 
   or(or) {
-    if (Array.isArray(or)) {
-      or = `( ${or.join(' ')} )`
+    if (!Array.isArray(or)) {
+      this._where.push(`OR ${or}`)
     }
-
-    this._where.push(`OR ${or}`)
+    else {
+      or = or.join(' OR ')
+      this._where.push(or)
+    }
     return this
   }
 
