@@ -13,7 +13,7 @@ export const getEvents = async (module, options) => {
     _id, title, startDate, endDate, description,
     details, image, thumb, imageDescription,
     pdf, pdfName, pdfTitle, module, flagset,
-    detailsURL, presenter, lat, lng`)
+    detailsURL, url, presenter, lat, lng`)
     .from('rtd.Event')
     .where('endDate > ?')
     .and(`module = ?`)
@@ -56,7 +56,7 @@ export const getEvent = async (id) => {
     _id, title, startDate, endDate, description,
     details, image, thumb, imageDescription,
     pdf, pdfName, pdfTitle, module, flagset,
-    detailsURL, presenter, lat, lng`)
+    detailsURL, url, presenter, lat, lng`)
     .from('rtd.Event')
     .where('_id = ?')
 

@@ -1,8 +1,8 @@
 import { omit } from 'lodash-es'
 
 import mailer from '#libs/mailer'
-import { HEADER, MIME_TYPE_JSON } from "#utils/constants"
-import { jsonToCSV, jsonToText, toFilenameWithDate } from "#utils/helper"
+import { HEADER, MIME_TYPE_JSON } from '#utils/constants'
+import { jsonToCSV, jsonToText, toFilenameWithDate } from '#utils/helper'
 import { from } from '#config/nodemailer.config'
 import { getEmailAddress } from '#data/formmail.data'
 
@@ -18,7 +18,7 @@ export default async (App) => {
         properties: {
           recipient: { type: 'number' },
           subject: { type: 'string' },
-          required: { type: 'array' },
+          required: { type: 'array' }
         }
       },
       query: {
@@ -26,7 +26,7 @@ export default async (App) => {
         properties: {
           attach: { type: 'string' }
         }
-      },
+      }
     },
 
     onRequest: async (_, response) => {
@@ -40,13 +40,14 @@ export default async (App) => {
     preValidation: async (request, _) => {
       request.body = {
         ...request.body,
-        id: request.body?.id.split(',').map(id => +id),
+        id: request.body?.id.split(',').map((id) => +id),
         required: request.body?.required.split(',')
       }
     },
 
     preHandler: async ({ body }, response) => {
-      const missing = body.required.filter((field) => !body[field]?.length) || []
+      const missing =
+        body.required.filter((field) => !body[field]?.length) || []
 
       try {
         if (!missing.length) return
@@ -64,7 +65,7 @@ export default async (App) => {
     handler: async ({ body, query }, response) => {
       try {
         const emailAddresses = await getEmailAddress(body.id)
-        const content = omit(body, ['id', 'subject', 'required'])
+        const content = omit(body, ['id', 'subject', 'required', 'honig'])
 
         if (emailAddresses.length === 0) {
           response
@@ -77,10 +78,16 @@ export default async (App) => {
           to: emailAddresses.join(','),
           subject: body.subject.trim(),
           text: jsonToText(content),
-          attachments: (query.attach === 'csv') ? [{
-            filename: toFilenameWithDate(body.subject, 'csv'),
-            content: jsonToCSV(content)
-          }] : []
+          attachments:
+            query.attach === 'csv'
+              ? [
+                  {
+                    filename: toFilenameWithDate(body.subject, 'csv'),
+                    content: jsonToCSV(content),
+                    contentType: 'text/csv'
+                  }
+                ]
+              : []
         })
 
         // Don't wait for email being send

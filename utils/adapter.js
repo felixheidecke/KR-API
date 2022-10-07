@@ -101,6 +101,7 @@ export const event = (e) => {
       }
       : null,
     website: e.detailsURL || null,
+    ticketshop: e.url || null,
     organizer: e.presenter || null,
     coordinates:
       +e.lat > 0 && +e.lng > 0
