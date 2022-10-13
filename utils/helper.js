@@ -21,7 +21,6 @@ export const jsonToText = (json) => {
   return text.join('\n')
 }
 
-
 /**
  * Converts key-value pair to simple CSV
  *
@@ -30,14 +29,17 @@ export const jsonToText = (json) => {
  */
 
 export const jsonToCSV = (json) => {
-  const names = Object.keys(json).map(key => `"${toUpper(key)}"`).join(',')
-  const values = Object.values(json).map(value => `"${value}"`).join(',')
+  const names = Object.keys(json)
+    .map((key) => `"${toUpper(key)}"`)
+    .join(',')
+  const values = Object.values(json)
+    .map((value) => `"${value}"`)
+    .join(',')
 
   return `${names}\n${values}`
 }
 
 export const toFilenameWithDate = (name, appendix = false) => {
-
   const filename = [
     slugify(name, { lower: true, strict: true, trim: true }),
     format(new Date(), 't')

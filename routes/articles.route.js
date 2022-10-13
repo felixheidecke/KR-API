@@ -52,7 +52,9 @@ export default async (App) => {
         const articles = await getArticlesByModule(module, { limit })
 
         if (!articles) {
-          response.code(400).send({ error: `No articles found for module ${module}` })
+          response
+            .code(400)
+            .send({ error: `No articles found for module ${module}` })
         } else {
           response.send(articles)
 

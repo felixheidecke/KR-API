@@ -13,7 +13,7 @@ export default async (App) => {
         properties: {
           limit: {
             type: 'number'
-          },
+          }
         }
       }
     },

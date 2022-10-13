@@ -9,11 +9,13 @@ export const getEvents = async (module, options) => {
 
   // --- Build query ------------------
 
-  db.select(`
+  db.select(
+    `
     _id, title, startDate, endDate, description,
     details, image, thumb, imageDescription,
     pdf, pdfName, pdfTitle, module, flagset,
-    detailsURL, url, presenter, lat, lng`)
+    detailsURL, url, presenter, lat, lng`
+  )
     .from('rtd.Event')
     .where('endDate > ?')
     .and(`module = ?`)
@@ -24,23 +26,26 @@ export const getEvents = async (module, options) => {
   }
 
   try {
-    const [rows] = await database.execute(db.query(),
-      [getUnixTime(new Date()), module])
+    const [rows] = await database.execute(db.query(), [
+      getUnixTime(new Date()),
+      module
+    ])
 
     if (!rows.length) {
       return null
     }
 
-    return await Promise.all(rows.map(async (event) => {
-      const normalizedEvent = eventAdapter(event)
+    return await Promise.all(
+      rows.map(async (event) => {
+        const normalizedEvent = eventAdapter(event)
 
-      return {
-        ...normalizedEvent,
-        images: await appendContent(event._id),
-        flags: await getFlags(event.flagset),
-      }
-    }))
-
+        return {
+          ...normalizedEvent,
+          images: await appendContent(event._id),
+          flags: await getFlags(event.flagset)
+        }
+      })
+    )
   } catch (error) {
     console.error(error)
     return error
@@ -52,11 +57,13 @@ export const getEvent = async (id) => {
 
   // --- Build query ------------------
 
-  db.select(`
+  db.select(
+    `
     _id, title, startDate, endDate, description,
     details, image, thumb, imageDescription,
     pdf, pdfName, pdfTitle, module, flagset,
-    detailsURL, url, presenter, lat, lng`)
+    detailsURL, url, presenter, lat, lng`
+  )
     .from('rtd.Event')
     .where('_id = ?')
 
@@ -72,9 +79,8 @@ export const getEvent = async (id) => {
     return {
       ...event,
       images: await appendContent(rows[0]._id),
-      flags: await getFlags(rows[0].flagset),
+      flags: await getFlags(rows[0].flagset)
     }
-
   } catch (error) {
     console.error(error)
     return error
@@ -91,14 +97,17 @@ export const getEvent = async (id) => {
 const appendContent = async (id) => {
   const db = new mysqlQuery()
 
-  db.select('image, description').from('rtd.EventImage').where('event = ?').order('position')
+  db.select('image, description')
+    .from('rtd.EventImage')
+    .where('event = ?')
+    .order('position')
 
   try {
     const [rows] = await database.execute(db.query(), [id])
 
     if (!rows.length) return []
 
-    return rows.map(row => {
+    return rows.map((row) => {
       return {
         src: ASSET_BASE_URL + row.image,
         alt: row.description

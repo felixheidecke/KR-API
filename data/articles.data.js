@@ -1,7 +1,10 @@
 import database from '#libs/database'
 import mysqlQuery from '#utils/sql-query-builder'
 
-import { paragraph as paragraphAdapter, article as articleAdapter } from '#utils/adapter'
+import {
+  paragraph as paragraphAdapter,
+  article as articleAdapter
+} from '#utils/adapter'
 
 /**
  * Fetch article
@@ -13,11 +16,12 @@ import { paragraph as paragraphAdapter, article as articleAdapter } from '#utils
 export const getArticleById = async (id) => {
   const db = new mysqlQuery()
 
-  db
-    .select(`
+  db.select(
+    `
       _id, module, title, date,
       text, image, imageSmall, imageDescription,
-      pdf, pdfName, pdfTitle, web, author`)
+      pdf, pdfName, pdfTitle, web, author`
+  )
     .from('rtd.Article')
     .where('_id = ?')
     .limit(1)
@@ -35,7 +39,6 @@ export const getArticleById = async (id) => {
       ...article,
       content: await appendContent(rows[0]._id)
     }
-
   } catch (error) {
     console.error(error)
     return error
@@ -52,11 +55,12 @@ export const getArticleById = async (id) => {
 export const getArticlesByModule = async (id, { limit = 500 }) => {
   const db = new mysqlQuery()
 
-  db
-    .select(`
+  db.select(
+    `
       _id, module, title, date,
       text, image, imageSmall, imageDescription,
-      pdf, pdfName, pdfTitle, web, author`)
+      pdf, pdfName, pdfTitle, web, author`
+  )
     .from('rtd.Article')
     .where('module = ?')
     .and('active = 1')
@@ -74,14 +78,16 @@ export const getArticlesByModule = async (id, { limit = 500 }) => {
       return resolve(null)
     }
 
-    return await Promise.all(rows.map(async (article) => {
-      const normalizedArticle = articleAdapter(article)
+    return await Promise.all(
+      rows.map(async (article) => {
+        const normalizedArticle = articleAdapter(article)
 
-      return {
-        ...normalizedArticle,
-        content: await appendContent(article._id)
-      }
-    }))
+        return {
+          ...normalizedArticle,
+          content: await appendContent(article._id)
+        }
+      })
+    )
   } catch (error) {
     console.error(error)
     return error
@@ -98,8 +104,7 @@ export const getArticlesByModule = async (id, { limit = 500 }) => {
 const appendContent = async (id) => {
   const db = new mysqlQuery()
 
-  db
-    .select('_id, text, image, imageDescription, imageAlign')
+  db.select('_id, text, image, imageDescription, imageAlign')
     .from('rtd.ArticleParagraph')
     .where('article = ?')
     .order('position')

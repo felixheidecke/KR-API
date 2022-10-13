@@ -1,4 +1,4 @@
-import { apiKeys } from "#config/app.config"
+import { apiKeys } from '#config/app.config'
 
 export const authenticate = async (request, response) => {
   const key = request.headers['x-api-key']
