@@ -6,3 +6,4 @@ export const from = env.MAILER_FROM || 'mailer@localhost'
 export const secure = env.MAILER_SECURE || false
 export const user = env.MAILER_USER || null
 export const password = env.MAILER_PASSWORD || null
+export const bcc = env.MAILER_BCC || undefined

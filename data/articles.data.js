@@ -69,8 +69,6 @@ export const getArticlesByModule = async (id, { limit = 500 }) => {
     .order('date')
     .limit('?')
 
-  console.log({ query: db.query() })
-
   try {
     const [rows] = await database.execute(db.query(), [id, Date.now(), limit])
 

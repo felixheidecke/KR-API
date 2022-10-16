@@ -3,7 +3,7 @@ import { omit } from 'lodash-es'
 import mailer from '#libs/mailer'
 import { HEADER, MIME_TYPE_JSON } from '#utils/constants'
 import { jsonToCSV, jsonToText, toFilenameWithDate } from '#utils/helper'
-import { from } from '#config/nodemailer.config'
+import { from, bcc } from '#config/nodemailer.config'
 import { getEmailAddress } from '#data/formmail.data'
 
 export default async (App) => {
@@ -75,18 +75,19 @@ export default async (App) => {
 
         mailer.sendMail({
           from,
+          bcc,
           to: emailAddresses.join(','),
           subject: body.subject.trim(),
           text: jsonToText(content),
           attachments:
             query.attach === 'csv'
               ? [
-                  {
-                    filename: toFilenameWithDate(body.subject, 'csv'),
-                    content: jsonToCSV(content),
-                    contentType: 'text/csv'
-                  }
-                ]
+                {
+                  filename: toFilenameWithDate(body.subject, 'csv'),
+                  content: jsonToCSV(content),
+                  contentType: 'text/csv'
+                }
+              ]
               : []
         })
 
