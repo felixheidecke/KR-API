@@ -21,6 +21,7 @@ App.register(import('#routes/events.route'))
 App.register(import('#routes/form.route'))
 App.register(import('#routes/menu-card.route'))
 App.register(import('#routes/ping.route'))
+App.register(import('#routes/flush.route'))
 
 // Startup
 ;(async () => {

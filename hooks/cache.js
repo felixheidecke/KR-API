@@ -1,9 +1,7 @@
 import { HEADER, MIME_TYPE_JSON } from '#utils/constants'
 import redis from '#libs/redis'
 
-const TTL = 90 // 1.5 minutes
-
-redis.connect()
+const TTL = 60 * 5 // 5 minutes
 
 /**
  * Add cache model to request models

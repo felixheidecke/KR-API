@@ -1,6 +1,6 @@
 {
   "name": "kr-api",
-  "version": "3.4.3",
+  "version": "3.5.0",
   "private": true,
   "description": "Klickrhein feature API",
   "main": "index.js",

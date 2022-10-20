@@ -82,12 +82,12 @@ export default async (App) => {
           attachments:
             query.attach === 'csv'
               ? [
-                {
-                  filename: toFilenameWithDate(body.subject, 'csv'),
-                  content: jsonToCSV(content),
-                  contentType: 'text/csv'
-                }
-              ]
+                  {
+                    filename: toFilenameWithDate(body.subject, 'csv'),
+                    content: jsonToCSV(content),
+                    contentType: 'text/csv'
+                  }
+                ]
               : []
         })
 
