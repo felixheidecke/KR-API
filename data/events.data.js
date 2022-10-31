@@ -32,7 +32,7 @@ export const getEvents = async (module, options) => {
     ])
 
     if (!rows.length) {
-      return null
+      return []
     }
 
     return await Promise.all(

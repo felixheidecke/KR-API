@@ -43,13 +43,9 @@ export default async (App) => {
       try {
         let events = await getEvents(module, query)
 
-        if (!events) {
-          response.code(400).send({ error: `No events found` })
-        } else {
-          response.send(events)
-          request.cache.data = events
-          request.cache.shouldSave = true
-        }
+        response.send(events)
+        request.cache.data = events
+        request.cache.shouldSave = !!events.length
       } catch (error) {
         console.error({ error })
         response.code(500).send({ error: 'Internal Server Error!' })

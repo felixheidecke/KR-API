@@ -8,7 +8,7 @@ export default async (App) => {
 
     handler: (_, response) => {
       redis.FLUSHALL()
-      response.code(204)
+      response.code(204).send()
     }
   })
 }
