@@ -1,16 +1,12 @@
 import database from '#libs/database'
 import mysqlQuery from '#utils/sql-query-builder'
-
-import {
-  paragraph as paragraphAdapter,
-  article as articleAdapter
-} from '#utils/adapter'
+import { paragraphAdapter, articleAdapter } from './_utils.js'
 
 /**
  * Fetch article
  *
  * @param {number} id Article id
- * @returns {object|null} Article
+ * @returns {Promise<object|null>} Articles
  */
 
 export const getArticleById = async (id) => {
@@ -18,9 +14,9 @@ export const getArticleById = async (id) => {
 
   db.select(
     `
-      _id, module, title, date,
-      text, image, imageSmall, imageDescription,
-      pdf, pdfName, pdfTitle, web, author`
+    _id, module, title, date,
+    text, image, imageSmall, imageDescription,
+    pdf, pdfName, pdfTitle, web, author`
   )
     .from('rtd.Article')
     .where('_id = ?')
@@ -29,15 +25,13 @@ export const getArticleById = async (id) => {
   try {
     const [rows] = await database.execute(db.query(), [id])
 
-    if (!rows.length) {
-      return null
-    }
+    if (!rows.length) return null
 
     const article = articleAdapter(rows[0])
 
     return {
       ...article,
-      content: await appendContent(rows[0]._id)
+      content: await getParagrapsByArticle(rows[0]._id)
     }
   } catch (error) {
     console.error(error)
@@ -46,35 +40,34 @@ export const getArticleById = async (id) => {
 }
 
 /**
- * Fetch articles
+ * Fetch Articles
  *
  * @param {number} id Module id
- * @returns {object[]|null} Articles
+ * @returns {Promise<array>} Articles
  */
 
 export const getArticlesByModule = async (id, { limit = 500 }) => {
-  const db = new mysqlQuery()
-
-  db.select(
-    `
-      _id, module, title, date,
-      text, image, imageSmall, imageDescription,
-      pdf, pdfName, pdfTitle, web, author`
-  )
-    .from('rtd.Article')
-    .where('module = ?')
-    .and('active = 1')
-    .and('date IS NOT NULL')
-    .and('(archiveDate = 0 OR archiveDate > ?)')
-    .order('date')
-    .limit('?')
+  const query = `
+    SELECT
+      _id, module, title, date, text, image, imageSmall, imageDescription, pdf,
+      pdfName, pdfTitle, web, author
+    FROM
+      rtd.Article
+    WHERE
+      module = ?
+    AND
+      date IS NOT NULL
+    AND
+      (archiveDate = 0 OR archiveDate > ?)
+    ORDER BY
+      date ASC
+    LIMIT
+      ?`
 
   try {
-    const [rows] = await database.execute(db.query(), [id, Date.now(), limit])
+    const [rows] = await database.execute(query, [id, Date.now(), limit])
 
-    if (!rows.length) {
-      return resolve(null)
-    }
+    if (!rows.length) return Prmose.resolve([])
 
     return await Promise.all(
       rows.map(async (article) => {
@@ -82,7 +75,7 @@ export const getArticlesByModule = async (id, { limit = 500 }) => {
 
         return {
           ...normalizedArticle,
-          content: await appendContent(article._id)
+          content: await getParagrapsByArticle(article._id)
         }
       })
     )
@@ -93,13 +86,13 @@ export const getArticlesByModule = async (id, { limit = 500 }) => {
 }
 
 /**
- * Fetch content by module id
+ * Fetch Articles by module id
  *
- * @param {string|number} id article id
- * @returns {object} content
+ * @param {string|number} id module
+ * @returns {Promise<array>} Articles
  */
 
-const appendContent = async (id) => {
+const getParagrapsByArticle = async (id) => {
   const db = new mysqlQuery()
 
   db.select('_id, text, image, imageDescription, imageAlign')
@@ -110,9 +103,7 @@ const appendContent = async (id) => {
   try {
     const [rows] = await database.execute(db.query(), [id])
 
-    if (!rows.length) {
-      return []
-    }
+    if (!rows.length) return []
 
     return rows.map((content) => paragraphAdapter(content))
   } catch (error) {

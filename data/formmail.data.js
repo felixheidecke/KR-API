@@ -4,7 +4,7 @@ import mysqlQuery from '#utils/sql-query-builder'
 /**
  * Get a csv of
  *
- * @param {number[] | string[]} ids list of id matching rtd.Formmail
+ * @param {number[]|string[]} ids list of id matching rtd.Formmail
  * @returns {Promise<string[]>} list of email addresses
  */
 

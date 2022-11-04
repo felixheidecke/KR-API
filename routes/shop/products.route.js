@@ -1,17 +1,17 @@
 import cache from '#hooks/cache'
-import { getArticleById } from '#data/articles'
+import { getProducts } from '#data/shop/product'
 
 export default async (App) => {
   App.route({
     method: 'GET',
 
-    url: '/article/:id',
+    url: '/shop/:module/products',
 
     schema: {
       params: {
         type: 'object',
         properties: {
-          id: {
+          module: {
             type: 'number'
           }
         }
@@ -22,26 +22,20 @@ export default async (App) => {
 
     preHandler: cache.preHandler,
 
-    /**
-     * Getting articles by their module (id)
-     *
-     * @param {object} request Fastify request object
-     * @param {object} response Fastify response object
-     * @returns {Promise<void>}
-     */
-
     handler: async (request, response) => {
-      // Request params
-      const { id } = request.params
+      const { module } = request.params
 
       try {
-        const article = await getArticleById(id)
+        const data = await getProducts(module)
 
-        if (!article) {
-          response.code(400).send({ error: `No article found for id ${id}` })
+        if (!data.length) {
+          response
+            .header('content-type', 'text/plain')
+            .code(404)
+            .send(`No Products found for module ${module}`)
         } else {
-          response.send(article)
-          request.cache.data = article
+          response.send(data)
+          request.cache.data = data
           request.cache.shouldSave = true
           request.log.info(`Serving ${request.url} from Database`)
         }

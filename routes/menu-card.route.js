@@ -1,5 +1,5 @@
 import cache from '#hooks/cache'
-import { getMenuByModule } from '#data/menu-card.data'
+import { getMenuByModule } from '#data/menu-card'
 
 export default async (App) => {
   App.route({

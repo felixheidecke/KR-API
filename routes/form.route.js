@@ -3,8 +3,8 @@ import { omit } from 'lodash-es'
 import mailer from '#libs/mailer'
 import { HEADER, MIME_TYPE_JSON } from '#utils/constants'
 import { jsonToCSV, jsonToText, toFilenameWithDate } from '#utils/helper'
-import { from, bcc } from '#config/nodemailer.config'
-import { getEmailAddress } from '#data/formmail.data'
+import { from, bcc } from '#config/nodemailer'
+import { getEmailAddress } from '#data/formmail'
 
 export default async (App) => {
   App.route({

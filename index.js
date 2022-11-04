@@ -1,11 +1,11 @@
 import '#utils/env'
 
-import { host, port } from '#config/app.config'
-import baseHeader from '#hooks/base-header'
+import { host, port, secret } from '#config/app'
+import { message as messageHeader } from '#hooks/header'
 import App from '#libs/fastify'
 
 // Global Hooks
-App.addHook('onRequest', baseHeader)
+App.addHook('onRequest', messageHeader)
 
 // Handling CORS
 App.register(import('@fastify/cors'), {
@@ -13,15 +13,30 @@ App.register(import('@fastify/cors'), {
   origin: '*'
 })
 
+App.register(import('@fastify/cookie'), {
+  secret,
+  hook: 'onRequest'
+})
+
 // Register routes
-App.register(import('#routes/article.route'))
-App.register(import('#routes/articles.route'))
-App.register(import('#routes/event.route'))
-App.register(import('#routes/events.route'))
-App.register(import('#routes/form.route'))
-App.register(import('#routes/menu-card.route'))
-App.register(import('#routes/ping.route'))
-App.register(import('#routes/flush.route'))
+App.register(import('#routes/article'))
+App.register(import('#routes/articles'))
+App.register(import('#routes/event'))
+App.register(import('#routes/events'))
+App.register(import('#routes/form'))
+App.register(import('#routes/menu-card'))
+App.register(import('#routes/ping'))
+App.register(import('#routes/flush'))
+
+// App.register(import('#routes/shop/categories'))
+// App.register(import('#routes/shop/category'))
+// App.register(import('#routes/shop/cart/add'))
+// App.register(import('#routes/shop/cart/index'))
+// App.register(import('#routes/shop/cart/remove'))
+// App.register(import('#routes/shop/info'))
+// App.register(import('#routes/shop/order'))
+// App.register(import('#routes/shop/product'))
+// App.register(import('#routes/shop/products'))
 
 // Startup
 ;(async () => {

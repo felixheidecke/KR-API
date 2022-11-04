@@ -1,6 +1,6 @@
 {
   "name": "kr-api",
-  "version": "3.5.1",
+  "version": "3.6.0",
   "private": true,
   "description": "Klickrhein feature API",
   "main": "index.js",
@@ -23,14 +23,17 @@
   "author": "Felix Heidecke",
   "license": "ISC",
   "dependencies": {
+    "@fastify/cookie": "^8.3.0",
     "@fastify/cors": "^8.1.0",
     "date-fns": "^2.29.3",
     "dotenv": "^16.0.3",
     "fastify": "^4.8.1",
+    "jsonwebtoken": "^8.5.1",
     "lodash-es": "^4.17.21",
     "mysql2": "^2.3.3",
     "node-fetch": "^3.2.10",
     "nodemailer": "^6.8.0",
+    "php-serialize": "^4.0.2",
     "redis": "^4.3.1",
     "slugify": "^1.6.5",
     "textile-js": "^2.1.1"
@@ -42,11 +45,11 @@
     "prettier": "^2.7.1"
   },
   "imports": {
-    "#config/*": "./config/*.js",
-    "#data/*": "./data/*.js",
+    "#config/*": "./config/*.config.js",
+    "#data/*": "./data/*.data.js",
     "#hooks/*": "./hooks/*.js",
     "#libs/*": "./libs/*.js",
-    "#routes/*": "./routes/*.js",
+    "#routes/*": "./routes/*.route.js",
     "#utils/*": "./utils/*.js"
   }
 }

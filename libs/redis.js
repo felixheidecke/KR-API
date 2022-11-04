@@ -1,5 +1,5 @@
 import { createClient } from 'redis'
-import { host, port, username, password } from '#config/redis.config'
+import { host, port, username, password } from '#config/redis'
 
 const client = createClient({
   socket: {

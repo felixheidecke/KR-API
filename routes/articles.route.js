@@ -1,5 +1,5 @@
 import cache from '#hooks/cache'
-import { getArticlesByModule } from '#data/articles.data'
+import { getArticlesByModule } from '#data/articles'
 
 export default async (App) => {
   App.route({
@@ -43,11 +43,6 @@ export default async (App) => {
       const { module } = request.params
       const { limit } = request.query
 
-      if (request.cache.data) {
-        response.send(request.cache.data)
-        return
-      }
-
       try {
         const articles = await getArticlesByModule(module, { limit })
 
@@ -60,6 +55,7 @@ export default async (App) => {
 
           request.cache.data = articles
           request.cache.shouldSave = true
+          request.log.info(`Serving ${request.url} from Database`)
         }
       } catch (error) {
         console.error({ error })

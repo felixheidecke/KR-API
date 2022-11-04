@@ -1,13 +1,11 @@
-import textile from 'textile-js'
 import database from '#libs/database'
-
-import { groupBy, reduce } from 'lodash-es'
+import { menuAdapter } from './_utils.js'
 
 /**
- * Fetch article
+ * Fetch menu-card
  *
- * @param {number} id Article id
- * @returns {object|null} Article
+ * @param {number} id module id
+ * @returns {Promise<array>} Menu
  */
 
 export const getMenuByModule = async (id) => {
@@ -17,66 +15,20 @@ export const getMenuByModule = async (id) => {
       menu.price, category.title as category,
       category.description as category_description,
       category._id as category_id
-    FROM
-      rtd.MenuItem AS menu
-    LEFT JOIN
-      rtd.MenuSection AS category ON menu.section = category._id
-    WHERE
-      menu.active = 1
-    AND
-      menu.module = ?
-    ORDER BY
-      menu.priority ASC`
+    FROM rtd.MenuItem AS menu
+    LEFT JOIN rtd.MenuSection AS category ON menu.section = category._id
+    WHERE menu.active = 1
+    AND menu.module = ?
+    ORDER BY menu.priority ASC`
 
   try {
     const [rows] = await database.execute(query, [id])
 
-    if (!rows.length) {
-      return null
-    }
+    if (!rows.length) []
 
     return menuAdapter(rows)
   } catch (error) {
     console.error(error)
     return error
   }
-}
-
-const menuAdapter = function (rows) {
-  const groups = groupBy(rows, 'category')
-
-  const data = reduce(
-    groups,
-    (menu, items) => {
-      const name = items[0].category.trim()
-      const description = items[0].category_description.trim().length
-        ? textile.parse(items[0].category_description)
-        : null
-
-      return [
-        ...menu,
-        {
-          name,
-          description,
-          items: itemsAdapter(items)
-        }
-      ]
-    },
-    []
-  )
-
-  return data
-}
-
-const itemsAdapter = (items) => {
-  return items.map((item) => {
-    return {
-      id: item.id,
-      name: item.title,
-      description: item.description.trim().length
-        ? textile.parse(item.description)
-        : null,
-      price: item.price
-    }
-  })
 }

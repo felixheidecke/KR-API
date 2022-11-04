@@ -2,7 +2,14 @@ import { getUnixTime } from 'date-fns'
 import mysqlQuery from '#utils/sql-query-builder'
 import database from '#libs/database'
 import { ASSET_BASE_URL } from '#utils/constants'
-import { event as eventAdapter } from '#utils/adapter'
+import { eventAdapter } from './_utils.js'
+
+/**
+ * Get Events by id
+ *
+ * @param {object} id
+ * @returns {Promise<array>} Event
+ */
 
 export const getEvents = async (module, options) => {
   const db = new mysqlQuery()
@@ -11,10 +18,9 @@ export const getEvents = async (module, options) => {
 
   db.select(
     `
-    _id, title, startDate, endDate, description,
-    details, image, thumb, imageDescription,
-    pdf, pdfName, pdfTitle, module, flagset,
-    detailsURL, url, presenter, lat, lng`
+    _id, title, startDate, endDate, description, details, image, thumb,
+    imageDescription, pdf, pdfName, pdfTitle, module, flagset, detailsURL, url,
+    presenter, lat, lng`
   )
     .from('rtd.Event')
     .where('endDate > ?')
@@ -31,9 +37,7 @@ export const getEvents = async (module, options) => {
       module
     ])
 
-    if (!rows.length) {
-      return []
-    }
+    if (!rows.length) return []
 
     return await Promise.all(
       rows.map(async (event) => {
@@ -41,7 +45,7 @@ export const getEvents = async (module, options) => {
 
         return {
           ...normalizedEvent,
-          images: await appendContent(event._id),
+          images: await getImagesByEvent(event._id),
           flags: await getFlags(event.flagset)
         }
       })
@@ -51,6 +55,13 @@ export const getEvents = async (module, options) => {
     return error
   }
 }
+
+/**
+ * Get Event by id
+ *
+ * @param {object} id
+ * @returns {Promise<object|null>} Event
+ */
 
 export const getEvent = async (id) => {
   const db = new mysqlQuery()
@@ -70,15 +81,13 @@ export const getEvent = async (id) => {
   try {
     const [rows] = await database.execute(db.query(), [id])
 
-    if (!rows.length) {
-      return null
-    }
+    if (!rows.length) return null
 
     const event = eventAdapter(rows[0])
 
     return {
       ...event,
-      images: await appendContent(rows[0]._id),
+      images: await getImagesByEvent(rows[0]._id),
       flags: await getFlags(rows[0].flagset)
     }
   } catch (error) {
@@ -91,10 +100,10 @@ export const getEvent = async (id) => {
  * Add further images to event
  *
  * @param {object} id
- * @returns {object} enriched article
+ * @returns {Promise<object>} enriched article
  */
 
-const appendContent = async (id) => {
+const getImagesByEvent = async (id) => {
   const db = new mysqlQuery()
 
   db.select('image, description')

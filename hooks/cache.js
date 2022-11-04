@@ -43,8 +43,13 @@ const preHandler = async (request, response) => {
     // Update cache info
     request.cache.wasHit = !!data
     request.cache.data = data
+
+    if (data) {
+      response.send(data)
+      request.log.info(`Serving ${request.url} from Cache`)
+    }
   } catch (error) {
-    console.error('[KR-API]', error)
+    request.log.error(error)
     response.headers({
       [HEADER.CACHE]: HEADER.CACHE_FAIL
     })

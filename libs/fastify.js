@@ -1,7 +1,7 @@
 import Fastify from 'fastify'
 import fs from 'fs'
 
-import { cert, key } from '#config/app.config'
+import { cert, key } from '#config/app'
 
 export default Fastify({
   logger: true,

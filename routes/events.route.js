@@ -1,5 +1,5 @@
 import cache from '#hooks/cache'
-import { getEvents } from '#data/events.data'
+import { getEvents } from '#data/events'
 
 export default async (App) => {
   App.route({
@@ -34,11 +34,6 @@ export default async (App) => {
       // Request params
       const { module } = request.params
       const { query } = request
-
-      if (request.cache.data) {
-        response.send(request.cache.data)
-        return
-      }
 
       try {
         let events = await getEvents(module, query)
