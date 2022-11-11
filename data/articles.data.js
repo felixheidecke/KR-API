@@ -10,6 +10,8 @@ import { paragraphAdapter, articleAdapter } from './_utils.js'
  */
 
 export const getArticleById = async (id) => {
+  if (!id) return new Error('Missing required param "id" in getArticleById()')
+
   const db = new mysqlQuery()
 
   db.select(
@@ -42,11 +44,14 @@ export const getArticleById = async (id) => {
 /**
  * Fetch Articles
  *
- * @param {number} id Module id
+ * @param {number} module
  * @returns {Promise<array>} Articles
  */
 
-export const getArticlesByModule = async (id, { limit = 500 }) => {
+export const getArticlesByModule = async (module, { limit = 500 }) => {
+  if (!module)
+    return new Error('Missing required param "module" in getArticlesByModule()')
+
   const query = `
     SELECT
       _id, module, title, date, text, image, imageSmall, imageDescription, pdf,
@@ -65,7 +70,7 @@ export const getArticlesByModule = async (id, { limit = 500 }) => {
       ?`
 
   try {
-    const [rows] = await database.execute(query, [id, Date.now(), limit])
+    const [rows] = await database.execute(query, [module, Date.now(), limit])
 
     if (!rows.length) return Prmose.resolve([])
 
@@ -93,6 +98,9 @@ export const getArticlesByModule = async (id, { limit = 500 }) => {
  */
 
 const getParagrapsByArticle = async (id) => {
+  if (!id)
+    return new Error('Missing required param "id" in getParagrapsByArticle()')
+
   const db = new mysqlQuery()
 
   db.select('_id, text, image, imageDescription, imageAlign')

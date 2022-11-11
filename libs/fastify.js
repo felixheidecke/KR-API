@@ -7,14 +7,14 @@ export default Fastify({
   logger: {
     mixin() {
       return { version: pkg.version }
-    },
+    }
   },
   trustProxy: true,
   https: !!cert
     ? {
-      cert: fs.readFileSync(cert),
-      key: fs.readFileSync(key),
-      allowHTTP1: true
-    }
+        cert: fs.readFileSync(cert),
+        key: fs.readFileSync(key),
+        allowHTTP1: true
+      }
     : false
 })

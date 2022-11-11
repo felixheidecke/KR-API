@@ -16,8 +16,8 @@ export const cookiePreHandler = async (request) => {
   request.cart = cookie
     ? verify(cookie)
     : {
-      module: 0,
-      products: {},
-      total: 0
-    }
+        module: 0,
+        products: {},
+        total: 0
+      }
 }

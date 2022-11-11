@@ -13,12 +13,12 @@ export const HEADER = {
   PRIVATE: 'private',
   NO_STORE: 'no-store',
   VERSION: 'x-version',
-  USER_DATA: 'x-user-data',
+  USER_DATA: 'x-user-data'
 }
 
 export const TOKEN = {
   BEARER: (token) => `Bearer ${token}`,
-  BASIC: (token) => `Basic ${token}`,
+  BASIC: (token) => `Basic ${token}`
 }
 
 export const MIME_TYPE_JSON = 'application/json'

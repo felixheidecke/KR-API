@@ -13,7 +13,6 @@ App.register(import('@fastify/cors'), {
   origin: '*'
 })
 
-
 // App.register(import('@fastify/cookie'), {
 //   hook: 'onRequest'
 // })
@@ -27,23 +26,24 @@ App.register(import('#routes/form'))
 App.register(import('#routes/menu-card'))
 App.register(import('#routes/ping'))
 App.register(import('#routes/flush'))
+App.register(import('#routes/gallery'))
 
-  // App.register(import('#routes/shop/categories'))
-  // App.register(import('#routes/shop/category'))
-  // App.register(import('#routes/shop/cart/add'))
-  // App.register(import('#routes/shop/cart/index'))
-  // App.register(import('#routes/shop/cart/remove'))
-  // App.register(import('#routes/shop/info'))
-  // App.register(import('#routes/shop/order'))
-  // App.register(import('#routes/shop/product'))
-  // App.register(import('#routes/shop/products'))
+// App.register(import('#routes/shop/categories'))
+// App.register(import('#routes/shop/category'))
+// App.register(import('#routes/shop/cart/add'))
+// App.register(import('#routes/shop/cart/index'))
+// App.register(import('#routes/shop/cart/remove'))
+// App.register(import('#routes/shop/info'))
+// App.register(import('#routes/shop/order'))
+// App.register(import('#routes/shop/product'))
+// App.register(import('#routes/shop/products'))
 
-  // Startup
-  ; (async () => {
-    try {
-      await App.listen({ port, host })
-    } catch (err) {
-      App.log.error({ err })
-      process.exit(1)
-    }
-  })()
+// Startup
+;(async () => {
+  try {
+    await App.listen({ port, host })
+  } catch (err) {
+    App.log.error({ err })
+    process.exit(1)
+  }
+})()
