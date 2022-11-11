@@ -1,4 +1,5 @@
 import database from '#libs/database'
+import { credentialsAdapter } from '../_utils.js'
 
 /**
  * Fetch shipping info
@@ -68,6 +69,29 @@ export const getOwnerInfo = async (module) => {
     if (!rows.length) return null
 
     return rows[0]
+  } catch (error) {
+    console.error(error)
+    return error
+  }
+}
+
+export const getCredentials = async (module) => {
+  const query = `
+    SELECT
+      paypal_client_id, paypal_secret
+    FROM
+      rtd.Shop3Credentials
+    WHERE
+      module = ?
+    LIMIT
+      1`
+
+  try {
+    const [rows] = await database.execute(query, [module])
+
+    if (!rows.length) return null
+
+    return credentialsAdapter(rows[0])
   } catch (error) {
     console.error(error)
     return error

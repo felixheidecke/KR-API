@@ -61,10 +61,10 @@ export const paragraphAdapter = (p) => {
     text: textile.parse(p.text) || null,
     image: p.image
       ? {
-          src: ASSET_BASE_URL + p.image,
-          alt: p.imageDescription,
-          align: p.imageAlign || null
-        }
+        src: ASSET_BASE_URL + p.image,
+        alt: p.imageDescription,
+        align: p.imageAlign || null
+      }
       : null
   }
 }
@@ -91,17 +91,17 @@ export const articleAdapter = (a) => {
     text: textile.parse(a.text) || null,
     image: a.image
       ? {
-          src: ASSET_BASE_URL + a.image,
-          thumbSrc: a.imageSmall ? ASSET_BASE_URL + a.imageSmall : null,
-          alt: a.imageDescription
-        }
+        src: ASSET_BASE_URL + a.image,
+        thumbSrc: a.imageSmall ? ASSET_BASE_URL + a.imageSmall : null,
+        alt: a.imageDescription
+      }
       : null,
     pdf: a.pdf
       ? {
-          src: ASSET_BASE_URL + a.pdf || null,
-          name: a.pdfName || null,
-          title: a.pdfTitle ? a.pdfTitle.trim() : 'Weitere Infos'
-        }
+        src: ASSET_BASE_URL + a.pdf || null,
+        name: a.pdfName || null,
+        title: a.pdfTitle ? a.pdfTitle.trim() : 'Weitere Infos'
+      }
       : null,
     web: a.web || null,
     author: a.author || null
@@ -132,17 +132,17 @@ export const eventAdapter = (e) => {
     details: e.details ? textile.parse(e.details) : null,
     image: e.image
       ? {
-          src: ASSET_BASE_URL + e.image,
-          thumbSrc: e.thumb ? ASSET_BASE_URL + e.thumb : null,
-          alt: e.imageDescription
-        }
+        src: ASSET_BASE_URL + e.image,
+        thumbSrc: e.thumb ? ASSET_BASE_URL + e.thumb : null,
+        alt: e.imageDescription
+      }
       : null,
     pdf: e.pdf
       ? {
-          src: ASSET_BASE_URL + e.pdf || null,
-          name: e.pdfName || null,
-          title: e.pdfTitle ? e.pdfTitle.trim() : 'Weitere Infos'
-        }
+        src: ASSET_BASE_URL + e.pdf || null,
+        name: e.pdfName || null,
+        title: e.pdfTitle ? e.pdfTitle.trim() : 'Weitere Infos'
+      }
       : null,
     website: e.detailsURL || null,
     ticketshop: e.url || null,
@@ -150,9 +150,9 @@ export const eventAdapter = (e) => {
     coordinates:
       +e.lat > 0 && +e.lng > 0
         ? {
-            lat: +e.lat,
-            lng: +e.lng
-          }
+          lat: +e.lat,
+          lng: +e.lng
+        }
         : null
   }
 }
@@ -171,6 +171,7 @@ export const productAdapter = (p) => {
 
   return {
     id: +p._id,
+    module: p.module,
     code: p.productCode,
     EAN: p.ean,
     name: p.name,
@@ -179,9 +180,9 @@ export const productAdapter = (p) => {
     legalInfo: p.legal ? textile.parse(p.legal) : null,
     category: p.categoryId
       ? {
-          id: p.categoryId,
-          name: p.categoryName
-        }
+        id: p.categoryId,
+        name: p.categoryName
+      }
       : null,
 
     quantity: {
@@ -207,18 +208,18 @@ export const productAdapter = (p) => {
 
     image: p.image
       ? {
-          src: ASSET_BASE_URL + p.image,
-          largeSrc: p.imageBig ? ASSET_BASE_URL + p.imageBig : null,
-          alt: p.name
-        }
+        src: ASSET_BASE_URL + p.image,
+        largeSrc: p.imageBig ? ASSET_BASE_URL + p.imageBig : null,
+        alt: p.name
+      }
       : null,
 
     pdf: p.pdf
       ? {
-          src: ASSET_BASE_URL + p.pdf || null,
-          name: p.pdfName || null,
-          title: p.pdfTitle ? p.pdfTitle.trim() : 'Produktinformationen'
-        }
+        src: ASSET_BASE_URL + p.pdf || null,
+        name: p.pdfName || null,
+        title: p.pdfTitle ? p.pdfTitle.trim() : 'Produktinformationen'
+      }
       : null,
 
     showOnFrontpage: !!p.frontpage
@@ -237,5 +238,17 @@ export const orderAdapter = (order) => {
   return {
     ...order,
     order: unserialize('a:1:{s:4:"Test";s:17:"unserialize here!";}')
+  }
+}
+
+export const credentialsAdapter = (credentials) => {
+  const { paypal_client_id, paypal_secret, jwt_secret } = credentials
+
+  return {
+    paypal: paypal_client_id ? {
+      clientId: paypal_client_id,
+      secret: paypal_secret
+    } : null,
+    jwtSecret: jwt_secret
   }
 }

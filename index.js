@@ -1,6 +1,6 @@
 import '#utils/env'
 
-import { host, port, secret } from '#config/app'
+import { host, port } from '#config/app'
 import { message as messageHeader } from '#hooks/header'
 import App from '#libs/fastify'
 
@@ -13,10 +13,10 @@ App.register(import('@fastify/cors'), {
   origin: '*'
 })
 
-App.register(import('@fastify/cookie'), {
-  secret,
-  hook: 'onRequest'
-})
+
+// App.register(import('@fastify/cookie'), {
+//   hook: 'onRequest'
+// })
 
 // Register routes
 App.register(import('#routes/article'))
@@ -28,22 +28,22 @@ App.register(import('#routes/menu-card'))
 App.register(import('#routes/ping'))
 App.register(import('#routes/flush'))
 
-// App.register(import('#routes/shop/categories'))
-// App.register(import('#routes/shop/category'))
-// App.register(import('#routes/shop/cart/add'))
-// App.register(import('#routes/shop/cart/index'))
-// App.register(import('#routes/shop/cart/remove'))
-// App.register(import('#routes/shop/info'))
-// App.register(import('#routes/shop/order'))
-// App.register(import('#routes/shop/product'))
-// App.register(import('#routes/shop/products'))
+  // App.register(import('#routes/shop/categories'))
+  // App.register(import('#routes/shop/category'))
+  // App.register(import('#routes/shop/cart/add'))
+  // App.register(import('#routes/shop/cart/index'))
+  // App.register(import('#routes/shop/cart/remove'))
+  // App.register(import('#routes/shop/info'))
+  // App.register(import('#routes/shop/order'))
+  // App.register(import('#routes/shop/product'))
+  // App.register(import('#routes/shop/products'))
 
-// Startup
-;(async () => {
-  try {
-    await App.listen({ port, host })
-  } catch (err) {
-    App.log.error({ err })
-    process.exit(1)
-  }
-})()
+  // Startup
+  ; (async () => {
+    try {
+      await App.listen({ port, host })
+    } catch (err) {
+      App.log.error({ err })
+      process.exit(1)
+    }
+  })()

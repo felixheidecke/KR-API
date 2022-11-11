@@ -6,7 +6,8 @@ export const cookieName = 'Shop3Cart'
 export const cookieOptions = () => {
   return {
     expires: add(new Date(), { minutes: 30 }),
-    secure: true
+    secure: true,
+    path: '/shop'
   }
 }
 
@@ -15,7 +16,8 @@ export const cookiePreHandler = async (request) => {
   request.cart = cookie
     ? verify(cookie)
     : {
-        products: {},
-        total: 0
-      }
+      module: 0,
+      products: {},
+      total: 0
+    }
 }

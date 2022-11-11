@@ -1,15 +1,18 @@
-import { getProductPrice } from '#data/shop/product'
+import { getReducedProduct } from '#data/shop/product'
 import { cacheNoStore as cacheNoStoreHeader } from '#hooks/header'
 import { sign } from '#libs/jwt'
 import { NUMBER_FORMAT_CURRENCY } from '#utils/constants'
-import { cookieName, cookieOptions } from './_utils.js'
+import { cookieName, cookieOptions, cookiePreHandler } from './_utils.js'
 
 const schema = {
   body: {
     type: 'object',
-    required: ['id', 'quantity'],
+    required: ['id', 'quantity', 'module'],
     properties: {
       id: {
+        type: 'number'
+      },
+      module: {
         type: 'number'
       },
       quantity: {
@@ -21,34 +24,36 @@ const schema = {
 
 const handler = async (request, response) => {
   const { id, quantity } = request.body
-  const cartProducts = new Map(Object.entries(request.cart.products))
+  const { price, module, name } = await getReducedProduct(id)
+
+  if (request.body.module !== module) {
+    response.clearCookie(cookieName)
+    response.code(422).send({
+      error: 'id/module missmatch',
+      message: 'cart has been reset!'
+    })
+    return
+  }
+
   let cartTotal = 0
 
   // Product data
-  const productPrice = await getProductPrice(id)
-  const productSubtotal = productPrice * quantity
+  const cartProducts = new Map(Object.entries(request.cart.products))
+  const productSubtotal = price * quantity
 
   cartProducts.set(id, {
-    price: {
-      value: productPrice,
-      formatted: NUMBER_FORMAT_CURRENCY.format(productPrice)
-    },
-    subtotal: {
-      value: productSubtotal,
-      formatted: NUMBER_FORMAT_CURRENCY.format(productSubtotal)
-    },
+    price,
+    subtotal: productSubtotal,
     quantity
   })
 
   cartProducts.forEach(({ subtotal }) => {
-    cartTotal = cartTotal + subtotal.value
+    cartTotal = cartTotal + subtotal
   })
 
   request.cart = {
-    total: {
-      value: cartTotal,
-      formatted: NUMBER_FORMAT_CURRENCY.format(cartTotal)
-    },
+    shop: module,
+    total: cartTotal,
     products: Object.fromEntries(cartProducts)
   }
 
@@ -61,8 +66,8 @@ export default async (App) => {
     method: 'POST',
     url: '/shop/cart/add',
     schema,
-    onRequest: cacheNoStore,
-    preHandler: cacheNoStoreHeader,
+    onRequest: cacheNoStoreHeader,
+    preHandler: cookiePreHandler,
     handler
   })
 }

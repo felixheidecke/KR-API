@@ -8,7 +8,7 @@ export const message = async (_, response) => {
   })
 }
 
-export const cacheNoStore = (_, response) => {
+export const cacheNoStore = async (_, response) => {
   response.headers({
     [HEADER.CACHE_CONTROL]: [HEADER.PRIVATE, HEADER.NO_STORE].join(', ')
   })

@@ -64,15 +64,23 @@ export const getProduct = async (id) => {
  * @returns {Promise<object|null>}
  */
 
-export const getProductPrice = async (id) => {
-  const query = 'SELECT price FROM rtd.Shop3Product WHERE _id = ?'
+export const getReducedProduct = async (id) => {
+  const query = `
+    SELECT
+      _id as id, module, name, productCode as code, ean as EAN, price, tax
+    FROM
+      rtd.Shop3Product
+    WHERE
+      _id = ?
+    LIMIT
+      1`
 
   try {
     const [rows] = await database.execute(query, [id])
 
     if (!rows.length) return null
 
-    return rows[0].price
+    return rows[0]
   } catch (error) {
     console.error(error)
     return error
@@ -106,7 +114,7 @@ export const getProductsByCategory = async (id) => {
 const baseQuery = (extension = '') => {
   return `
     SELECT
-      p.name, p.productCode, p.ean, p.frontpage,
+      p._id, p.module, p.name, p.productCode, p.ean, p.frontpage,
       p.description, p.teaser, p.legal, p.price,
       p.tax, p.image, p.imageBig, p.pdf,
       p.pdfName, p.pdfTitle, p.weight, c.defaultWeight,
