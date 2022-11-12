@@ -256,7 +256,8 @@ export const credentialsAdapter = (credentials) => {
 }
 
 export const fotoAdapter = (photo) => {
-  const { id, description, filename, priority } = photo
+  const baseUrl = 'https://cdn.klickrhein.de/xioni/gallery.php'
+  const { id, description, filename, image, priority } = photo
   const normalizedDescription = description ? description.trim() : ''
 
   return {
@@ -264,7 +265,7 @@ export const fotoAdapter = (photo) => {
     description: normalizedDescription,
     order: priority,
     image: {
-      src: ASSET_BASE_URL + filename,
+      src: `${baseUrl}?${image}/${filename}`,
       alt: normalizedDescription
     }
   }

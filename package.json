@@ -1,6 +1,6 @@
 {
   "name": "kr-api",
-  "version": "3.6.1",
+  "version": "3.6.2",
   "private": true,
   "description": "Klickrhein feature API",
   "main": "index.js",
@@ -10,14 +10,6 @@
     "format": "prettier --ignore-path .gitignore --write .",
     "update": "ncu -u",
     "update:dry": "ncu"
-  },
-  "prettier": {
-    "tabWidth": 2,
-    "useTabs": false,
-    "singleQuote": true,
-    "trailingComma": "none",
-    "printWidth": 80,
-    "semi": false
   },
   "type": "module",
   "author": "Felix Heidecke",
