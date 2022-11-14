@@ -1,4 +1,5 @@
 import database from '#libs/database'
+import slugify from 'slugify'
 
 export class Gallery {
   constructor(id, type = 'module') {
@@ -60,9 +61,7 @@ export class Gallery {
 
     if (!this._ids.length) throw new Error('No albums to get')
 
-    await Promise.all(
-      this._ids.reduce((acc, id) => [...acc, this._fetchAlbum(id)], [])
-    )
+    await Promise.all(this._ids.map(async (id) => await this._fetchAlbum(id)))
 
     return this
   }
@@ -121,10 +120,11 @@ export class Gallery {
     if (this._galleries.find((album) => album.id === id)) return
 
     const query = `
-      SELECT _id, title, module
-      FROM   rtd.PhotoAlbum
-      WHERE  _id = ?
-      LIMIT  1`
+      SELECT   _id, title, module, priority
+      FROM     rtd.PhotoAlbum
+      WHERE    _id = ?
+      ORDER BY priority ASC
+      LIMIT    1`
 
     try {
       const [albums] = await database.execute(query, [id])
@@ -176,28 +176,36 @@ const getPhotos = async (albumId) => {
   }
 }
 
-const remapAlbum = ({ _id, title, module }) => {
+const remapAlbum = ({ _id, title, module, priority }) => {
+  const slugifyConfig = {
+    lower: true,
+    remove: /[*+~.,/()'"!?:@]/g
+  }
+
   return {
     id: _id,
+    slug: slugify(title, slugifyConfig),
     title,
     module,
+    priority,
     images: []
   }
 }
 
 const remapFoto = (photo) => {
   const baseUrl = 'https://cdn.klickrhein.de/xioni/gallery.php'
-  const { id, description, filename, image, priority, album } = photo
-  const normalizedDescription = description ? description.trim() : ''
+  const { id, description, image, priority, album } = photo
+  const filename = slugify(photo.filename, { lower: true })
 
   return {
     id,
     album,
-    description: normalizedDescription,
+    description,
     order: priority,
     image: {
       src: `${baseUrl}?${image}/${filename}`,
-      alt: normalizedDescription
+      thumbSrc: `${baseUrl}?${image}_thumb/${filename}`,
+      alt: description
     }
   }
 }
