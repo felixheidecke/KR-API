@@ -10,25 +10,17 @@ import { menuAdapter } from './_utils.js'
 
 export const getMenuByModule = async (id) => {
   const query = `
-    SELECT
-      menu._id as id, menu.title, menu.description,
-      menu.price, category.title as category,
-      category.description as category_description,
-      category._id as category_id
-    FROM rtd.MenuItem AS menu
-    LEFT JOIN rtd.MenuSection AS category ON menu.section = category._id
-    WHERE menu.active = 1
-    AND menu.module = ?
-    ORDER BY menu.priority ASC`
+    SELECT    m._id as id, m.title, m.description, m.price, c.title as category,
+              c.description as category_description, c._id as category_id
+    FROM      rtd.MenuItem AS m
+    LEFT JOIN rtd.MenuSection AS c ON m.section = c._id
+    WHERE     m.active = 1
+    AND       m.module = ?
+    ORDER BY  m.priority ASC`
 
-  try {
-    const [rows] = await database.execute(query, [id])
+  const [rows] = await database.execute(query, [id])
 
-    if (!rows.length) []
+  if (!rows.length) []
 
-    return menuAdapter(rows)
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+  return menuAdapter(rows)
 }

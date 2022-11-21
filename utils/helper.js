@@ -51,3 +51,11 @@ export const toFilenameWithDate = (name, appendix = false) => {
 
   return filename.join('.')
 }
+
+export const toUrlSlug = (string) => {
+  return slugify(string, {
+    lower: true,
+    locale: 'de',
+    remove: /[*+~.,/()'"!?:@]/g
+  })
+}

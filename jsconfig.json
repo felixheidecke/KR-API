@@ -2,12 +2,28 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "#config/*": ["config/*.config.js"],
-      "#data/*": ["data/*.data.js"],
-      "#hooks/*": ["hooks/*.js"],
-      "#libs/*": ["libs/*.js"],
-      "#routes/*": ["routes/*.js"],
-      "#utils/*": ["utils/*.js"]
+      "#config/*": [
+        "config/*.config.js"
+      ],
+      "#data/*": [
+        "model/*.data.js"
+      ],
+      "#hooks/*": [
+        "hooks/*.js"
+      ],
+      "#libs/*": [
+        "libs/*.js"
+      ],
+      "#utils/*": [
+        "utils/*.js"
+      ],
+      "#controller/*": [
+        "controller/*.controller.js"
+      ],
+      "#routes/*": [
+        "routes/*.route.js",
+        "routes/*.routes.js",
+      ]
     }
   }
 }

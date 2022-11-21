@@ -26,18 +26,12 @@ App.register(import('#routes/form'))
 App.register(import('#routes/menu-card'))
 App.register(import('#routes/ping'))
 App.register(import('#routes/flush'))
-App.register(import('#routes/gallery/index'))
-App.register(import('#routes/gallery/album'))
 
-// App.register(import('#routes/shop/categories'))
-// App.register(import('#routes/shop/category'))
-// App.register(import('#routes/shop/cart/add'))
-// App.register(import('#routes/shop/cart/index'))
-// App.register(import('#routes/shop/cart/remove'))
-// App.register(import('#routes/shop/info'))
-// App.register(import('#routes/shop/order'))
-// App.register(import('#routes/shop/product'))
-// App.register(import('#routes/shop/products'))
+App.register(import('./routes/gallery.routes.js'))
+App.register(import('./routes/shop-product.routes.js'))
+App.register(import('./routes/shop-category.routes.js'))
+App.register(import('./routes/shop-cart.routes.js'))
+App.register(import('./routes/shop-info.routes.js'))
 
 // Startup
 ;(async () => {

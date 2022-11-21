@@ -1,5 +1,5 @@
 import database from '#libs/database'
-import { productAdapter } from '../_utils.js'
+import { productAdapter } from './_utils.js'
 
 /**
  * get Products from rtd.Shop3Product
@@ -11,27 +11,17 @@ import { productAdapter } from '../_utils.js'
 export const getProducts = async (module, options = {}) => {
   const limit = options.limit || 9999
 
-  const query = baseQuery(
-    `WHERE
-      p.active = 1
-    AND
-      p.module = ?
-    ORDER BY
-      p.priority ASC
-    LIMIT
-      ?`
-  )
+  const query = baseQuery(`
+    WHERE    p.active = 1
+    AND      p.module = ?
+    ORDER BY p.priority ASC
+    LIMIT    ?`)
 
-  try {
-    const [rows] = await database.execute(query, [module, limit])
+  const [rows] = await database.execute(query, [module, limit])
 
-    if (!rows.length) return []
+  if (!rows.length) return []
 
-    return rows.map((row) => productAdapter(row))
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+  return rows.map((row) => productAdapter(row))
 }
 
 /**
@@ -44,17 +34,11 @@ export const getProducts = async (module, options = {}) => {
 export const getProduct = async (id) => {
   const query = baseQuery('WHERE p._id = ?')
 
-  try {
-    const [rows] = await database.execute(query, [id])
+  const [rows] = await database.execute(query, [id])
 
-    if (!rows.length) return null
+  if (!rows.length) return null
 
-    return productAdapter(rows[0])
-    // return rows[0]
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+  return productAdapter(rows[0])
 }
 
 /**
@@ -75,16 +59,11 @@ export const getReducedProduct = async (id) => {
     LIMIT
       1`
 
-  try {
-    const [rows] = await database.execute(query, [id])
+  const [rows] = await database.execute(query, [id])
 
-    if (!rows.length) return null
+  if (!rows.length) return null
 
-    return rows[0]
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+  return rows[0]
 }
 
 /**
@@ -97,16 +76,11 @@ export const getReducedProduct = async (id) => {
 export const getProductsByCategory = async (id) => {
   const query = baseQuery('WHERE p.group = ?')
 
-  try {
-    const [rows] = await database.execute(query, [id])
+  const [rows] = await database.execute(query, [id])
 
-    if (!rows.length) return []
+  if (!rows.length) return []
 
-    return rows.map((row) => productAdapter(row))
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+  return rows.map((row) => productAdapter(row))
 }
 
 // --- [ Helper ] --------------------------------------------------------------

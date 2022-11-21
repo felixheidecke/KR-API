@@ -8,6 +8,7 @@ import {
   NUMBER_FORMAT_CURRENCY,
   SHOP_UNIT
 } from '#utils/constants'
+import { toUrlSlug } from '#utils/helper'
 
 // --- [ Adapter ] -------------------------------------------------------------
 
@@ -173,6 +174,7 @@ export const productAdapter = (p) => {
     id: +p._id,
     module: p.module,
     code: p.productCode,
+    slug: toUrlSlug(p.name),
     EAN: p.ean,
     name: p.name,
     teaser: p.teaser ? textile.parse(p.teaser) : null,
@@ -181,7 +183,8 @@ export const productAdapter = (p) => {
     category: p.categoryId
       ? {
           id: p.categoryId,
-          name: p.categoryName
+          name: p.categoryName,
+          slug: toUrlSlug(p.categoryName)
         }
       : null,
 
@@ -228,9 +231,11 @@ export const productAdapter = (p) => {
 
 export const categoryAdapter = (c) => {
   return {
-    id: c._id,
+    id: c.id,
     name: c.name,
-    description: c.description ? textile.parse(c.description) : null
+    slug: toUrlSlug(c.name),
+    description: c.description ? textile.parse(c.description) : null,
+    productCount: c.productCount
   }
 }
 

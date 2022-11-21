@@ -21,9 +21,10 @@ const onRequest = async (request, config = {}) => {
 }
 
 /**
- * Checks if the the requested url exists in the redis. If so, it writes the data to ospx.data
- * @param {object} request Fasify request object
- * @param {object} response Fasify response object
+ * Checks if the the requested url exists in the redis.
+ * If so, it writes the data to ospx.data
+ * @param {import('fastify').FastifyRequest} request Fasify request object
+ * @param {import('fastify').FastifyReply} response Fasify response object
  * @returns {Promise<void>}
  */
 
@@ -61,11 +62,12 @@ const preHandler = async (request, response) => {
  * @param {object} request Fasify request object
  * @returns {Promise<void>}
  */
-const onResponse = async ({ cache, url }) => {
+const onResponse = async ({ cache, url, log }) => {
   // Skip if data came from cache or data (should not be cached)
   if (cache.wasHit || !cache.shouldSave) return
 
   const data = JSON.stringify(cache.data)
+  log.info(`Serving ${url} from Datasource`)
 
   try {
     await redis.SETEX(url, cache.ttl, data)

@@ -15,14 +15,9 @@ export const getEmailAddress = async (ids) => {
     .from('Formmail')
     .or(ids.map((id) => `id = ${id}`))
 
-  try {
-    const [rows] = await database.execute(db.query())
+  const [rows] = await database.execute(db.query())
 
-    if (!rows.length) return []
+  if (!rows.length) return []
 
-    return rows.map(({ email }) => email)
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+  return rows.map(({ email }) => email)
 }

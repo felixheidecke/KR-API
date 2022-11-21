@@ -17,8 +17,7 @@ export const getEvents = async (module, options) => {
   // --- Build query ------------------
 
   db.select(
-    `
-    _id, title, startDate, endDate, description, details, image, thumb,
+    `_id, title, startDate, endDate, description, details, image, thumb,
     imageDescription, pdf, pdfName, pdfTitle, module, flagset, detailsURL, url,
     presenter, lat, lng`
   )
@@ -31,29 +30,24 @@ export const getEvents = async (module, options) => {
     db.limit(options.limit)
   }
 
-  try {
-    const [rows] = await database.execute(db.query(), [
-      getUnixTime(new Date()),
-      module
-    ])
+  const [rows] = await database.execute(db.query(), [
+    getUnixTime(new Date()),
+    module
+  ])
 
-    if (!rows.length) return []
+  if (!rows.length) return []
 
-    return await Promise.all(
-      rows.map(async (event) => {
-        const normalizedEvent = eventAdapter(event)
+  return await Promise.all(
+    rows.map(async (event) => {
+      const normalizedEvent = eventAdapter(event)
 
-        return {
-          ...normalizedEvent,
-          images: await getImagesByEvent(event._id),
-          flags: await getFlags(event.flagset)
-        }
-      })
-    )
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+      return {
+        ...normalizedEvent,
+        images: await getImagesByEvent(event._id),
+        flags: await getFlags(event.flagset)
+      }
+    })
+  )
 }
 
 /**
@@ -69,30 +63,23 @@ export const getEvent = async (id) => {
   // --- Build query ------------------
 
   db.select(
-    `
-    _id, title, startDate, endDate, description,
-    details, image, thumb, imageDescription,
-    pdf, pdfName, pdfTitle, module, flagset,
-    detailsURL, url, presenter, lat, lng`
+    `_id, title, startDate, endDate, description, details, image, thumb,
+    imageDescription, pdf, pdfName, pdfTitle, module, flagset, detailsURL, url,
+    presenter, lat, lng`
   )
     .from('rtd.Event')
     .where('_id = ?')
 
-  try {
-    const [rows] = await database.execute(db.query(), [id])
+  const [rows] = await database.execute(db.query(), [id])
 
-    if (!rows.length) return null
+  if (!rows.length) return null
 
-    const event = eventAdapter(rows[0])
+  const event = eventAdapter(rows[0])
 
-    return {
-      ...event,
-      images: await getImagesByEvent(rows[0]._id),
-      flags: await getFlags(rows[0].flagset)
-    }
-  } catch (error) {
-    console.error(error)
-    return error
+  return {
+    ...event,
+    images: await getImagesByEvent(rows[0]._id),
+    flags: await getFlags(rows[0].flagset)
   }
 }
 
@@ -111,21 +98,16 @@ const getImagesByEvent = async (id) => {
     .where('event = ?')
     .order('position')
 
-  try {
-    const [rows] = await database.execute(db.query(), [id])
+  const [rows] = await database.execute(db.query(), [id])
 
-    if (!rows.length) return []
+  if (!rows.length) return []
 
-    return rows.map((row) => {
-      return {
-        src: ASSET_BASE_URL + row.image,
-        alt: row.description
-      }
-    })
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+  return rows.map((row) => {
+    return {
+      src: ASSET_BASE_URL + row.image,
+      alt: row.description
+    }
+  })
 }
 
 /**
@@ -138,16 +120,11 @@ const getImagesByEvent = async (id) => {
 const getFlags = async (id) => {
   const db = new mysqlQuery()
 
-  try {
-    db.select('title').from('rtd.Flag').where('flagset = ?')
+  db.select('title').from('rtd.Flag').where('flagset = ?')
 
-    const [rows] = await database.execute(db.query(), [id])
+  const [rows] = await database.execute(db.query(), [id])
 
-    if (!rows.length) return []
+  if (!rows.length) return []
 
-    return rows.map((flag) => flag.title)
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+  return rows.map((flag) => flag.title)
 }

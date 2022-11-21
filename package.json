@@ -1,6 +1,6 @@
 {
   "name": "kr-api",
-  "version": "3.6.3",
+  "version": "3.7.0",
   "private": true,
   "description": "Klickrhein feature API",
   "main": "index.js",
@@ -43,6 +43,7 @@
     "#hooks/*": "./hooks/*.js",
     "#libs/*": "./libs/*.js",
     "#routes/*": "./routes/*.route.js",
+    "#controller/*": "./controller/*.controller.js",
     "#utils/*": "./utils/*.js"
   }
 }

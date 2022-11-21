@@ -1,5 +1,4 @@
 import { generateClientToken } from '#data/paypal/access-token'
-// import { getOrder } from '#data/shop/order'
 
 export default async (App) => {
   App.route({
