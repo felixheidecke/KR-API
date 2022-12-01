@@ -1,5 +1,4 @@
-import { getReducedProduct } from '#data/shop-product'
-import { CART_DEFAULT_DATA, setCartCookie } from '#utils/shop-cart'
+import { ShopCart } from '#model/shop-cart'
 
 /**
  * Return current cart contents
@@ -9,8 +8,18 @@ import { CART_DEFAULT_DATA, setCartCookie } from '#utils/shop-cart'
  */
 
 export const getCartController = async (request, response) => {
-  setCartCookie(response, request.cart)
-  response.send(request.cart)
+  const cart = new ShopCart()
+  const { body } = request
+  cart.token = body.token
+
+  if (!body.token) {
+    await cart.initialise(body.module)
+  }
+
+  response.send({
+    cart: cart.entries,
+    token: cart.token
+  })
 }
 
 /**
@@ -21,37 +30,20 @@ export const getCartController = async (request, response) => {
  */
 
 export const addToCartController = async (request, response) => {
-  const id = request.body.id
-  const { price, module } = await getReducedProduct(id)
+  const cart = new ShopCart()
+  const { body } = request
+  cart.token = body.token
 
-  if (request.body.module !== module) {
-    response.code(422).send({
-      message: 'id/module missmatch'
-    })
-    return
+  if (!body.token) {
+    await cart.initialise(body.module)
   }
 
-  // Product data
-  const cartProducts = new Map(Object.entries(request.cart.products))
-  const product = cartProducts.get(id)
-  const quantity = product ? product[0] + 1 : 1 // increment by one, or set one
+  await cart.addItem(body.id)
 
-  cartProducts.set(id, [quantity, price, price * quantity])
-
-  let cartTotal = 0
-  cartProducts.forEach((product) => {
-    // No reduce for Maps.
-    cartTotal = cartTotal + product[2]
+  response.send({
+    cart: cart.entries,
+    token: cart.token
   })
-
-  request.cart = {
-    shop: module,
-    total: cartTotal,
-    products: Object.fromEntries(cartProducts)
-  }
-
-  setCartCookie(response, request.cart)
-  response.send(request.cart)
 }
 
 /**
@@ -62,42 +54,26 @@ export const addToCartController = async (request, response) => {
  */
 
 export const updateCartController = async (request, response) => {
-  const id = request.body.id
-  const { price, module } = await getReducedProduct(id)
-  let quantity = request.body.quantity
-
-  if (request.body.module !== module) {
-    response.code(422).send({
-      message: 'id/module missmatch'
-    })
-    return
-  }
-
-  // Product data
-  const cartProducts = new Map(Object.entries(request.cart.products))
+  const cart = new ShopCart()
+  cart.token = request.body.token
 
   if (quantity <= 0) {
-    cartProducts.delete(id)
+    await cart.removeItem(id)
   } else {
-    cartProducts.set(id, [quantity, price, price * quantity])
+    await cart.updateItem(id, quantity)
   }
 
-  let cartTotal = 0
-  cartProducts.forEach((product) => {
-    cartTotal = cartTotal + product[2]
+  response.send({
+    cart: cart.entries,
+    token: cart.token
   })
-
-  request.cart = {
-    shop: module,
-    total: cartTotal,
-    products: Object.fromEntries(cartProducts)
-  }
-
-  setCartCookie(response, request.cart)
-  response.send(request.cart)
 }
 
 export const resetCartController = async (_, response) => {
-  setCartCookie(response, CART_DEFAULT_DATA)
-  response.code(204).send()
+  const cart = new ShopCart()
+
+  response.send({
+    cart: cart.entries,
+    token: cart.token
+  })
 }

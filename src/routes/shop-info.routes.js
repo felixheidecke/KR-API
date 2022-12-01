@@ -17,7 +17,7 @@ export default async (App) => {
     },
     handler: getShopInfoController,
     onRequest: cache.onRequest,
-    preHandler: cache.preHandler,
+    // preHandler: cache.preHandler,
     onResponse: cache.onResponse
   })
 }

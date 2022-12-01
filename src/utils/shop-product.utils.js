@@ -55,6 +55,17 @@ export const productAdapter = (p) => {
       formatted: NUMBER_FORMAT_CURRENCY.format(p.price)
     },
 
+    pricePerUnit:
+      quantity !== 1
+        ? {
+            value: p.price / quantity,
+            formatted:
+              NUMBER_FORMAT_CURRENCY.format(p.price / quantity) +
+              ' pro ' +
+              SHOP_UNIT[unit]
+          }
+        : undefined,
+
     tax: {
       value: p.tax,
       formatted: NUMBER_FORMAT.format(p.tax) + '%'

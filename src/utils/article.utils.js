@@ -1,3 +1,4 @@
+import { ASSET_BASE_URL } from '#constants'
 import { toUrlSlug } from '#libs/slugify'
 import textile from 'textile-js'
 

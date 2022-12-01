@@ -7,13 +7,12 @@ export const HEADER = {
   CACHE_MISS: 'MISS',
   CACHE: 'X-Cache',
   CONTENT_TYPE: 'Content-Type',
-  MESSAGE: 'X-API-Message',
+  MESSAGE: 'kr-api-Message',
   MAX_AGE: (ttl) => 'max-age=' + ttl,
   PUBLIC: 'public',
   PRIVATE: 'private',
   NO_STORE: 'no-store',
-  VERSION: 'X-API-Version',
-  USER_DATA: 'x-user-data'
+  VERSION: 'kr-api-Version'
 }
 
 export const TOKEN = {
@@ -39,6 +38,6 @@ export const NUMBER_FORMAT = Intl.NumberFormat(LOCALE)
 
 export const SHOP_UNIT = {
   ea: 'St.',
-  l: 'Ltr.',
+  l: 'Liter',
   kg: 'kg.'
 }

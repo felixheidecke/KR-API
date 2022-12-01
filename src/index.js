@@ -5,12 +5,11 @@ import App from '#libs/fastify'
 
 // Global Hooks
 App.addHook('onRequest', messageHeader)
-// App.addHook('onRequest', corsHeader)
 
 // Handling CORS
 App.register(import('@fastify/cors'), {
   methods: ['GET', 'POST', 'PATCH'],
-  credentials: true,
+  // credentials: true,
   origin: true
 })
 
@@ -28,7 +27,7 @@ App.register(import('#routes/menu-card'))
 App.register(import('#routes/ping'))
 App.register(import('#routes/shop-cart'))
 App.register(import('#routes/shop-category'))
-App.register(import('#routes/shop-info'))
+// App.register(import('#routes/shop-info'))
 App.register(import('#routes/shop-product'))
 
 // Startup

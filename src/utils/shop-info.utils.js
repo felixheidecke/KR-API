@@ -1,5 +1,4 @@
 import { NUMBER_FORMAT, NUMBER_FORMAT_CURRENCY, SHOP_UNIT } from '#constants'
-import textile from 'textile-js'
 
 export const credentialsAdapter = (credentials) => {
   const { paypal_client_id, paypal_secret, jwt_secret } = credentials
@@ -15,25 +14,8 @@ export const credentialsAdapter = (credentials) => {
   }
 }
 
-export const shippingChargesAdapter = (charges) => {
-  const { extracostAmount, extracostTitle, freeFrom, text } = charges
-
-  return {
-    info: text ? textile.parse(text) : null,
-    additionalCost: extracostAmount
-      ? {
-          title: extracostTitle,
-          value: extracostAmount,
-          formatted: NUMBER_FORMAT_CURRENCY.format(extracostAmount)
-        }
-      : null,
-    freeShippingThreshold: freeFrom
-      ? {
-          value: freeFrom,
-          formatted: NUMBER_FORMAT_CURRENCY.format(freeFrom)
-        }
-      : null
-  }
+export const shippingCostAdapter = ({ price, threshold }, gross) => {
+  return gross > 0 && threshold > gross ? 0 : price
 }
 
 export const shippingRateAdapter = (rate) => {

@@ -25,5 +25,5 @@ export const sendNotFoundHandler = (response, message = 'No results found') => {
 
 export const catchHandler = (response, error) => {
   response.log.error(error)
-  response.code(500).send(error)
+  response.code(500).send({ error })
 }

@@ -1,9 +1,5 @@
 import { catchHandler } from '#utils/controller'
-import {
-  getOwnerInfo,
-  getShippingCharges,
-  getShippingRates
-} from '#data/shop-info'
+import { getOwnerInfo, getShippingRates } from '#data/shop-info'
 
 /**
  *
@@ -16,7 +12,7 @@ export const getShopInfoController = async (request, response) => {
   try {
     const [owner, charges, rates] = await Promise.all([
       getOwnerInfo(module),
-      getShippingCharges(module),
+      // getShippingCharges(module),
       getShippingRates(module)
     ])
 

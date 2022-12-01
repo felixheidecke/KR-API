@@ -14,6 +14,7 @@ export const getCategories = async (module) => {
               g.description, COUNT(p._id) as productCount
     FROM      rtd.Shop3Group AS g
     LEFT JOIN rtd.Shop3Product AS p ON g._id = p.group
+    AND       p.active = 1
     WHERE     g.active = 1
     AND       g.module = ?
     GROUP BY  g._id
