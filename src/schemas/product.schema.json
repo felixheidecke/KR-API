@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "required": ["id", "module"],
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "module": {
+      "type": "integer"
+    },
+    "code": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "[a-z\\-]"
+    },
+    "EAN": {
+      "type": "string"
+    }
+  },
+
+  "slug": "siemens-s700-kaffeevollautomat-schwarz",
+  "EAN": "",
+  "name": "SIEMENS s700 Kaffeevollautomat Schwarz",
+  "teaser": "<p>Ihre persönliche Welt des Kaffees beginnt auf dem Display der EQ.6 plus. Auf Wunsch auch für zwei Cappuccino gleichzeitig.</p>",
+  "description": "<p>Kaffee zubereiten war noch nie einfacher dank farbigem und intuitivem coffeeSelect Display. Vollautomatische Dampfreinigung und optimale Hygiene dank autoMilk Clean.</p>\n<p>Speichern Sie bis zu 4 Lieblingsgetränke und genießen Sie die Tassenbeleuchtung mit dem zusätzlichen Komfortpaket (Beleuchtung von Tasten, Kaffeeauslauf)</p>\n<p>Optimale Zubereitung und perfekter Geschmack dank der ausgefeilten Technologie iAroma System.</p>",
+  "legalInfo": null,
+  "category": {
+    "id": 458,
+    "name": "Haushalt & Wohnen",
+    "slug": "haushalt-und-wohnen"
+  },
+  "quantity": {
+    "value": 0.5,
+    "unit": "l",
+    "formatted": "0,5 Ltr."
+  },
+  "weight": {
+    "value": 12,
+    "unit": "custom",
+    "formatted": "12 Dosen"
+  },
+  "price": {
+    "value": 777,
+    "formatted": "777,00 €"
+  },
+  "tax": {
+    "value": 19,
+    "formatted": "19%"
+  },
+  "image": {
+    "src": "https://www.rheingau.de/data/shop3/product-images/2432788.jpg",
+    "largeSrc": "https://www.rheingau.de/data/shop3/product-images-big/2432788.jpg",
+    "alt": "SIEMENS s700 Kaffeevollautomat Schwarz"
+  },
+  "pdf": null,
+  "showOnFrontpage": true
+}

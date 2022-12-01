@@ -1,29 +1,40 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "paths": {
+      "#env": [
+        "env.js"
+      ],
+      "#constants": [
+        "constants.js"
+      ],
       "#config/*": [
         "config/*.config.js"
-      ],
-      "#data/*": [
-        "model/*.data.js"
-      ],
-      "#hooks/*": [
-        "hooks/*.js"
-      ],
-      "#libs/*": [
-        "libs/*.js"
-      ],
-      "#utils/*": [
-        "utils/*.js"
       ],
       "#controller/*": [
         "controller/*.controller.js"
       ],
+      "#data/*": [
+        "data/*.data.js"
+      ],
+      "#helper/*": [
+        "helper/*.helper.js"
+      ],
+      "#hooks/*": [
+        "hooks/*.hooks.js"
+      ],
+      "#libs/*": [
+        "libs/*.js"
+      ],
+      "#model/*": [
+        "model/*.model.js"
+      ],
       "#routes/*": [
-        "routes/*.route.js",
-        "routes/*.routes.js",
-      ]
+        "routes/*.routes.js"
+      ],
+      "#utils/*": [
+        "utils/*.utils.js"
+      ],
     }
   }
 }

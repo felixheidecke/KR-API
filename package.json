@@ -1,12 +1,12 @@
 {
   "name": "kr-api",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "private": true,
   "description": "Klickrhein feature API",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
     "format": "prettier --ignore-path .gitignore --write .",
     "update": "ncu -u",
     "update:dry": "ncu"
@@ -16,34 +16,38 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/cookie": "^8.3.0",
-    "@fastify/cors": "^8.1.0",
+    "@fastify/cors": "^8.2.0",
     "date-fns": "^2.29.3",
     "dotenv": "^16.0.3",
-    "fastify": "^4.8.1",
+    "fastify": "^4.10.2",
     "jsonwebtoken": "^8.5.1",
     "lodash-es": "^4.17.21",
     "mysql2": "^2.3.3",
-    "node-fetch": "^3.2.10",
+    "node-fetch": "^3.3.0",
     "nodemailer": "^6.8.0",
     "php-serialize": "^4.0.2",
     "pino-loki": "^2.0.3",
-    "redis": "^4.3.1",
+    "redis": "^4.5.1",
     "slugify": "^1.6.5",
     "textile-js": "^2.1.1"
   },
   "devDependencies": {
-    "eslint": "^8.25.0",
+    "eslint": "^8.28.0",
     "nodemon": "^2.0.20",
-    "npm-check-updates": "^16.3.11",
-    "prettier": "^2.7.1"
+    "npm-check-updates": "^16.4.3",
+    "prettier": "^2.8.0"
   },
   "imports": {
-    "#config/*": "./config/*.config.js",
-    "#data/*": "./data/*.data.js",
-    "#hooks/*": "./hooks/*.js",
-    "#libs/*": "./libs/*.js",
-    "#routes/*": "./routes/*.route.js",
-    "#controller/*": "./controller/*.controller.js",
-    "#utils/*": "./utils/*.js"
+    "#env": "./src/env.js",
+    "#constants": "./src/constants.js",
+    "#config/*": "./src/config/*.config.js",
+    "#controller/*": "./src/controller/*.controller.js",
+    "#data/*": "./src/data/*.data.js",
+    "#helper/*": "./src/helper/*.helper.js",
+    "#hooks/*": "./src/hooks/*.hooks.js",
+    "#libs/*": "./src/libs/*.js",
+    "#model/*": "./src/model/*.model.js",
+    "#routes/*": "./src/routes/*.routes.js",
+    "#utils/*": "./src/utils/*.utils.js"
   }
 }
