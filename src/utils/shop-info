@@ -14,8 +14,11 @@ export const credentialsAdapter = (credentials) => {
   }
 }
 
-export const shippingCostAdapter = ({ price, threshold }, gross) => {
-  return gross > 0 && threshold > gross ? 0 : price
+export const shippingCostAdapter = ({ price, threshold } = {}) => {
+  return {
+    price: price || 0,
+    threshold: threshold || null
+  }
 }
 
 export const shippingRateAdapter = (rate) => {

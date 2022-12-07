@@ -1,37 +1,48 @@
-import { getProduct } from '#data/shop-product'
-import { add, sortBy, tail } from 'lodash-es'
-// import { v4 as uuid } from 'uuid'
-// import redis from '#libs/redis'
-import { NUMBER_FORMAT, NUMBER_FORMAT_CURRENCY } from '#constants'
+import { getProductWithModule } from '#data/shop-product'
+import { sortBy } from 'lodash-es'
+import { NUMBER_FORMAT_CURRENCY } from '#constants'
 import { sign, verify } from '#libs/jwt'
-import { getAdditionalCost, getShippingCost } from '#data/shop-info'
+import database from '#libs/database'
+
+// private classes do not return this, but specific data
+//
 
 export class ShopCart {
   #module = null
   #items = new Map()
-  #itemCount = 0
-  #net = 0
-  #tax = 0
-  #gross = 0
-  #weight = 0
-  #shippingCost = 0
-  #additionalCost = 0
-  #total = 0
 
   /**
-   * save the cart to JWT token
+   * get carts JWT token
    *
-   * @returns {class} current cart instance
+   * @returns {string} token
    */
 
   get token() {
-    return sign(this.#returnCartAsString())
+    return sign(
+      JSON.stringify({
+        module: this.#module,
+        items: Object.fromEntries(this.#items)
+      })
+    )
   }
 
   set token(token) {
     if (!token) return
 
-    this.#setFromString(verify(token))
+    try {
+      token = verify(token)
+
+      this.#module = +token.module
+      this.#items = new Map(Object.entries(token.items))
+    } catch (error) {
+      throw error
+    }
+  }
+
+  set module(module) {
+    this.reset()
+
+    this.#module = +module
   }
 
   /**
@@ -40,21 +51,18 @@ export class ShopCart {
    * @return {object} uuid
    */
 
-  get entries() {
+  async get() {
     let items = Array.from(this.#items)
-    items = items.map(([id, product]) => ({ id: +id, ...product }))
+    items = items.map(([id, product]) => ({
+      id: +id,
+      ...product,
+      gross: expandPrice(product.gross)
+    }))
     items = sortBy(items, 'id')
 
     return {
       items,
-      itemCount: this.#itemCount,
-      weight: this.#weight,
-      net: +this.#net.toFixed(4),
-      tax: +this.#tax.toFixed(4),
-      gross: +this.#gross.toFixed(4),
-      shippingCost: this.#shippingCost,
-      additionalCost: this.#additionalCost,
-      total: this.#total
+      ...(await this.#calculateCart())
     }
   }
 
@@ -70,7 +78,6 @@ export class ShopCart {
     const quantity = this.#items.get(id)?.quantity + 1 || 1
 
     await this.#setItem(id, quantity)
-    await this.#calculate()
 
     return this
   }
@@ -84,7 +91,6 @@ export class ShopCart {
 
   async updateItem(id, quantity) {
     await this.#setItem(id.toString(), quantity)
-    await this.#calculate()
 
     return this
   }
@@ -98,96 +104,141 @@ export class ShopCart {
 
   async removeItem(id) {
     this.#items.delete(id.toString())
-    await this.#calculate()
 
     return this
   }
 
-  async initialise(module) {
-    this.#module = +module
-    this.#additionalCost = (await getAdditionalCost(this.#module)) || 0
+  reset() {
+    this.#items = new Map()
+
+    return this
   }
 
-  // --- Private Methods -------------------------------------------------------
-
   async #setItem(id, quantity) {
-    const product = await getProduct(id)
+    const product = await getProductWithModule(id, this.#module)
 
-    if (!product || this.#module !== product.module) return
+    if (!product) {
+      this.reset()
+      return
+    }
 
     const gross = product.price.value * quantity
-    const net = gross / (product.tax.value / 100 + 1)
     const weight = product.weight.value * quantity
-
-    this.#items.set(product.id.toString(), {
+    const item = {
       product: {
         name: product.name,
         code: product.code,
         EAN: product.EAN,
-        slug: product.slug
+        slug: product.slug,
+        price: product.price
       },
       quantity,
-      net: {
-        value: +net.toFixed(4),
-        formatted: NUMBER_FORMAT_CURRENCY.format(net)
-      },
-      gross: {
-        value: gross,
-        formatted: NUMBER_FORMAT_CURRENCY.format(gross)
-      },
-      weight: {
-        value: weight,
-        formatted: NUMBER_FORMAT.format(weight)
+      gross,
+      weight
+    }
+
+    this.#items.set(product.id.toString(), item)
+    return item
+  }
+
+  async #calculateCart() {
+    let gross = 0
+    let itemCount = 0
+    let weight = 0
+
+    // Add up product values
+    this.#items.forEach((item) => {
+      gross += item.gross
+      itemCount += item.quantity
+      weight += item.weight
+    })
+
+    const additionalCost = await getAdditionalCost(this.#module)
+
+    const shippingCost = await this.#getShippingCost(weight)
+
+    let total = gross
+
+    if (additionalCost) total += additionalCost.value
+
+    if (shippingCost) total += shippingCost.value
+
+    return {
+      itemCount,
+      gross: expandPrice(gross),
+      shippingCost,
+      additionalCost,
+      total: expandPrice(total)
+    }
+  }
+
+  async #getShippingCost(weight) {
+    const query = `
+        SELECT    w.charge as price, s.freeFrom as threshold
+        FROM      rtd.Shop3ShippingCharges AS s
+        JOIN      rtd.Shop3ShippingChargesWeight AS w ON s._id = w.charges
+        WHERE     s.module = ?
+        AND       w.upToWeight > ?
+        ORDER BY  w.upToWeight ASC
+        LIMIT     1`
+
+    const [rows] = await database.execute(query, [this.#module, weight])
+
+    const { price, threshold } = rows[0]
+
+    const value = threshold && price < threshold ? price : 0
+
+    return value ? expandPrice(value) : null
+  }
+}
+
+// const getShippingCost = async (module, weight) => {
+//   const query = `
+//       SELECT    w.charge as price, s.freeFrom as threshold
+//       FROM      rtd.Shop3ShippingCharges AS s
+//       JOIN      rtd.Shop3ShippingChargesWeight AS w ON s._id = w.charges
+//       WHERE     s.module = ?
+//       AND       w.upToWeight > ?
+//       ORDER BY  w.upToWeight ASC
+//       LIMIT     1`
+
+//   const [rows] = await database.execute(query, [module, weight])
+
+//   const { price, threshold } = rows[0]
+
+//   const value = threshold && price < threshold ? price : 0
+
+//   return value ? expandPrice(value) : null
+// }
+
+const getAdditionalCost = async (module) => {
+  const query = `
+      SELECT    s.extracostAmount as additionalCost,
+                s.extracostTitle as additionalCostTitle
+      FROM      rtd.Shop3ShippingCharges AS s
+      JOIN      rtd.Shop3ShippingChargesWeight AS w ON s._id = w.charges
+      WHERE     s.module = ?
+      LIMIT     1`
+
+  const [rows] = await database.execute(query, [module])
+
+  if (!rows.length) return
+
+  const { additionalCost, additionalCostTitle } = rows[0]
+
+  return additionalCost
+    ? {
+        ...expandPrice(additionalCost),
+        title: additionalCostTitle
       }
-    })
-  }
+    : null
+}
 
-  async #calculate() {
-    // reset all values first
-    this.#gross = 0
-    this.#itemCount = 0
-    this.#net = 0
-    this.#shippingCost = 0
-    this.#tax = 0
-    this.#total = 0
-    this.#weight = 0
+const expandPrice = (price) => {
+  if (!price) return
 
-    this.#items.forEach(({ net, gross, quantity, weight }) => {
-      this.#gross = add(this.#gross, gross.value)
-      this.#itemCount = add(this.#itemCount, quantity)
-      this.#net = add(this.#net, net.value)
-      this.#weight = add(this.#weight, weight.value)
-    })
-
-    this.#tax = this.#gross - this.#net
-    this.#shippingCost = await getShippingCost(
-      this.#module,
-      this.#weight,
-      this.#gross
-    )
-    this.#total = this.#gross + this.#additionalCost + this.#shippingCost
-  }
-
-  #returnCartAsString() {
-    return JSON.stringify({
-      gross: this.#gross,
-      itemCount: this.#itemCount,
-      items: Object.fromEntries(this.#items),
-      net: this.#net,
-      shippingCost: this.#shippingCost,
-      tax: this.#tax,
-      total: this.#total,
-      weight: this.#weight
-    })
-  }
-
-  #setFromString(data) {
-    this.#gross = +data.gross
-    this.#itemCount = +data.itemCount
-    this.#items = new Map(Object.entries(data.items))
-    this.#shippingCost = data.shippingCost
-    this.#tax = data.tax
-    this.#total = data.total
-    this.#weight = data.weight
+  return {
+    value: price,
+    formatted: NUMBER_FORMAT_CURRENCY.format(price)
   }
 }

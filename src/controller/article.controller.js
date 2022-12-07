@@ -1,47 +1,96 @@
+import * as cache from '#hooks/cache'
+
 import { getArticleById, getArticlesByModule } from '#data/articles'
 import { catchHandler, sendNotFoundHandler } from '#utils/controller'
 
-/**
- * @param {import('fastify').FastifyRequest} request Fastify request object
- * @param {import('fastify').FastifyReply} response Fastify response object
- */
+const routeTemplate = {
+  method: 'GET',
+  onRequest: cache.onRequest,
+  preHandler: cache.preHandler,
+  onResponse: cache.onResponse
+}
 
-export const getArticlesController = async (request, response) => {
-  // Request params
-  const { id } = request.params
-  const { limit } = request.query
+const getArticlesController = {
+  ...routeTemplate,
 
-  try {
-    request.data = await getArticlesByModule(id, { limit })
+  url: '/articles/:id',
 
-    if (!request.data) {
-      sendNotFoundHandler(response)
-    } else {
-      response.send(request.data)
+  schema: {
+    params: {
+      type: 'object',
+      required: ['id'],
+      properties: {
+        id: { type: 'number' }
+      }
+    },
+    query: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number' }
+      }
     }
-  } catch (error) {
-    catchHandler(response, error)
+  },
+
+  /**
+   * @param {import('fastify').FastifyRequest} request Fastify request object
+   * @param {import('fastify').FastifyReply} response Fastify response object
+   */
+  handler: async (request, response) => {
+    // Request params
+    const { id } = request.params
+    const { limit } = request.query
+
+    try {
+      request.data = await getArticlesByModule(id, { limit })
+
+      if (!request.data) {
+        sendNotFoundHandler(response)
+      } else {
+        response.send(request.data)
+      }
+    } catch (error) {
+      catchHandler(response, error)
+    }
   }
 }
 
-/**
- * @param {import('fastify').FastifyRequest} request Fastify request object
- * @param {import('fastify').FastifyReply} response Fastify response object
- */
+const getArticleController = {
+  ...routeTemplate,
 
-export const getArticleController = async (request, response) => {
-  // Request params
-  const { id } = request.params
+  url: '/article/:id',
 
-  try {
-    request.data = await getArticleById(id)
-
-    if (!request.data) {
-      sendNotFoundHandler(response)
-    } else {
-      response.send(request.data)
+  schema: {
+    params: {
+      type: 'object',
+      properties: {
+        id: { type: 'number' }
+      }
     }
-  } catch (error) {
-    catchHandler(response, error)
+  },
+
+  /**
+   * @param {import('fastify').FastifyRequest} request Fastify request object
+   * @param {import('fastify').FastifyReply} response Fastify response object
+   */
+  handler: async (request, response) => {
+    // Request params
+    const { id } = request.params
+
+    try {
+      request.data = await getArticleById(id)
+
+      if (!request.data) {
+        sendNotFoundHandler(response)
+      } else {
+        response.send(request.data)
+      }
+    } catch (error) {
+      catchHandler(response, error)
+    }
   }
+}
+
+export default async (App) => {
+  App.route(getArticlesController)
+  App.route(getArticleController)
 }

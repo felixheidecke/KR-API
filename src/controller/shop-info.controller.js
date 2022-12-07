@@ -1,31 +1,55 @@
 import { catchHandler } from '#utils/controller'
-import { getOwnerInfo, getShippingRates } from '#data/shop-info'
+import { Shop } from '#model/shop-info'
+import * as cache from '#hooks/cache'
 
-/**
- *
- * @param {import("fastify").FastifyRequest} request
- * @param {import("fastify").FastifyReply} response
- */
+const shopInfoController = {
+  method: 'GET',
 
-export const getShopInfoController = async (request, response) => {
-  const { module } = request.params
-  try {
-    const [owner, charges, rates] = await Promise.all([
-      getOwnerInfo(module),
-      // getShippingCharges(module),
-      getShippingRates(module)
-    ])
+  url: '/shop/:module/info',
 
-    request.data = {
-      ...owner,
-      shipping: {
-        ...charges,
-        rates
+  schema: {
+    params: {
+      type: 'object',
+      properties: {
+        module: {
+          type: 'number'
+        }
       }
     }
+  },
 
-    response.send(request.data)
-  } catch (error) {
-    catchHandler(response, error)
-  }
+  handler: async (request, response) => {
+    const shop = new Shop()
+    shop.module = request.params.module
+
+    try {
+      const [owner, charges, rates] = await Promise.all([
+        shop.owner,
+        shop.shippingCharges,
+        shop.shippingRates
+      ])
+
+      request.data = {
+        ...owner,
+        shipping: {
+          ...charges,
+          rates
+        }
+      }
+
+      response.send(request.data)
+    } catch (error) {
+      catchHandler(response, error)
+    }
+  },
+
+  onRequest: cache.onRequest,
+
+  preHandler: cache.preHandler,
+
+  onResponse: cache.onResponse
+}
+
+export default async (App) => {
+  App.route(shopInfoController)
 }

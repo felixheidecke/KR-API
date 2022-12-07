@@ -34,7 +34,17 @@ export const getProducts = async (id, options = {}) => {
 export const getProduct = async (id) => {
   const query = baseQuery('WHERE p._id = ?')
 
-  const [rows] = await database.execute(query, [id])
+  const [rows] = await database.execute(query, [+id])
+
+  if (!rows.length) return null
+
+  return productAdapter(rows[0])
+}
+
+export const getProductWithModule = async (id, module) => {
+  const query = baseQuery('WHERE p._id = ? AND p.module = ?')
+
+  const [rows] = await database.execute(query, [+id, +module])
 
   if (!rows.length) return null
 

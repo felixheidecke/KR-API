@@ -1,33 +1,29 @@
-import { SHOP_UNIT } from '#constants'
+import { NUMBER_FORMAT, NUMBER_FORMAT_CURRENCY, SHOP_UNIT } from '#constants'
+import database from '#libs/database'
+import textile from 'textile-js'
 
 export class Shop {
-  #module
-  #shippingCharges = null
-  #shippingRates = []
+  #module = null
 
-  constructor(module) {
-    this.#module = +module // Shop module rtd.Shop3Product[module]
+  set module(module) {
+    this.#module = +module
   }
 
-  async getShippingCharges() {
-    if (Object.keys(this.#shippingCharges).length) {
-      return this.#shippingCharges
-    }
-
-    await this.#setShippingCharges()
-    return this.#shippingCharges
+  get shippingCharges() {
+    return this.#getShippingCharges()
   }
 
-  async getShippingRates() {
-    if (this.#shippingCharges) {
-      return this.#shippingCharges
-    }
-
-    await this.#setShippingCharges()
-    return this.#shippingCharges
+  get shippingRates() {
+    return this.#getShippingRates()
   }
 
-  // --- Private ----
+  get credentials() {
+    return this.#getCredentials()
+  }
+
+  get owner() {
+    return this.#getOwner()
+  }
 
   /**
    * Set the shipping charges
@@ -35,9 +31,9 @@ export class Shop {
    * @returns {Prmose<void>}
    */
 
-  async #setShippingCharges() {
+  async #getShippingCharges() {
     const query = `
-    SELECT *
+    SELECT freeFrom, extracostAmount, extracostTitle, text
     FROM   rtd.Shop3ShippingCharges
     WHERE  module = ?`
 
@@ -45,15 +41,16 @@ export class Shop {
 
     if (!rows.length) return null
 
-    this.#shippingCharges = shippingChargesAdapter(rows[0])
+    return shippingChargesAdapter(rows[0])
   }
 
-  async #setShippingRates() {
+  async #getShippingRates() {
     const query = `
-      SELECT w.upToWeight as weight, w.charge as price
-      FROM   rtd.Shop3ShippingCharges as s
-      JOIN   rtd.Shop3ShippingChargesWeight as w ON s._id = w.charges
-      WHERE  s.module = ?`
+      SELECT   w.upToWeight as weight, w.charge as price
+      FROM     rtd.Shop3ShippingCharges as s
+      JOIN     rtd.Shop3ShippingChargesWeight as w ON s._id = w.charges
+      WHERE    s.module = ?
+      ORDER BY weight ASC`
 
     const [rows] = await database.execute(query, [this.#module])
 
@@ -61,13 +58,39 @@ export class Shop {
 
     return rows.map(shippingRateAdapter)
   }
+
+  async #getOwner() {
+    const query = `
+      SELECT c.name, c.web, c.email, c.phone, c.address, c.city, c.zip
+      FROM   rtd.Module AS m
+      JOIN   rtd.Customer AS c ON m.owner = c._id
+      WHERE  m._id = ?`
+
+    const [rows] = await database.execute(query, [this.#module])
+
+    if (!rows.length) return null
+
+    return rows[0]
+  }
+
+  async #getCredentials() {
+    const query = `
+      SELECT paypal_client_id, paypal_secret
+      FROM   rtd.Shop3Credentials
+      WHERE  module = ?
+      LIMIT  1`
+
+    const [rows] = await database.execute(query, [this.#module])
+
+    if (!rows.length) return null
+
+    return credentialsAdapter(rows[0])
+  }
 }
 
 // Helper
 
-const shippingRateAdapter = (rate) => {
-  const { weight, price } = rate
-
+const shippingRateAdapter = ({ weight, price }) => {
   return {
     weight: {
       value: weight,
@@ -77,5 +100,35 @@ const shippingRateAdapter = (rate) => {
       value: price,
       formatted: NUMBER_FORMAT_CURRENCY.format(price)
     }
+  }
+}
+
+const credentialsAdapter = ({ paypal_client_id, paypal_secret }) => {
+  return {
+    paypal: paypal_client_id
+      ? {
+          clientId: paypal_client_id,
+          secret: paypal_secret
+        }
+      : null
+  }
+}
+
+const shippingChargesAdapter = (data) => {
+  return {
+    description: data.text ? textile.parse(data.text) : undefined,
+    freeShippingThreshold: data.freeFrom
+      ? {
+          value: data.freeFrom,
+          formatted: NUMBER_FORMAT_CURRENCY.format(data.freeFrom)
+        }
+      : undefined,
+    additionalCost: data.extracostAmount
+      ? {
+          value: data.extracostAmount,
+          formatted: NUMBER_FORMAT_CURRENCY.format(data.extracostAmount),
+          title: data.extracostTitle.trim() || ''
+        }
+      : undefined
   }
 }

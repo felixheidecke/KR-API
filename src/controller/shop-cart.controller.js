@@ -1,79 +1,160 @@
+import { cacheNoStore as setCacheNoStoreHeader } from '#hooks/header'
 import { ShopCart } from '#model/shop-cart'
+
+const routeTemplate = {
+  onRequest: setCacheNoStoreHeader,
+  preHandler: async (request, response) => {
+    const { body } = request
+    const cart = new ShopCart()
+
+    try {
+      if (body.token) {
+        cart.token = body.token
+      } else {
+        cart.module = body.module
+      }
+
+      request.cart = cart
+    } catch (err) {
+      response.status(400).send({ message: 'invalid token!' })
+    }
+  }
+}
 
 /**
  * Return current cart contents
- *
- * @param {import("fastify").FastifyRequest} request
- * @param {import("fastify").FastifyReply} response
  */
 
-export const getCartController = async (request, response) => {
-  const cart = new ShopCart()
-  const { body } = request
-  cart.token = body.token
+const getCartController = {
+  ...routeTemplate,
 
-  if (!body.token) {
-    await cart.initialise(body.module)
+  method: 'POST',
+
+  url: '/shop/cart',
+
+  schema: {
+    body: {
+      type: 'object',
+      required: ['module'],
+      properties: {
+        module: { type: 'number' }
+      }
+    }
+  },
+
+  handler: async (request, response) => {
+    const { cart } = request
+
+    response.send({
+      cart: await cart.get(),
+      token: cart.token
+    })
   }
-
-  response.send({
-    cart: cart.entries,
-    token: cart.token
-  })
 }
 
 /**
  * Add a product to cart
- *
- * @param {import("fastify").FastifyRequest} request
- * @param {import("fastify").FastifyReply} response
  */
 
-export const addToCartController = async (request, response) => {
-  const cart = new ShopCart()
-  const { body } = request
-  cart.token = body.token
+const addToCartController = {
+  ...routeTemplate,
 
-  if (!body.token) {
-    await cart.initialise(body.module)
+  method: 'PATCH',
+
+  url: '/shop/cart/add',
+
+  schema: {
+    body: {
+      type: 'object',
+      required: ['id', 'module'],
+      properties: {
+        id: { type: 'string' }, // String, because used as Map().key
+        module: { type: 'number' }
+      }
+    }
+  },
+
+  handler: async (request, response) => {
+    const { cart, body } = request
+
+    await cart.addItem(body.id)
+
+    response.send({
+      cart: await cart.get(),
+      token: cart.token
+    })
   }
-
-  await cart.addItem(body.id)
-
-  response.send({
-    cart: cart.entries,
-    token: cart.token
-  })
 }
 
 /**
  * Update the amount of a product in the cart
- *
- * @param {import("fastify").FastifyRequest} request
- * @param {import("fastify").FastifyReply} response
  */
 
-export const updateCartController = async (request, response) => {
-  const cart = new ShopCart()
-  cart.token = request.body.token
+const updateCartController = {
+  ...routeTemplate,
 
-  if (quantity <= 0) {
-    await cart.removeItem(id)
-  } else {
-    await cart.updateItem(id, quantity)
+  method: 'PATCH',
+
+  url: '/shop/cart/update',
+
+  schema: {
+    body: {
+      type: 'object',
+      required: ['id', 'quantity', 'module'],
+      properties: {
+        id: { type: 'string' }, // String, because used as Map().key
+        module: { type: 'number' },
+        quantity: { type: 'number' }
+      }
+    }
+  },
+
+  handler: async (request, response) => {
+    const { cart, body } = request
+
+    if (body.quantity <= 0) {
+      await cart.removeItem(body.id)
+    } else {
+      await cart.updateItem(body.id, body.quantity)
+    }
+
+    response.send({
+      cart: await cart.get(),
+      token: cart.token
+    })
   }
-
-  response.send({
-    cart: cart.entries,
-    token: cart.token
-  })
 }
 
-export const resetCartController = async (_, response) => {
-  const cart = new ShopCart()
+const resetCartController = {
+  method: 'DELETE',
 
-  response.send({
-    cart: cart.entries,
-    token: cart.token
-  })
+  url: '/shop/cart',
+
+  schema: {
+    body: {
+      type: 'object',
+      required: ['module'],
+      properties: {
+        module: { type: 'number' }
+      }
+    }
+  },
+
+  handler: async (request, response) => {
+    const { body } = request
+    const cart = new ShopCart()
+    cart.module = body.module
+
+    response.send({
+      cart: await cart.get(),
+      token: cart.token
+    })
+  }
+}
+
+export default async (App) => {
+  App.route(getCartController)
+  App.route(addToCartController)
+  App.route(updateCartController)
+  App.route(resetCartController)
 }

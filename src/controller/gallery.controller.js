@@ -1,50 +1,73 @@
 import { getGallery, getAlbum } from '#data/gallery'
 import { catchHandler, sendNotFoundHandler } from '#utils/controller'
+import * as cache from '#hooks/cache'
 
-/**
- * Fetch gallery with images by module (id)
- *
- * @param {object} request Fastify request object
- * @param {object} response Fastify response object
- * @returns {Promise<void>}
- */
+const routeTemplate = {
+  method: 'GET',
+  onRequest: cache.onRequest,
+  preHandler: cache.preHandler,
+  onResponse: cache.onResponse
+}
 
-export const getGalleryController = async (request, response) => {
-  const { id } = request.params
+const getAlbumController = {
+  ...routeTemplate,
+  url: '/gallery/album/:id',
 
-  try {
-    request.data = await getGallery(id)
+  /**
+   * Fetch gallery with images by module (id)
+   *
+   * @param {object} request Fastify request object
+   * @param {object} response Fastify response object
+   * @returns {Promise<void>}
+   */
 
-    if (!request.data) {
-      sendNotFoundHandler(response)
-    } else {
-      response.send(request.data)
+  handler: async (request, response) => {
+    const { id } = request.params
+
+    try {
+      request.data = await getGallery(id)
+
+      if (!request.data) {
+        sendNotFoundHandler(response)
+      } else {
+        response.send(request.data)
+      }
+    } catch (error) {
+      catchHandler(response, error)
     }
-  } catch (error) {
-    catchHandler(response, error)
   }
 }
 
-/**
- * Fetch gallery with images by id (id)
- *
- * @param {object} request Fastify request object
- * @param {object} response Fastify response object
- * @returns {Promise<void>}
- */
+const getGalleryController = {
+  ...routeTemplate,
 
-export const getAlbumController = async (request, response) => {
-  const { id } = request.params
+  url: '/gallery/:id',
 
-  try {
-    request.data = await getAlbum(id)
+  /**
+   * Fetch gallery with images by id (id)
+   *
+   * @param {object} request Fastify request object
+   * @param {object} response Fastify response object
+   * @returns {Promise<void>}
+   */
+  handler: async (request, response) => {
+    const { id } = request.params
 
-    if (!request.data) {
-      sendNotFoundHandler(response)
-    } else {
-      response.send(request.data)
+    try {
+      request.data = await getAlbum(id)
+
+      if (!request.data) {
+        sendNotFoundHandler(response)
+      } else {
+        response.send(request.data)
+      }
+    } catch (error) {
+      catchHandler(response, error)
     }
-  } catch (error) {
-    catchHandler(response, error)
   }
+}
+
+export default async (App) => {
+  App.route(getAlbumController)
+  App.route(getGalleryController)
 }

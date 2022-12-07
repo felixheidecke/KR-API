@@ -5,9 +5,9 @@ import {
   shippingRateAdapter
 } from '#utils/shop-info'
 
-export const getShippingCost = async (module, weight, gross) => {
+export const getShippingCost = async (module, weight) => {
   const query = `
-    SELECT    w.charge as cost, s.freeFrom as threshold
+    SELECT    w.charge as price, s.freeFrom as threshold
     FROM      rtd.Shop3ShippingCharges AS s
     JOIN      rtd.Shop3ShippingChargesWeight AS w ON s._id = w.charges
     WHERE     s.module = ?
@@ -17,7 +17,7 @@ export const getShippingCost = async (module, weight, gross) => {
 
   const [rows] = await database.execute(query, [module, weight])
 
-  return shippingCostAdapter(rows[0], gross)
+  return shippingCostAdapter(rows[0])
 }
 
 export const getAdditionalCost = async (module) => {

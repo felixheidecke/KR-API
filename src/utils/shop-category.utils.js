@@ -8,7 +8,7 @@ export const categoryAdapter = (c) => {
     id: c.id,
     name: c.name,
     slug: toUrlSlug(c.name),
-    description: c.description ? textile.parse(c.description) : null,
+    description: c.description ? textile.parse(c.description) : '',
     productCount: c.productCount
   }
 }
