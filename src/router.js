@@ -10,6 +10,7 @@ const routers = async (App) => {
   App.register(import('#controller/shop-category'))
   App.register(import('#controller/shop-info'))
   App.register(import('#controller/shop-product'))
+  App.register(import('#controller/shop-order'))
 }
 
 export default routers

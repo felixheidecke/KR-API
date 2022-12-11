@@ -45,6 +45,10 @@ export class ShopCart {
     this.#module = +module
   }
 
+  get module() {
+    return this.#module
+  }
+
   /**
    * return cart contents
    *
@@ -154,9 +158,7 @@ export class ShopCart {
     })
 
     const additionalCost = await getAdditionalCost(this.#module)
-
     const shippingCost = await this.#getShippingCost(weight)
-
     let total = gross
 
     if (additionalCost) total += additionalCost.value
@@ -191,25 +193,6 @@ export class ShopCart {
     return value ? expandPrice(value) : null
   }
 }
-
-// const getShippingCost = async (module, weight) => {
-//   const query = `
-//       SELECT    w.charge as price, s.freeFrom as threshold
-//       FROM      rtd.Shop3ShippingCharges AS s
-//       JOIN      rtd.Shop3ShippingChargesWeight AS w ON s._id = w.charges
-//       WHERE     s.module = ?
-//       AND       w.upToWeight > ?
-//       ORDER BY  w.upToWeight ASC
-//       LIMIT     1`
-
-//   const [rows] = await database.execute(query, [module, weight])
-
-//   const { price, threshold } = rows[0]
-
-//   const value = threshold && price < threshold ? price : 0
-
-//   return value ? expandPrice(value) : null
-// }
 
 const getAdditionalCost = async (module) => {
   const query = `
