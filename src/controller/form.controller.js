@@ -46,7 +46,7 @@ const formController = {
    * @param {import("fastify").FastifyRequest} request
    * @param {import("fastify").FastifyReply} response
    */
-  preHandler: ({ body }, response) => {
+  preHandler: async ({ body }, response) => {
     const missing = body.required.filter((field) => !body[field]?.length) || []
 
     if (!missing.length) return

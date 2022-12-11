@@ -64,6 +64,8 @@ export const getArticlesByModule = async (module, { limit = 500 }) => {
       date IS NOT NULL
     AND
       (archiveDate = 0 OR archiveDate > ?)
+    AND
+      active = 1
     ORDER BY
       date ASC
     LIMIT
