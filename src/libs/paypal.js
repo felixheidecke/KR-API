@@ -28,7 +28,7 @@ export const createOrder = async (module, total) => {
         {
           amount: {
             currency_code: 'EUR',
-            value: Intl.NumberFormat('en-US').format(total)
+            value: total.toFixed(2)
           }
         }
       ]
