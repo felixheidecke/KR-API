@@ -16,7 +16,7 @@ export const jsonToText = (json) => {
     text.push(`${key.toUpperCase()}: ${value}`)
   })
 
-  return text.join('\n')
+  return text.join('\n\n')
 }
 
 /**
