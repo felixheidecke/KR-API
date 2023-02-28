@@ -1,21 +1,26 @@
 import { cacheNoStore as setCacheNoStoreHeader } from '#hooks/header'
-import { ShopCart } from '#model/shop-cart'
+import { sign, verify } from '#libs/jwt'
+import { Shop3Cart } from '#src/model/shop3/cart.model.js'
 
 const routeTemplate = {
   onRequest: setCacheNoStoreHeader,
   preHandler: async (request, response) => {
-    const { body } = request
-    const cart = new ShopCart()
+    const { body, params } = request
+    request.cart = new Shop3Cart(params.module)
 
     try {
       if (body.token) {
-        cart.token = body.token
-      } else {
-        cart.module = body.module
-      }
+        const products = verify(body.token).products
 
-      request.cart = cart
-    } catch (err) {
+        await Promise.all(
+          products.map(
+            async ({ id, quantity }) =>
+              await request.cart.updateItem(id, quantity)
+          )
+        )
+      }
+    } catch (error) {
+      console.error({ error })
       response.status(400).send({ message: 'invalid token!' })
     }
   }
@@ -30,24 +35,36 @@ const getCartController = {
 
   method: 'POST',
 
-  url: '/shop/cart',
+  url: '/shop/:module/cart',
 
   schema: {
-    body: {
+    params: {
       type: 'object',
-      required: ['module'],
       properties: {
         module: { type: 'number' }
+      }
+    },
+    body: {
+      type: 'object',
+      properties: {
+        token: { type: 'string' }
       }
     }
   },
 
+  /**
+   *
+   * @param {import('fastify').FastifyRequest} request
+   * @param {*} response
+   */
+
   handler: async (request, response) => {
     const { cart } = request
+    await cart.calculate()
 
     response.send({
-      cart: await cart.get(),
-      token: cart.token
+      cart: cart.getAll(),
+      token: sign(cart.export)
     })
   }
 }
@@ -61,15 +78,20 @@ const addToCartController = {
 
   method: 'PATCH',
 
-  url: '/shop/cart/add',
+  url: '/shop/:module/cart/add',
 
   schema: {
+    params: {
+      type: 'object',
+      properties: {
+        module: { type: 'number' }
+      }
+    },
     body: {
       type: 'object',
-      required: ['id', 'module'],
+      required: ['id'],
       properties: {
-        id: { type: 'string' }, // String, because used as Map().key
-        module: { type: 'number' }
+        id: { type: 'string' } // String, because used as Map().key
       }
     }
   },
@@ -78,10 +100,11 @@ const addToCartController = {
     const { cart, body } = request
 
     await cart.addItem(body.id)
+    await cart.calculate()
 
     response.send({
-      cart: await cart.get(),
-      token: cart.token
+      cart: cart.getAll(),
+      token: sign(cart.export)
     })
   }
 }
@@ -95,15 +118,20 @@ const updateCartController = {
 
   method: 'PATCH',
 
-  url: '/shop/cart/update',
+  url: '/shop/:module/cart/update',
 
   schema: {
+    params: {
+      type: 'object',
+      properties: {
+        module: { type: 'number' }
+      }
+    },
     body: {
       type: 'object',
-      required: ['id', 'quantity', 'module'],
+      required: ['id', 'quantity'],
       properties: {
         id: { type: 'string' }, // String, because used as Map().key
-        module: { type: 'number' },
         quantity: { type: 'number' }
       }
     }
@@ -112,15 +140,12 @@ const updateCartController = {
   handler: async (request, response) => {
     const { cart, body } = request
 
-    if (body.quantity <= 0) {
-      await cart.removeItem(body.id)
-    } else {
-      await cart.updateItem(body.id, body.quantity)
-    }
+    await cart.updateItem(body.id, body.quantity)
+    await cart.calculate()
 
     response.send({
-      cart: await cart.get(),
-      token: cart.token
+      cart: cart.getAll(),
+      token: sign(cart.export)
     })
   }
 }
@@ -128,21 +153,11 @@ const updateCartController = {
 const resetCartController = {
   method: 'DELETE',
 
-  url: '/shop/cart',
-
-  schema: {
-    body: {
-      type: 'object',
-      required: ['module'],
-      properties: {
-        module: { type: 'number' }
-      }
-    }
-  },
+  url: '/shop/:module/cart',
 
   handler: async (request, response) => {
     const { body } = request
-    const cart = new ShopCart()
+    const cart = new Shop3Cart()
     cart.module = body.module
 
     response.send({

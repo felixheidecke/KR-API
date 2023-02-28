@@ -1,6 +1,10 @@
-import { getCategory, getCategories } from '#data/shop-category'
 import { catchHandler, sendNotFoundHandler } from '#utils/controller'
 import * as cache from '#hooks/cache'
+import { Shop3Products } from '#src/model/shop3/product.model.js'
+import {
+  Shop3Category,
+  Shop3Categories
+} from '#src/model/shop3/category.model.js'
 
 const routeTemplate = {
   method: 'GET',
@@ -33,13 +37,15 @@ const categoryController = {
 
   handler: async (request, response) => {
     const { id } = request.params // module id
+    const categories = new Shop3Categories()
 
     try {
-      request.data = await getCategories(id)
+      await categories.fetch(id)
 
-      if (!request.data) {
+      if (!categories.exists()) {
         sendNotFoundHandler(response)
       } else {
+        request.data = categories.getAll()
         response.send(request.data)
       }
     } catch (error) {
@@ -51,19 +57,23 @@ const categoryController = {
 const categoriesController = {
   ...routeTemplate,
 
-  url: '/shop/category/:id',
+  url: '/shop/:module/category/:id',
 
   handler: async (request, response) => {
     const { id } = request.params // category id
+    const category = new Shop3Category()
 
     try {
-      request.data = await getCategory(id)
+      await category.fetch(id)
 
-      if (!request.data) {
+      if (!category.exists()) {
         sendNotFoundHandler(response)
-      } else {
-        response.send(request.data)
+        return
       }
+
+      request.data = category.getAll()
+
+      response.send(request.data)
     } catch (error) {
       catchHandler(response, error)
     }
@@ -73,19 +83,23 @@ const categoriesController = {
 const categoryProductsController = {
   ...routeTemplate,
 
-  url: '/shop/category/:id/products',
+  url: '/shop/:module/category/:id/products',
 
   handler: async (request, response) => {
     const { id } = request.params // category id
+    const products = new Shop3Products()
 
     try {
-      request.data = await getProductsByCategory(id)
+      await products.fetchByCategory(id)
 
-      if (!request.data) {
+      if (!products.hasProducts()) {
         sendNotFoundHandler(response)
-      } else {
-        response.send(request.data)
+        return
       }
+
+      request.data = products.getAll()
+
+      response.send(request.data)
     } catch (error) {
       catchHandler(response, error)
     }

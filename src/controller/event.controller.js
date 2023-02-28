@@ -1,5 +1,6 @@
 import * as cache from '#hooks/cache'
-import { getEvent, getEvents } from '#data/events'
+import { getEvent } from '#data/event'
+import { getEvents } from '#data/events'
 import { catchHandler, sendNotFoundHandler } from '#utils/controller'
 
 const routeTemplate = {
@@ -16,28 +17,31 @@ const routeTemplate = {
 
 const getEventController = {
   ...routeTemplate,
-  url: '/events/:id',
+  url: '/events/:module',
   schema: {
     params: {
       type: 'object',
-      required: ['id'],
+      required: ['module'],
       properties: {
-        id: { type: 'number' }
+        module: { type: 'number' }
       }
     },
     query: {
       type: 'object',
       properties: {
-        limit: { type: 'number' }
+        limit: { type: 'number' },
+        expired: { type: 'boolean' }
       }
     }
   },
   handler: async (request, response) => {
-    const { id } = request.params // is module
+    const { module } = request.params // is module
     const { query } = request
 
+    request.shouldSave = false
     try {
-      request.data = await getEvents(id, query)
+      const events = await getEvents(module, query)
+      request.data = events.get().map(({ get }) => get())
 
       if (!request.data) {
         sendNotFoundHandler(response)
@@ -74,7 +78,8 @@ const getEventsController = {
     console.log('getEventController', request.cache.shouldSave)
 
     try {
-      request.data = await getEvent(id)
+      const event = await getEvent(id)
+      request.data = event.get()
 
       if (!request.data) {
         sendNotFoundHandler(response)

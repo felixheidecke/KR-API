@@ -1,130 +1,55 @@
-import { getUnixTime } from 'date-fns'
-import mysqlQuery from '#libs/sql-query-builder'
+import SimpleQuery from '#libs/simple-query-builder'
 import database from '#libs/database'
-import { ASSET_BASE_URL } from '#constants'
-import { eventAdapter } from '#utils/event'
+import { getEvent } from '#data/event'
 
-/**
- * Get Events by id
- *
- * @param {object} id
- * @returns {Promise<array>} Event
- */
+export async function getEvents(module = 0, config = {}) {
+  // --- Data ---
 
-export const getEvents = async (module, options) => {
-  const db = new mysqlQuery()
+  let events = []
 
-  // --- Build query ------------------
+  // --- Initialise ---
 
-  db.select(
-    `_id, title, startDate, endDate, description, details, image, thumb,
-    imageDescription, pdf, pdfName, pdfTitle, module, flagset, detailsURL, url,
-    presenter, lat, lng`
-  )
-    .from('rtd.Event')
-    .where('endDate > ?')
-    .and(`module = ?`)
-    .order('startDate')
-
-  if (options.limit) {
-    db.limit(options.limit)
+  if (module) {
+    await fetchEvents()
   }
 
-  const [rows] = await database.execute(db.query(), [
-    getUnixTime(new Date()),
-    module
-  ])
+  async function fetchEvents() {
+    const { limit, full, expired } = config
+    const query = new SimpleQuery()
 
-  if (!rows.length) return []
+    query.select('_id').from('rtd.Event').where(['module =', module])
 
-  return await Promise.all(
-    rows.map(async (event) => {
-      const normalizedEvent = eventAdapter(event)
+    if (!expired) {
+      query.and(['endDate >', Date.now() / 1000])
+    }
 
-      return {
-        ...normalizedEvent,
-        images: await getImagesByEvent(event._id),
-        flags: await getFlags(event.flagset)
-      }
-    })
-  )
-}
+    query.order('startDate')
 
-/**
- * Get Event by id
- *
- * @param {object} id
- * @returns {Promise<object|null>} Event
- */
+    if (limit) {
+      query.limit(limit)
+    }
 
-export const getEvent = async (id) => {
-  const db = new mysqlQuery()
+    const [rows] = await database.execute(query.query)
 
-  // --- Build query ------------------
+    if (!rows.length) return
 
-  db.select(
-    `_id, title, startDate, endDate, description, details, image, thumb,
-    imageDescription, pdf, pdfName, pdfTitle, module, flagset, detailsURL, url,
-    presenter, lat, lng`
-  )
-    .from('rtd.Event')
-    .where('_id = ?')
+    events = await Promise.all(
+      rows.map(({ _id }) => getEvent(_id, { full: !!full }))
+    )
+  }
 
-  const [rows] = await database.execute(db.query(), [id])
-
-  if (!rows.length) return null
-
-  const event = eventAdapter(rows[0])
+  function importData(data) {
+    events = data
+  }
 
   return {
-    ...event,
-    images: await getImagesByEvent(rows[0]._id),
-    flags: await getFlags(rows[0].flagset)
+    get: (index = -1) => {
+      if (index > -1) {
+        return events[index]
+      }
+
+      return events
+    },
+    import: importData
   }
-}
-
-/**
- * Add further images to event
- *
- * @param {object} id
- * @returns {Promise<object>} enriched article
- */
-
-const getImagesByEvent = async (id) => {
-  const db = new mysqlQuery()
-
-  db.select('image, description')
-    .from('rtd.EventImage')
-    .where('event = ?')
-    .order('position')
-
-  const [rows] = await database.execute(db.query(), [id])
-
-  if (!rows.length) return []
-
-  return rows.map((row) => {
-    return {
-      src: ASSET_BASE_URL + row.image,
-      alt: row.description
-    }
-  })
-}
-
-/**
- * Fetch flags by id
- *
- * @param {number} id
- * @returns {Promise<String[]>} list of flag titles
- */
-
-const getFlags = async (id) => {
-  const db = new mysqlQuery()
-
-  db.select('title').from('rtd.Flag').where('flagset = ?')
-
-  const [rows] = await database.execute(db.query(), [id])
-
-  if (!rows.length) return []
-
-  return rows.map((flag) => flag.title)
 }

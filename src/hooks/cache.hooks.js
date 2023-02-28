@@ -1,8 +1,6 @@
 import { HEADER, MIME_TYPE } from '#constants'
 import redis from '#libs/redis'
 
-const TTL = 60 * 5 // 5 minutes
-
 /**
  * Add cache model to request models
  *
@@ -15,7 +13,8 @@ export const onRequest = async (request, config = {}) => {
   request.cache = {
     wasHit: false,
     shouldSave: true,
-    ttl: TTL,
+    redisTTL: 300, // 5 minutes
+    browserTTL: 3600, // 1 hour
     ...config
   }
 }
@@ -40,7 +39,7 @@ export const preHandler = async (request, response) => {
         : HEADER.CACHE_MISS,
       [HEADER.CACHE_CONTROL]: [
         HEADER.PUBLIC,
-        HEADER.MAX_AGE(request.cache.ttl)
+        HEADER.MAX_AGE(request.cache.browserTTL)
       ].join(', ')
     })
 
@@ -63,12 +62,21 @@ export const preHandler = async (request, response) => {
  */
 export const onResponse = async ({ cache, url, log, data }) => {
   // Skip if data came from cache or data (should not be cached)
-  if (cache.wasHit || !cache.shouldSave || !data) return
+
+  if (
+    cache.wasHit ||
+    !cache.shouldSave ||
+    !data ||
+    data === {} ||
+    data === null ||
+    data === []
+  )
+    return
 
   log.info(`Serving ${url} from Datasource`)
 
   try {
-    await redis.SETEX(url, cache.ttl, JSON.stringify(data))
+    await redis.SETEX(url, cache.redisTTL, JSON.stringify(data))
   } catch (error) {
     console.error({ error })
   }

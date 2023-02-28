@@ -1,5 +1,5 @@
 import { catchHandler } from '#utils/controller'
-import { Shop } from '#model/shop-info'
+import { Shop3Info } from '#src/model/shop3/info.model.js'
 import * as cache from '#hooks/cache'
 
 const shopInfoController = {
@@ -19,14 +19,14 @@ const shopInfoController = {
   },
 
   handler: async (request, response) => {
-    const shop = new Shop()
+    const shop = new Shop3Info()
     shop.module = request.params.module
 
     try {
       const [owner, charges, rates] = await Promise.all([
-        shop.owner,
-        shop.shippingCharges,
-        shop.shippingRates
+        shop.owner(),
+        shop.shippingCharges(),
+        shop.shippingRates()
       ])
 
       request.data = {

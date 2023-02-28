@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "id": "number",
+    "module": "number",
+    "slug": "string",
+    "title": "string",
+    "description": "string",
+    "details": "string",
+    "productName": "A green door",
+    "price": 12.5,
+    "tags": ["home", "green"]
+  }
+}

@@ -1,6 +1,7 @@
-import { getGallery, getAlbum } from '#data/gallery'
 import { catchHandler, sendNotFoundHandler } from '#utils/controller'
 import * as cache from '#hooks/cache'
+import { getAlbum } from '#data/album'
+import { getGallery } from '#data/gallery'
 
 const routeTemplate = {
   method: 'GET',
@@ -25,7 +26,8 @@ const getAlbumController = {
     const { id } = request.params
 
     try {
-      request.data = await getGallery(id)
+      const album = await getAlbum(id)
+      request.data = album.get()
 
       if (!request.data) {
         sendNotFoundHandler(response)
@@ -54,7 +56,8 @@ const getGalleryController = {
     const { id } = request.params
 
     try {
-      request.data = await getAlbum(id)
+      const gallery = await getGallery(id)
+      request.data = gallery.get()
 
       if (!request.data) {
         sendNotFoundHandler(response)

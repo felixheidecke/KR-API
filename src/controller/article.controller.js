@@ -1,7 +1,6 @@
 import * as cache from '#hooks/cache'
-
-import { getArticleById, getArticlesByModule } from '#data/articles'
-import { catchHandler, sendNotFoundHandler } from '#utils/controller'
+import { getArticle } from '#data/article'
+import { getArticles } from '#data/articles'
 
 const routeTemplate = {
   method: 'GET',
@@ -13,7 +12,7 @@ const routeTemplate = {
 const getArticlesController = {
   ...routeTemplate,
 
-  url: '/articles/:id',
+  url: '/article/:id',
 
   schema: {
     params: {
@@ -26,30 +25,28 @@ const getArticlesController = {
     query: {
       type: 'object',
       properties: {
-        limit: { type: 'number' }
+        full: {
+          type: 'boolean'
+        }
       }
     }
   },
-
-  /**
-   * @param {import('fastify').FastifyRequest} request Fastify request object
-   * @param {import('fastify').FastifyReply} response Fastify response object
-   */
   handler: async (request, response) => {
-    // Request params
-    const { id } = request.params
-    const { limit } = request.query
+    const { params, query } = request
 
     try {
-      request.data = await getArticlesByModule(id, { limit })
+      request.data = (await getArticle(params.id, { full: !!query.full })).get()
+      request.cache.shouldSave = !!request.data
 
-      if (!request.data) {
-        sendNotFoundHandler(response)
-      } else {
+      if (request.data) {
         response.send(request.data)
+      } else {
+        response.code(404).send({ message: 'Article not found.' })
       }
     } catch (error) {
-      catchHandler(response, error)
+      request.cache.shouldSave = false
+      response.code(500).send('An Error occured')
+      console.error(error)
     }
   }
 }
@@ -57,35 +54,59 @@ const getArticlesController = {
 const getArticleController = {
   ...routeTemplate,
 
-  url: '/article/:id',
+  url: '/articles/:module',
 
   schema: {
     params: {
       type: 'object',
+      required: ['module'],
       properties: {
-        id: { type: 'number' }
+        module: { type: 'number' }
+      }
+    },
+    query: {
+      type: 'object',
+      properties: {
+        full: {
+          type: 'boolean'
+        },
+        limit: {
+          type: 'number'
+        },
+        archived: {
+          type: 'boolean'
+        },
+        inactive: {
+          type: 'boolean'
+        }
       }
     }
   },
-
-  /**
-   * @param {import('fastify').FastifyRequest} request Fastify request object
-   * @param {import('fastify').FastifyReply} response Fastify response object
-   */
   handler: async (request, response) => {
-    // Request params
-    const { id } = request.params
+    const { params, query } = request
 
     try {
-      request.data = await getArticleById(id)
+      const articles = (
+        await getArticles(params.module, {
+          archived: !!query.archived,
+          limit: query.limit,
+          inactive: query.inactive,
+          full: query.full
+        })
+      ).get()
 
-      if (!request.data) {
-        sendNotFoundHandler(response)
-      } else {
+      request.cache.shouldSave = !!articles
+
+      if (articles) {
+        request.data = articles.map(({ get }) => get())
         response.send(request.data)
+      } else {
+        response.code(404).send({ message: 'Articles not found.' })
       }
     } catch (error) {
-      catchHandler(response, error)
+      request.cache.shouldSave = false
+      response.code(500).send('An Error occured')
+      console.error(error)
     }
   }
 }

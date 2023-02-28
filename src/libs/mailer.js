@@ -1,12 +1,14 @@
 import nodemailer from 'nodemailer'
-import { host, port, secure, user, password } from '#config/nodemailer'
+import { host, port, requireTLS, user, password } from '#config/nodemailer'
 
-export default nodemailer.createTransport({
+const config = {
   host,
   port,
-  secure,
+  requireTLS,
   auth: {
     user,
     pass: password
   }
-})
+}
+
+export default nodemailer.createTransport(config)

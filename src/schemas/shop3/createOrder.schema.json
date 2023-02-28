@@ -1,0 +1,76 @@
+{
+  "body": {
+    "type": "object",
+    "required": ["token", "type", "invoice"],
+    "properties": {
+      "token": {
+        "type": "string"
+      },
+      "type": {
+        "type": "string",
+        "enum": ["paypal", "prepaid"]
+      },
+      "invoice": {
+        "$ref": "#/definitions/FormData"
+      },
+      "shipping": {
+        "$ref": "#/definitions/FormData"
+      }
+    },
+    "definitions": {
+      "Default": {
+        "type": "string",
+        "pattern": "^[^<>*;:$`]+$"
+      },
+      "FormData": {
+        "type": "object",
+        "required": [
+          "salutation",
+          "firstname",
+          "name",
+          "address",
+          "zip",
+          "city",
+          "email"
+        ],
+        "properties": {
+          "company": {
+            "$ref": "#/definitions/Default"
+          },
+          "salutation": {
+            "type": "string",
+            "enum": ["Herr", "Frau"]
+          },
+          "firstname": {
+            "$ref": "#/definitions/Default"
+          },
+          "name": {
+            "$ref": "#/definitions/Default"
+          },
+          "address": {
+            "$ref": "#/definitions/Default"
+          },
+          "zip": {
+            "type": "string",
+            "pattern": "^[0-9]{5}$"
+          },
+          "city": {
+            "$ref": "#/definitions/Default"
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^[0-9+/]+$"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "message": {
+            "type": "string",
+            "pattern": "^[^<>*]+$"
+          }
+        }
+      }
+    }
+  }
+}

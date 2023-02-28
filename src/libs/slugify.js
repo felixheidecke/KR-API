@@ -21,3 +21,5 @@ export const toUrlSlug = (string) => {
     remove: /[*+~.,/()'"!?:@]/g
   })
 }
+
+export default { slugify }

@@ -1,123 +1,68 @@
+import SimpleQuery from '#libs/simple-query-builder'
 import database from '#libs/database'
-import mysqlQuery from '#libs/sql-query-builder'
-import { articleAdapter, paragraphAdapter } from '#utils/article'
 
-/**
- * Fetch article
- *
- * @param {number} id Article id
- * @returns {Promise<object|null>} Articles
- */
+import { getArticle } from '#data/article'
 
-export const getArticleById = async (id) => {
-  if (!id) return new Error('Missing required param "id" in getArticleById()')
+export async function getArticles(module = 0, config) {
+  // --- Data ---
 
-  const db = new mysqlQuery()
+  let articles = []
 
-  db.select(
-    `
-    _id, module, title, date,
-    text, image, imageSmall, imageDescription,
-    pdf, pdfName, pdfTitle, web, author`
-  )
-    .from('rtd.Article')
-    .where('_id = ?')
-    .limit(1)
+  // --- Initialise ---
 
-  try {
-    const [rows] = await database.execute(db.query(), [id])
+  if (module) {
+    await fetchArticles()
+  }
 
-    if (!rows.length) return null
+  async function fetchArticles() {
+    const { archived, inactive, limit, full } = config
+    const query = new SimpleQuery()
 
-    const article = articleAdapter(rows[0])
+    query.select('_id').from('rtd.Article').where(`module = ${module}`)
 
-    return {
-      ...article,
-      content: await getParagrapsByArticle(rows[0]._id)
+    if (!archived) query.and(`(archiveDate = 0 OR archiveDate > ${Date.now()})`)
+
+    if (inactive) {
+      query.and('active = 0')
+    } else {
+      query.and('active = 1')
     }
-  } catch (error) {
-    console.error(error)
-    return error
-  }
-}
 
-/**
- * Fetch Articles
- *
- * @param {number} module
- * @returns {Promise<array>} Articles
- */
+    query.order('date')
 
-export const getArticlesByModule = async (module, { limit = 500 }) => {
-  if (!module)
-    return new Error('Missing required param "module" in getArticlesByModule()')
+    if (limit) query.limit(limit)
 
-  const query = `
-    SELECT
-      _id, module, title, date, text, image, imageSmall, imageDescription, pdf,
-      pdfName, pdfTitle, web, author
-    FROM
-      rtd.Article
-    WHERE
-      module = ?
-    AND
-      date IS NOT NULL
-    AND
-      (archiveDate = 0 OR archiveDate > ?)
-    AND
-      active = 1
-    ORDER BY
-      date ASC
-    LIMIT
-      ?`
+    const [rows] = await database.execute(query.query)
 
-  try {
-    const [rows] = await database.execute(query, [module, Date.now(), limit])
+    if (!rows.length) return
 
-    if (!rows.length) return Prmose.resolve([])
-
-    return await Promise.all(
-      rows.map(async (article) => {
-        const normalizedArticle = articleAdapter(article)
-
-        return {
-          ...normalizedArticle,
-          content: await getParagrapsByArticle(article._id)
-        }
-      })
+    articles = await Promise.all(
+      rows.map(({ _id }) => getArticle(_id, { full: !!full }))
     )
-  } catch (error) {
-    console.error(error)
-    return error
   }
-}
 
-/**
- * Fetch Articles by module id
- *
- * @param {string|number} id module
- * @returns {Promise<array>} Articles
- */
+  function get(index = -1) {
+    if (!articles.length) {
+      return null
+    }
 
-const getParagrapsByArticle = async (id) => {
-  if (!id)
-    return new Error('Missing required param "id" in getParagrapsByArticle()')
+    if (index >= 0 && articles.length <= index) {
+      return articles[index]
+    }
 
-  const db = new mysqlQuery()
+    return articles
+  }
 
-  db.select('_id, text, image, imageDescription, imageAlign')
-    .from('rtd.ArticleParagraph')
-    .where('article = ?')
-    .order('position')
+  function importData(data) {
+    if (!articles.length) {
+      throw new Error('Articles already loaded')
+    }
 
-  try {
-    const [rows] = await database.execute(db.query(), [id])
+    articles = data
+  }
 
-    if (!rows.length) return []
-
-    return rows.map(paragraphAdapter)
-  } catch (error) {
-    console.error(error)
-    return error
+  return {
+    get,
+    import: importData
   }
 }

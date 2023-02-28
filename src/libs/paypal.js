@@ -81,6 +81,11 @@ const getAccessToken = async (module) => {
 
 const generateAccessToken = async (module) => {
   const { clientId, secret } = await getCredentials(module)
+
+  if (!clientId || !secret) {
+    throw `No Paypal credentials found for shop ${module}`
+  }
+
   const basicAuth = Buffer.from(clientId + ':' + secret).toString('base64')
   const response = await fetch(join(host, 'v1/oauth2/token'), {
     method: 'POST',

@@ -1,6 +1,6 @@
-import { getProduct, getProducts } from '#data/shop-product'
 import { catchHandler, sendNotFoundHandler } from '#utils/controller'
 import * as cache from '#hooks/cache'
+import { Shop3Product, Shop3Products } from '#src/model/shop3/product.model.js'
 
 const routeTemplate = {
   method: 'GET',
@@ -26,23 +26,26 @@ const routeTemplate = {
 const getProductController = {
   ...routeTemplate,
 
-  url: '/shop/product/:id',
+  url: '/shop/:module/product/:id',
 
   /**
    * @param {import("fastify").FastifyRequest} request
    * @param {import("fastify").FastifyReply} response
    */
   handler: async (request, response) => {
-    const { id } = request.params // rtd.Shop3Product[_id]
+    const { id, module } = request.params // rtd.Shop3Product[_id]
 
     try {
-      request.data = await getProduct(id)
+      const product = await new Shop3Product().fetch(id, module)
 
-      if (!request.data) {
+      if (!product.exists()) {
         sendNotFoundHandler(response)
-      } else {
-        response.send(request.data)
+        return
       }
+
+      request.data = product.getAll()
+
+      response.send(request.data)
     } catch (error) {
       catchHandler(response, error)
     }
@@ -62,14 +65,18 @@ const getProductsController = {
     const { id } = request.params // rtd.Shop3Product[module]
 
     try {
-      request.data = await getProducts(id)
+      const products = await new Shop3Products().fetch(id)
 
-      if (!request.data) {
+      if (!products.hasProducts()) {
         sendNotFoundHandler(response)
-      } else {
-        response.send(request.data)
+        return
       }
+
+      request.data = products.getAll()
+
+      response.send(request.data)
     } catch (error) {
+      request.log.fatal(error)
       catchHandler(response, error)
     }
   }

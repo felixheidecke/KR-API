@@ -1,57 +1,58 @@
+import SimpleQuery from '#libs/simple-query-builder'
 import database from '#libs/database'
-import { albumAdapter } from '#utils/gallery'
-import { groupBy } from 'lodash-es'
+import { toUrlSlug } from '#libs/slugify'
 
-export const getGallery = async (is) => {
-  if (!is) return new Error('Missing required param "is"')
+export async function getGallery(module = 0, config = {}) {
+  // --- Data ---
+  let gallery = []
 
-  let gallery
-  const query = `
-    SELECT    album._id as id,
-              album.module as module,
-              album.title as title,
-              album.priority as album_sort,
-              photo.image as path,
-              photo.filename as name,
-              photo.priority as sort,
-              photo.description as alt
-    FROM      rtd.PhotoAlbum AS album
-    LEFT JOIN rtd.Photo AS photo ON album._id = photo.album
-    WHERE     album.module = ?
-    ORDER BY  album.priority ASC`
+  // --- Initialise ---
+  if (module) {
+    await fetchGallery()
+  }
 
-  const [pictures] = await database.execute(query, [is])
+  function get() {
+    const data = !config.empty
+      ? gallery.filter(({ photoCount }) => photoCount > 0)
+      : gallery
 
-  if (!pictures.length) return
+    return data.map((album) => ({
+      id: album._id,
+      title: album.title.trim(),
+      slug: toUrlSlug(album.title),
+      count: album.photoCount
+    }))
+  }
 
-  gallery = groupBy(pictures, 'id')
-  gallery = Object.values(gallery)
-  gallery = gallery.map(albumAdapter)
+  async function fetchGallery() {
+    const query = new SimpleQuery()
 
-  return gallery
-}
+    query
+      .select([
+        'album._id as _id',
+        'album.title as title',
+        'album.priority as priority',
+        'COUNT(photo._id) as photoCount'
+      ])
+      .from('rtd.PhotoAlbum AS album')
+      .leftJoin('rtd.Photo AS photo', 'album._id = photo.album')
+      .where(['album.module =', module])
+      .group('photo.album')
+      .order('album.priority')
 
-export const getAlbum = async (id) => {
-  if (!id) return new Error('Missing required param "id"')
+    const [rows] = await database.execute(query.query)
 
-  const query = `
-    SELECT    album._id as id,
-              album.module as module,
-              album.title as title,
-              album.priority as album_sort,
-              photo.image as path,
-              photo.filename as name,
-              photo.priority as sort,
-              photo.description as alt
-    FROM      rtd.PhotoAlbum AS album
-    LEFT JOIN rtd.Photo AS photo ON album._id = photo.album
-    WHERE     album._id = ?
-    ORDER BY  photo.priority ASC
-    LIMIT     1`
+    if (!rows.length) return
 
-  const [pictures] = await database.execute(query, [id])
+    gallery = rows
+  }
 
-  if (!pictures.length) return
+  function exportData() {
+    return Object.freeze({ gallery })
+  }
 
-  return albumAdapter(pictures)
+  return {
+    get,
+    exportData
+  }
 }
