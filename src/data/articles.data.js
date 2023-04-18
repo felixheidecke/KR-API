@@ -3,38 +3,52 @@ import database from '#libs/database'
 
 import { getArticle } from '#data/article'
 
-export async function getArticles(module = 0, config) {
-  // --- Data ---
+export async function getArticles(module = 0, config = null) {
+  config = {
+    status: 'live',
+    ...config
+  }
+
+  // --- [ Data ] --------------------------------------------------------------
 
   let articles = []
 
-  // --- Initialise ---
+  // --- [ Initialization ] ----------------------------------------------------
 
   if (module) {
     await fetchArticles()
   }
 
+  // --- [ Methods ] -----------------------------------------------------------
+
   async function fetchArticles() {
-    const { archived, inactive, limit, full } = config
+    const { status, full, limit } = config
     const query = new SimpleQuery()
 
-    query.select('_id').from('rtd.Article').where(`module = ${module}`)
+    query
+      .select('_id')
+      .from('rtd.Article')
+      .where(['module =', module])
+      .and('active = 1')
 
-    if (!archived) query.and(`(archiveDate = 0 OR archiveDate > ${Date.now()})`)
-
-    if (inactive) {
-      query.and('active = 0')
-    } else {
-      query.and('active = 1')
+    if (status === 'live') {
+      query.and(['(archiveDate = 0 OR archiveDate >', Date.now(), ')'])
+    } else if (status === 'archived') {
+      query.and('archiveDate > 0')
+      query.and(['(archiveDate <', Date.now(), ')'])
     }
 
-    query.order('date')
+    query.order('date', 'DESC')
 
-    if (limit) query.limit(limit)
+    if (limit) {
+      query.limit(limit)
+    }
 
     const [rows] = await database.execute(query.query)
 
-    if (!rows.length) return
+    if (!rows.length) {
+      return
+    }
 
     articles = await Promise.all(
       rows.map(({ _id }) => getArticle(_id, { full: !!full }))
@@ -42,10 +56,6 @@ export async function getArticles(module = 0, config) {
   }
 
   function get(index = -1) {
-    if (!articles.length) {
-      return null
-    }
-
     if (index >= 0 && articles.length <= index) {
       return articles[index]
     }
@@ -60,6 +70,8 @@ export async function getArticles(module = 0, config) {
 
     articles = data
   }
+
+  // --- [ Exports ] -----------------------------------------------------------
 
   return {
     get,

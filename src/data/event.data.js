@@ -5,7 +5,7 @@ import { fromUnixTime } from 'date-fns'
 import textile from 'textile-js'
 import { ASSET_BASE_URL } from '#constants'
 
-export async function getEvent(id = 0, config = {}) {
+export async function getEvent(id = 0) {
   // --- Data ---
 
   let event = {}
@@ -16,9 +16,6 @@ export async function getEvent(id = 0, config = {}) {
 
   if (id) {
     await fetchEvent()
-  }
-
-  if (id && config.full) {
     await fetchImages()
     await fetchFlags()
   }

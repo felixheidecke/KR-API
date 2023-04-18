@@ -1,6 +1,7 @@
 import SimpleQuery from '#libs/simple-query-builder'
 import database from '#libs/database'
 import { getEvent } from '#data/event'
+import { getUnixTime } from 'date-fns'
 
 export async function getEvents(module = 0, config = {}) {
   // --- Data ---
@@ -14,16 +15,29 @@ export async function getEvents(module = 0, config = {}) {
   }
 
   async function fetchEvents() {
-    const { limit, full, expired } = config
+    const { limit, startsBefore, startsAfter, endsBefore, endsAfter } = config
+
     const query = new SimpleQuery()
 
     query.select('_id').from('rtd.Event').where(['module =', module])
 
-    if (!expired) {
-      query.and(['endDate >', Date.now() / 1000])
+    if (startsBefore) {
+      query.and(['startDate <', getUnixTime(new Date(startsBefore))])
     }
 
-    query.order('startDate')
+    if (startsAfter) {
+      query.and(['startDate >', getUnixTime(new Date(startsAfter))])
+    }
+
+    if (endsBefore) {
+      query.and(['endDate <', getUnixTime(new Date(endsBefore))])
+    }
+
+    if (endsAfter) {
+      query.and(['endDate >', getUnixTime(new Date(endsAfter))])
+    }
+
+    query.order('startDate', 'asc')
 
     if (limit) {
       query.limit(limit)
@@ -33,9 +47,9 @@ export async function getEvents(module = 0, config = {}) {
 
     if (!rows.length) return
 
-    events = await Promise.all(
-      rows.map(({ _id }) => getEvent(_id, { full: !!full }))
-    )
+    console.log({ config })
+
+    events = await Promise.all(rows.map(({ _id }) => getEvent(_id)))
   }
 
   function importData(data) {

@@ -92,7 +92,8 @@ export default class SimpleQuery {
     return this.#query.join(' ')
   }
 
-  #addToQuery(command, param) {
-    this.#query = [...this.#query, command, param]
+  #addToQuery() {
+    const args = Array.from(arguments)
+    this.#query = [...this.#query, ...args]
   }
 }

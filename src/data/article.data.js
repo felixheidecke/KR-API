@@ -5,7 +5,12 @@ import { fromUnixTime } from 'date-fns'
 import textile from 'textile-js'
 import { ASSET_BASE_URL } from '#constants'
 
-export async function getArticle(id = 0, config = {}) {
+export async function getArticle(id = 0, config = null) {
+  config = {
+    full: true,
+    ...config
+  }
+
   // --- Data ---
 
   let article = {}

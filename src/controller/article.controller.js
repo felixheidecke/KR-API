@@ -1,6 +1,7 @@
 import * as cache from '#hooks/cache'
 import { getArticle } from '#data/article'
 import { getArticles } from '#data/articles'
+import { pick } from 'lodash-es'
 
 const routeTemplate = {
   method: 'GET',
@@ -9,7 +10,7 @@ const routeTemplate = {
   onResponse: cache.onResponse
 }
 
-const getArticlesController = {
+const getArticleController = {
   ...routeTemplate,
 
   url: '/article/:id',
@@ -32,10 +33,11 @@ const getArticlesController = {
     }
   },
   handler: async (request, response) => {
-    const { params, query } = request
+    const { params } = request
+    const query = pick(request.query, ['full'])
 
     try {
-      request.data = (await getArticle(params.id, { full: !!query.full })).get()
+      request.data = (await getArticle(params.id, { ...query })).get()
       request.cache.shouldSave = !!request.data
 
       if (request.data) {
@@ -44,14 +46,12 @@ const getArticlesController = {
         response.code(404).send({ message: 'Article not found.' })
       }
     } catch (error) {
-      request.cache.shouldSave = false
-      response.code(500).send('An Error occured')
-      console.error(error)
+      catchHandler(response, error)
     }
   }
 }
 
-const getArticleController = {
+const getArticlesController = {
   ...routeTemplate,
 
   url: '/articles/:module',
@@ -70,30 +70,22 @@ const getArticleController = {
         full: {
           type: 'boolean'
         },
+        status: {
+          type: 'string',
+          enum: ['live', 'archived']
+        },
         limit: {
           type: 'number'
-        },
-        archived: {
-          type: 'boolean'
-        },
-        inactive: {
-          type: 'boolean'
         }
       }
     }
   },
   handler: async (request, response) => {
-    const { params, query } = request
+    const { params } = request
+    const query = pick(request.query, ['status', 'full', 'limit'])
 
     try {
-      const articles = (
-        await getArticles(params.module, {
-          archived: !!query.archived,
-          limit: query.limit,
-          inactive: query.inactive,
-          full: query.full
-        })
-      ).get()
+      const articles = (await getArticles(params.module, query)).get()
 
       request.cache.shouldSave = !!articles
 
@@ -104,9 +96,7 @@ const getArticleController = {
         response.code(404).send({ message: 'Articles not found.' })
       }
     } catch (error) {
-      request.cache.shouldSave = false
-      response.code(500).send('An Error occured')
-      console.error(error)
+      catchHandler(response, error)
     }
   }
 }

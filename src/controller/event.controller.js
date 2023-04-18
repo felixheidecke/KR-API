@@ -2,6 +2,8 @@ import * as cache from '#hooks/cache'
 import { getEvent } from '#data/event'
 import { getEvents } from '#data/events'
 import { catchHandler, sendNotFoundHandler } from '#utils/controller'
+import { pick } from 'lodash-es'
+import { valiDate } from '#helper/vali-date'
 
 const routeTemplate = {
   method: 'GET',
@@ -15,7 +17,7 @@ const routeTemplate = {
  * @param {import("fastify").FastifyReply} response Fastify response object
  */
 
-const getEventController = {
+const getEventsController = {
   ...routeTemplate,
   url: '/events/:module',
   schema: {
@@ -30,13 +32,45 @@ const getEventController = {
       type: 'object',
       properties: {
         limit: { type: 'number' },
-        expired: { type: 'boolean' }
+        startsAfter: { type: 'string' },
+        startsBefore: { type: 'string' },
+        endsAfter: { type: 'string' },
+        endsBefore: { type: 'string' }
       }
+    }
+  },
+  preValidation: async (request, response) => {
+    const { query } = request
+    const invalidDates = []
+
+    if (query.startsAfter && !valiDate(query.startsAfter)) {
+      invalidDates.push('startsAfter')
+    }
+    if (query.startsBefore && !valiDate(query.startsBefore)) {
+      invalidDates.push('startsBefore')
+    }
+    if (query.endsAfter && !valiDate(query.endsAfter)) {
+      invalidDates.push('endsAfter')
+    }
+    if (query.endsBefore && !valiDate(query.endsBefore)) {
+      invalidDates.push('endsBefore')
+    }
+
+    if (invalidDates.length) {
+      response
+        .code(400)
+        .send({ error: `Invalid Date format in ${invalidDates.join(', ')}` })
     }
   },
   handler: async (request, response) => {
     const { module } = request.params // is module
-    const { query } = request
+    const query = pick(request.query, [
+      'endsAfter',
+      'endsBefore',
+      'limit',
+      'startsAfter',
+      'startsBefore'
+    ])
 
     request.shouldSave = false
     try {
@@ -59,7 +93,7 @@ const getEventController = {
  * @param {import("fastify").FastifyReply} response Fastify response object
  */
 
-const getEventsController = {
+const getEventController = {
   ...routeTemplate,
   url: '/event/:id',
   schema: {
@@ -74,8 +108,6 @@ const getEventsController = {
   handler: async (request, response) => {
     // Request params
     const { id } = request.params
-
-    console.log('getEventController', request.cache.shouldSave)
 
     try {
       const event = await getEvent(id)
