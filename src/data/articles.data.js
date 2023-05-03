@@ -6,6 +6,7 @@ import { getArticle } from '#data/article'
 export async function getArticles(module = 0, config = null) {
   config = {
     status: 'live',
+    full: true,
     ...config
   }
 
