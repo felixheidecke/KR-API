@@ -1,3 +1,3 @@
-export function valiDate(string) {
+export default function valiDate(string) {
   return new Date(string).toString() !== 'Invalid Date'
 }

@@ -1,62 +1,45 @@
-import * as cache from '#hooks/cache'
-import { getMenuByModule } from '#data/menu-card'
+// import * as cache from '#src/hooks/cacheHooks'
+import MenuCard from '#model/menuCard.model'
 
-const menuCardController = {
-  method: 'GET',
-
-  url: '/menu-card/:id',
-
-  schema: {
-    params: {
-      type: 'object',
-      properties: {
-        id: {
-          type: 'number'
-        }
+const method = 'GET'
+const url = '/menu-card/:id'
+const schema = {
+  params: {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'number'
       }
     }
-  },
+  }
+}
 
-  onRequest: cache.onRequest,
+/**
+ * Getting articles by their module (id)
+ *
+ * @param {object} request Fastify request object
+ * @param {object} response Fastify response object
+ * @returns {Promise<void>}
+ */
 
-  preHandler: cache.preHandler,
+async function handler(request, response) {
+  const { id } = request.params
+  const menuCardModel = new MenuCard()
 
-  /**
-   * Getting articles by their module (id)
-   *
-   * @param {object} request Fastify request object
-   * @param {object} response Fastify response object
-   * @returns {Promise<void>}
-   */
+  try {
+    await menuCardModel.fetch(id)
 
-  handler: async (request, response) => {
-    // Request params
-    const { id } = request.params
-
-    if (request.data) {
+    if (menuCardModel.hasData) {
+      request.data = menuCardModel.data
       response.send(request.data)
-      return
+    } else {
+      this.notFoundHandler(response, `Menu Card ${id} not found!`)
     }
-
-    try {
-      const article = await getMenuByModule(id)
-
-      if (!article) {
-        response.code(400).send({ error: `No menu found for id ${id}` })
-      } else {
-        response.send(article)
-        request.data = article
-        request.cache.shouldSave = true
-      }
-    } catch (error) {
-      console.error({ error })
-      response.code(500).send({ error: 'Internal Server Error!' })
-    }
-  },
-
-  onResponse: cache.onResponse
+  } catch (error) {
+    this.catchHandler(response, error)
+  }
 }
 
 export default async (App) => {
-  App.route(menuCardController)
+  App.route({ method, url, schema, handler })
 }

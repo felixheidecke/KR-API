@@ -1,7 +1,7 @@
-import { cacheNoStore as setCacheNoStoreHeader } from '#hooks/header'
-import * as cache from '#hooks/cache'
+import { cacheNoStore as setCacheNoStoreHeader } from '#src/hooks/headerHooks'
+import * as cache from '#src/hooks/cacheHooks'
 import * as paypal from '#libs/paypal'
-import { sendNotFoundHandler } from '#src/utils/controller.utils.js'
+import { notFoundHandler } from '#src/utils/controller.utils.js'
 import { verify } from '#src/libs/jwt.js'
 import createOrderSchema from '#src/schemas/shop3/createOrder.schema.json' assert { type: 'json' }
 import { Shop3Order } from '#src/model/shop3/order.model.js'
@@ -42,7 +42,7 @@ const getOrderController = {
       await order.fetch(transactionId)
 
       if (!order.exists()) {
-        sendNotFoundHandler(response)
+        notFoundHandler(response)
         return
       }
 

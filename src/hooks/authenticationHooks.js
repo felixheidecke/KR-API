@@ -1,6 +1,6 @@
 import { apiKeys } from '#config/app.config'
 
-export const authenticate = async (request, response) => {
+export const authHook = async (request, response) => {
   const key = request.headers['x-api-key']
   const ips = apiKeys[key] || []
 
@@ -16,7 +16,7 @@ export const authenticate = async (request, response) => {
   }
 }
 
-export const schema = {
+export const authSchema = {
   headers: {
     required: ['x-api-key'],
     properties: {

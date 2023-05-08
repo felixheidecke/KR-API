@@ -1,5 +1,5 @@
-import { catchHandler, sendNotFoundHandler } from '#utils/controller'
-import * as cache from '#hooks/cache'
+import { catchHandler, notFoundHandler } from '#utils/controller'
+import * as cache from '#src/hooks/cacheHooks'
 import { Shop3Product, Shop3Products } from '#src/model/shop3/product.model.js'
 
 const routeTemplate = {
@@ -39,7 +39,7 @@ const getProductController = {
       const product = await new Shop3Product().fetch(id, module)
 
       if (!product.exists()) {
-        sendNotFoundHandler(response)
+        notFoundHandler(response)
         return
       }
 
@@ -68,7 +68,7 @@ const getProductsController = {
       const products = await new Shop3Products().fetch(id)
 
       if (!products.hasProducts()) {
-        sendNotFoundHandler(response)
+        notFoundHandler(response)
         return
       }
 

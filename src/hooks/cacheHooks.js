@@ -8,7 +8,7 @@ import redis from '#libs/redis'
  * @returns {Promise<object>} request.cache added
  */
 
-export const onRequest = async (request, config = {}) => {
+export const setupCacheHook = async (request, config = {}) => {
   request.data = null
   request.cache = {
     wasHit: false,
@@ -27,7 +27,7 @@ export const onRequest = async (request, config = {}) => {
  * @returns {Promise<void>}
  */
 
-export const preHandler = async (request, response) => {
+export const readCacheHook = async (request, response) => {
   try {
     request.data = await redis.get(request.url)
     request.cache.wasHit = !!request.data
@@ -60,7 +60,7 @@ export const preHandler = async (request, response) => {
  * @param {object} request Fasify request object
  * @returns {Promise<void>}
  */
-export const onResponse = async ({ cache, url, log, data }) => {
+export const writeCacheHook = async ({ cache, url, log, data }) => {
   // Skip if data came from cache or data (should not be cached)
 
   if (
@@ -80,4 +80,10 @@ export const onResponse = async ({ cache, url, log, data }) => {
   } catch (error) {
     console.error({ error })
   }
+}
+
+export default (App) => {
+  App.addHook('onRequest', setupCacheHook)
+  App.addHook('preHandler', readCacheHook)
+  App.addHook('onResponse', writeCacheHook)
 }

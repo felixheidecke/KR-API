@@ -1,18 +1,19 @@
-import { HEADER, MIME_TYPE } from '#constants'
+import { uniqueId } from 'lodash-es'
 
 /**
  * Send 404 not found
- * sendNotFoundHandler(response)
+ * notFoundHandler(response)
  *
  *
  * @param {import('fastify').FastifyReply} response Fastify response object
  * @param {string} message Error message
  */
 
-export const sendNotFoundHandler = (response, message = 'No results found') => {
-  response.log.error(message)
-  response.header(HEADER.CONTENT_TYPE, MIME_TYPE.TEXT)
-  response.code(404).send(message)
+export const notFoundHandler = (response, message = 'No results found') => {
+  const errorCode = uniqueId('error-id-') + new Date().getMilliseconds()
+
+  response.log.error({ message, errorCode })
+  response.code(404).send({ message, errorCode })
 }
 
 /**
@@ -23,7 +24,18 @@ export const sendNotFoundHandler = (response, message = 'No results found') => {
  * @param {any} error Error
  */
 
-export const catchHandler = (response, error) => {
-  response.log.error(error)
-  response.code(500).send('An Error occured')
+export const catchHandler = (
+  response,
+  error,
+  message = 'An Error occured.'
+) => {
+  const id = uniqueId('error-id-') + new Date().getMilliseconds()
+
+  response.log.error({
+    message: error.message,
+    stack: error.stack,
+    id
+  })
+
+  response.code(500).send({ message, id })
 }

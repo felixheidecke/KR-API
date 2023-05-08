@@ -6,7 +6,9 @@ export default async (App) => {
     url: '/flush/all',
     handler: (_, response) => {
       redis.FLUSHALL()
-      response.code(204).send()
+      response.code(204).send({
+        message: redis.KEYS('*')
+      })
     }
   })
 }

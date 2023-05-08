@@ -1,10 +1,16 @@
 import '#env'
-import { host, port } from '#config/app'
-import { message as messageHeader } from '#hooks/header'
 import App from '#libs/fastify'
+import { host, port } from '#config/app.config'
+import { messageHook } from '#hooks/headerHooks'
+import notFoundHandler from './decorators/notFoundHandler.js'
+import catchHandler from './decorators/catchHandler.js'
 
-// Global Hooks
-App.addHook('onRequest', messageHeader)
+// Hooks
+App.addHook('onRequest', messageHook)
+
+// Decodators
+App.decorate('catchHandler', catchHandler)
+App.decorate('notFoundHandler', notFoundHandler)
 
 // Handling CORS
 App.register(import('@fastify/cors'), {

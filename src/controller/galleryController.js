@@ -1,17 +1,10 @@
-import { catchHandler, sendNotFoundHandler } from '#utils/controller'
-import * as cache from '#hooks/cache'
-import { getAlbum } from '#data/album'
-import { getGallery } from '#data/gallery'
-
-const routeTemplate = {
-  method: 'GET',
-  onRequest: cache.onRequest,
-  preHandler: cache.preHandler,
-  onResponse: cache.onResponse
-}
+import { catchHandler, notFoundHandler } from '#utils/controller'
+import cache from '#src/hooks/cacheHooks.js'
+import { GalleryModel } from '#src/model/galleryModel.js'
+import { AlbumModel } from '#src/model/albumModel.js'
 
 const getAlbumController = {
-  ...routeTemplate,
+  method: 'GET',
   url: '/gallery/album/:id',
 
   /**
@@ -24,13 +17,13 @@ const getAlbumController = {
 
   handler: async (request, response) => {
     const { id } = request.params
+    const album = AlbumModel()
 
     try {
-      const album = await getAlbum(id)
-      request.data = album.get()
+      request.data = (await album.fetch(id)).get()
 
       if (!request.data) {
-        sendNotFoundHandler(response)
+        notFoundHandler(response)
       } else {
         response.send(request.data)
       }
@@ -41,8 +34,7 @@ const getAlbumController = {
 }
 
 const getGalleryController = {
-  ...routeTemplate,
-
+  method: 'GET',
   url: '/gallery/:id',
 
   /**
@@ -54,13 +46,13 @@ const getGalleryController = {
    */
   handler: async (request, response) => {
     const { id } = request.params
+    const gallery = GalleryModel()
 
     try {
-      const gallery = await getGallery(id)
-      request.data = gallery.get()
+      request.data = (await gallery.fetch(id)).get()
 
       if (!request.data) {
-        sendNotFoundHandler(response)
+        notFoundHandler(response)
       } else {
         response.send(request.data)
       }
@@ -71,6 +63,9 @@ const getGalleryController = {
 }
 
 export default async (App) => {
+  App.addHook('onRequest', cache.setupCacheHook)
+  App.addHook('preHandler', cache.readCacheHook)
+  App.addHook('onResponse', cache.writeCacheHook)
   App.route(getAlbumController)
   App.route(getGalleryController)
 }

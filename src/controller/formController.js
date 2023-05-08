@@ -1,5 +1,4 @@
 import { omit } from 'lodash-es'
-import { cacheNoStore as cacheNoStoreHandler } from '#hooks/header'
 import mailer from '#libs/mailer'
 import { jsonToCSV, jsonToText } from '#helper/convert-json'
 import { toFilenameWithDate } from '#libs/slugify'
@@ -28,8 +27,6 @@ const formController = {
       }
     }
   },
-
-  onRequest: cacheNoStoreHandler,
 
   /**
    * @param {import("fastify").FastifyRequest} request
@@ -69,7 +66,7 @@ const formController = {
       const content = omit(body, ['id', 'subject', 'required', 'honig'])
 
       if (emailAddresses.length === 0) {
-        sendNotFoundHandler(response, `No entry/s found for id ${body.id}`)
+        notFoundHandler(response, `No entry/s found for id ${body.id}`)
       }
 
       mailer.sendMail({
@@ -91,6 +88,9 @@ const formController = {
       })
 
       // Don't wait for email being send
+      response.headers({
+        [HEADER.CACHE_CONTROL]: [HEADER.PRIVATE, HEADER.NO_STORE].join(', ')
+      })
       response.code(202).send({ message: 'success' })
     } catch (error) {
       catchHandler(response, error)
@@ -101,24 +101,3 @@ const formController = {
 export default async (App) => {
   App.route(formController)
 }
-
-// --- Helper ------------------------------------------------------------------
-
-/**
- * Converts key-value pairs to simple
- * string interpretation with \n as
- * separators.
- *
- * @param {object} json Simple key-value pairs
- * @returns {string} Beautified text
- */
-
-// export const jsonToText = (json) => {
-//   const text = []
-
-//   forEach(json, (value, key) => {
-//     text.push(`${key.toUpperCase()}: ${value}`)
-//   })
-
-//   return text.join('\n')
-// }

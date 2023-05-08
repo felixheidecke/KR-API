@@ -1,5 +1,5 @@
-import { catchHandler, sendNotFoundHandler } from '#utils/controller'
-import * as cache from '#hooks/cache'
+import { catchHandler, notFoundHandler } from '#utils/controller'
+import * as cache from '#src/hooks/cacheHooks'
 import { Shop3Products } from '#src/model/shop3/product.model.js'
 import {
   Shop3Category,
@@ -43,7 +43,7 @@ const categoryController = {
       await categories.fetch(id)
 
       if (!categories.exists()) {
-        sendNotFoundHandler(response)
+        notFoundHandler(response)
       } else {
         request.data = categories.getAll()
         response.send(request.data)
@@ -67,7 +67,7 @@ const categoriesController = {
       await category.fetch(id)
 
       if (!category.exists()) {
-        sendNotFoundHandler(response)
+        notFoundHandler(response)
         return
       }
 
@@ -93,7 +93,7 @@ const categoryProductsController = {
       await products.fetchByCategory(id)
 
       if (!products.hasProducts()) {
-        sendNotFoundHandler(response)
+        notFoundHandler(response)
         return
       }
 

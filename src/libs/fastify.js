@@ -1,7 +1,7 @@
 import Fastify from 'fastify'
 import fs from 'fs'
 import pkg from '../../package.json' assert { type: 'json' }
-import { cert, key } from '#config/app'
+import { cert, key } from '#config/app.config'
 
 export default Fastify({
   logger: {

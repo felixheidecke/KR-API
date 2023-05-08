@@ -1,4 +1,4 @@
-import { cacheNoStore as setCacheNoStoreHeader } from '#hooks/header'
+import { cacheNoStore as setCacheNoStoreHeader } from '#src/hooks/headerHooks'
 import { sign, verify } from '#libs/jwt'
 import { Shop3Cart } from '#src/model/shop3/cart.model.js'
 

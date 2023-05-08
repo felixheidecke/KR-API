@@ -39,17 +39,6 @@
     "prettier": "^2.8.4"
   },
   "imports": {
-    "#src/*": "./src/*",
-    "#env": "./src/env.js",
-    "#constants": "./src/constants.js",
-    "#config/*": "./src/config/*.config.js",
-    "#controller/*": "./src/controller/*.controller.js",
-    "#data/*": "./src/data/*.data.js",
-    "#helper/*": "./src/helper/*.js",
-    "#hooks/*": "./src/hooks/*.hooks.js",
-    "#libs/*": "./src/libs/*.js",
-    "#model/*": "./src/model/*.model.js",
-    "#routes/*": "./src/routes/*.routes.js",
-    "#utils/*": "./src/utils/*.utils.js"
+    "#*": "./src/*.js"
   }
 }

@@ -1,6 +1,6 @@
 import { catchHandler } from '#utils/controller'
 import { Shop3Info } from '#src/model/shop3/info.model.js'
-import * as cache from '#hooks/cache'
+import * as cache from '#src/hooks/cacheHooks'
 
 const shopInfoController = {
   method: 'GET',
