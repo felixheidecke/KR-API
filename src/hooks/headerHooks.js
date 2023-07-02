@@ -14,3 +14,10 @@ export async function cacheNoStoreHook(_, response) {
     [HEADER.CACHE_CONTROL]: [HEADER.PRIVATE, HEADER.NO_STORE].join(', ')
   })
 }
+
+export async function cache1hPublicHook(_, response) {
+  response.header(
+    [HEADER.CACHE_CONTROL],
+    [HEADER.PUBLIC, HEADER.MAX_AGE(3600)].join(', ')
+  )
+}

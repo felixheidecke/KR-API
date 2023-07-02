@@ -12,9 +12,8 @@ export const setupCacheHook = async (request, config = {}) => {
   request.data = null
   request.cache = {
     wasHit: false,
-    shouldSave: true,
-    redisTTL: 300, // 5 minutes
-    browserTTL: 3600, // 1 hour
+    redisTTL: 60, // 1 minute
+    browserTTL: 900, // 15 minutes
     ...config
   }
 }
@@ -63,14 +62,7 @@ export const readCacheHook = async (request, response) => {
 export const writeCacheHook = async ({ cache, url, log, data }) => {
   // Skip if data came from cache or data (should not be cached)
 
-  if (
-    cache.wasHit ||
-    !cache.shouldSave ||
-    !data ||
-    data === {} ||
-    data === null ||
-    data === []
-  )
+  if (cache.wasHit || !data || data === {} || data === null || data === [])
     return
 
   log.info(`Serving ${url} from Datasource`)
@@ -80,10 +72,4 @@ export const writeCacheHook = async ({ cache, url, log, data }) => {
   } catch (error) {
     console.error({ error })
   }
-}
-
-export default (App) => {
-  App.addHook('onRequest', setupCacheHook)
-  App.addHook('preHandler', readCacheHook)
-  App.addHook('onResponse', writeCacheHook)
 }

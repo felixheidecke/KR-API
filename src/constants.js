@@ -7,12 +7,12 @@ export const HEADER = {
   CACHE_MISS: 'MISS',
   CACHE: 'X-Cache',
   CONTENT_TYPE: 'Content-Type',
-  MESSAGE: 'kr-api-Message',
+  MESSAGE: 'X-Message',
   MAX_AGE: (ttl) => 'max-age=' + ttl,
   PUBLIC: 'public',
   PRIVATE: 'private',
   NO_STORE: 'no-store',
-  VERSION: 'kr-api-Version'
+  VERSION: 'X-Version'
 }
 
 export const TOKEN = {
@@ -41,3 +41,5 @@ export const SHOP_UNIT = {
   l: 'Liter',
   kg: 'kg.'
 }
+
+export const COOKIE_NAME = (name) => `xinoiApi__${name}`

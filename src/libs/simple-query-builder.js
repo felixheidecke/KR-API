@@ -96,4 +96,28 @@ export default class SimpleQuery {
     const args = Array.from(arguments)
     this.#query = [...this.#query, ...args]
   }
+
+  static eq(a, b) {
+    return a + '=' + b
+  }
+
+  static neq(a, b) {
+    return a + '!=' + b
+  }
+
+  static lt(a, b) {
+    return a + '<' + b
+  }
+
+  static lte(a, b) {
+    return a + '<=' + b
+  }
+
+  static gt(a, b) {
+    return a + '>' + b
+  }
+
+  static gte(a, b) {
+    return a + '>=' + b
+  }
 }
