@@ -14,9 +14,7 @@ export default class Event {
   #flags = []
 
   constructor(id) {
-    if (!id) {
-      throw new Error('Missing required parameter "id"')
-    }
+    if (!id) throw new Error('Missing required parameter "id"')
 
     this.#id = id
   }
@@ -188,9 +186,9 @@ export default class Event {
   }
 
   import({ event, images, flags }) {
-    this.#event = event
-    this.#images = images
-    this.#flags = flags
+    this.#event = event || {}
+    this.#images = images || []
+    this.#flags = flags || []
 
     return this
   }

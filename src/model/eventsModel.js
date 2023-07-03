@@ -11,9 +11,7 @@ export default class Events {
   #events = []
 
   constructor(module) {
-    if (!module) {
-      throw new Error('Missing required parameter "module"')
-    }
+    if (!module) throw new Error('Missing required parameter "module"')
 
     this.#module = module
   }
@@ -40,21 +38,21 @@ export default class Events {
 
     this.#events =
       (await Promise.all(
-        importEvents.map(async (_event) => {
-          const importEvent = new Event()
-          const importPayload = { event: importEvent }
+        importEvents.map(async (event) => {
+          const importEvent = new Event(event._id)
+          const importPayload = { event }
 
           if (config.parts?.includes('images')) {
-            importPayload.images =
-              (await Event.fetchImages(importEvent._id)) || []
+            importPayload.images = (await Event.fetchImages(event._id)) || []
           }
 
-          if (config.parts?.includes('flags') && importEvent.flagset) {
-            importPayload.flags =
-              (await Event.fetchFlags(importEvent.flagset)) || []
+          if (config.parts?.includes('flags') && event.flagset) {
+            importPayload.flags = (await Event.fetchFlags(event.flagset)) || []
           }
 
           importEvent.import(importPayload)
+
+          // console.log({ event: importEvent.data })
 
           return importEvent
         })
