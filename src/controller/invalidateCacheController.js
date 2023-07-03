@@ -1,14 +1,13 @@
 import { cacheNoStoreHook } from '#hooks/headerHooks'
+import redis from '#libs/redis'
 
 export default async function (App) {
   App.addHook('onRequest', cacheNoStoreHook)
 
-  App.delete('/invalidate-cache/all', {
+  App.delete('/cache', {
     handler: (_, response) => {
       redis.FLUSHALL()
-      response.code(204).send({
-        message: redis.KEYS('*')
-      })
+      response.code(204).send()
     }
   })
 }

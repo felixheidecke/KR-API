@@ -10,19 +10,17 @@ export default class Album {
   #album = []
 
   constructor(id) {
-    if (!id) {
-      throw new Error('Missing required parameter "id"')
-    }
+    if (!id) throw new Error('Missing required parameter "id"')
 
     this.#id = id
   }
 
   get id() {
-    return +this.#album[0]._id
+    return this.exists ? +this.#album[0]._id : undefined
   }
 
   get title() {
-    return this.#album[0].title?.trim()
+    return this.exists ? this.#album[0].title?.trim() : undefined
   }
 
   get slug() {
@@ -30,16 +28,17 @@ export default class Album {
   }
 
   get photos() {
+    if (!this.exists) return
+
     const baseUrl = 'https://cdn.klickrhein.de/xioni/gallery.php'
 
-    return this.#album.map(({ image, filename, priority, description }) => {
+    return this.#album.map(({ image, filename, description }) => {
       filename = filename.toLowerCase()
 
       return {
         src: join(baseUrl, '?', image, '/', filename),
         thumbSrc: join(baseUrl, '?', image, '_thumb/', filename),
-        alt: description || '',
-        order: +priority
+        alt: description || ''
       }
     })
   }
@@ -53,8 +52,17 @@ export default class Album {
     }
   }
 
+  get exists() {
+    return !!this.#album.length
+  }
+
   async load() {
-    this.#album = (await Album.fetchAlbum(this.#id)) || []
+    try {
+      this.#album = (await Album.fetchAlbum(this.#id)) || []
+    } catch (error) {
+      console.log(error)
+      throw new Error(error.code)
+    }
   }
 
   static async fetchAlbum(id) {
@@ -62,7 +70,6 @@ export default class Album {
       .select([
         'album._id as _id',
         'album.title as title',
-        'album.priority as priority',
         'photo.image as image',
         'photo.filename as filename',
         'photo.description as description'

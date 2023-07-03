@@ -8,8 +8,10 @@ export default class ShopAdditionalCost {
   #amount = 0
   #title = ''
 
-  constructor(module = 0) {
-    this.#module = module
+  constructor(module) {
+    if (!module) throw new Error('Missing required parameter "module"')
+
+    this.#module = +module
   }
 
   get amount() {

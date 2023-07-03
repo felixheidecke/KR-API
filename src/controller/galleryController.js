@@ -12,12 +12,13 @@ export default async function (App) {
       const { params } = request
       const album = new Album(params.id)
 
-      try {
-        request.data = (await album.load()).data
+      await album.load()
 
+      if (album.exists) {
+        request.data = album.data
         response.send(request.data)
-      } catch (error) {
-        App.catchHandler(response, error)
+      } else {
+        App.notFoundHandler(response, 'No pictures found.')
       }
     }
   })
@@ -27,12 +28,13 @@ export default async function (App) {
       const { params } = request
       const gallery = new Gallery(+params.id)
 
-      try {
-        request.data = (await gallery.load()).data
+      await gallery.load()
 
+      if (gallery.exists) {
+        request.data = gallery.data
         response.send(request.data)
-      } catch (error) {
-        App.catchHandler(response, error)
+      } else {
+        App.notFoundHandler(response, 'No galleries found.')
       }
     }
   })

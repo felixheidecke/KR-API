@@ -16,6 +16,7 @@ export default function notFoundHandler(
   response.code(statusCode).send({
     message,
     error: 'Not Found',
+    code: 'NOT_FOUND',
     statusCode
   })
 }

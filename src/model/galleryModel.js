@@ -8,19 +8,17 @@ export default class GalleryModel {
   #gallery = []
 
   constructor(module) {
-    if (!module) {
-      throw new Error('Missing required parameter "module"')
-    }
+    if (!module) throw new Error('Missing required parameter "module"')
 
     this.#module = module
   }
 
-  get length() {
-    this.#gallery.length
+  get exists() {
+    return !!this.#gallery.length
   }
 
   get data() {
-    if (!this.length) return
+    if (!this.exists) return
 
     return this.#gallery.map((album) => ({
       id: album._id,
@@ -31,9 +29,12 @@ export default class GalleryModel {
   }
 
   async load() {
-    this.#gallery = (await GalleryModel.fetchAlbum(this.#module)) || []
-
-    return this
+    try {
+      this.#gallery = (await GalleryModel.fetchAlbum(this.#module)) || []
+    } catch (error) {
+      console.log(error)
+      throw new Error(error.code)
+    }
   }
 
   static async fetchAlbum(module) {
