@@ -25,7 +25,8 @@ export default async (App) => {
 
       if (order.errors?.notFound) {
         App.clientErrorHandler(response, 404, {
-          error: 'NOT_FOUND',
+          error: 'Not Found',
+          code: 'NOT_FOUND',
           message: 'No Order found with id ' + params.transactionId
         })
       } else {
@@ -70,7 +71,7 @@ export default async (App) => {
       if (!session.cart) {
         App.clientErrorHandler(response, 400, {
           message: 'Missing cart data.',
-          error: 'NO_CART'
+          code: 'NO_CART'
         })
         return
       }

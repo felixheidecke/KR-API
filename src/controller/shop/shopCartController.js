@@ -2,7 +2,7 @@ import { cacheNoStoreHook } from '#hooks/headerHooks'
 import ShopCart from '#model/shop/shopCartModel'
 
 export default async (App) => {
-  App.addHook('onRequest', cacheNoStoreHook)
+  App.addHook('onSend', cacheNoStoreHook)
 
   /**
    * - Create a new shop instance
@@ -39,6 +39,7 @@ export default async (App) => {
       const { __cart: cart } = request
 
       await cart.calculate()
+
       response.send(cart.data)
     }
   })

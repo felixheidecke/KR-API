@@ -12,7 +12,8 @@
 export default function clientErrorHandler(response, statusCode = 400, config) {
   response.code(statusCode).send({
     message: config.message || 'An Error occured.',
-    error: config.error || 'GENERAL_ERROR',
+    error: config.error || 'Bad Request',
+    code: config.code,
     statusCode,
     payload: config.payload
   })
