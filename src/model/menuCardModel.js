@@ -5,19 +5,23 @@ import textile from 'textile-js'
 import { ASSET_BASE_URL } from '#constants'
 
 export default class MenuCard {
-  #id
+  #module
+  #exists
 
   // Data
   #menuCard = []
 
-  constructor(id) {
-    if (!id) throw new Error('Missing required parameter "id"')
+  constructor(module) {
+    if (!module) throw new Error('Missing required parameter "module"')
 
-    this.#id = id
+    this.#module = module
+    this.#exists = false
   }
 
   get data() {
-    if (!this.length) return null
+    if (!this.exists) return
+
+    if (!this.length) return []
 
     const groups = groupBy(this.#menuCard, 'category')
     const data = reduce(
@@ -57,14 +61,38 @@ export default class MenuCard {
     return data
   }
 
+  get exists() {
+    return this.#exists
+  }
+
   get length() {
     return this.#menuCard.length
   }
 
+  async checkExists() {
+    this.#exists = await MenuCard.moduleExists(this.#module)
+  }
+
   async load() {
-    this.#menuCard = (await MenuCard.fetchMenuCard(this.#id)) || []
+    await this.checkExists()
+
+    if (!this.exists) return
+
+    this.#menuCard = (await MenuCard.fetchMenuCard(this.#module)) || []
 
     return this
+  }
+
+  static async moduleExists(module) {
+    const query = `
+      SELECT  COUNT(_id) as found
+      FROM    \`Module\`
+      WHERE   \`type\` = "menu"
+      AND     _id = ${module}`
+
+    const [rows] = await database.execute(query)
+
+    return !!rows[0].found
   }
 
   static async fetchMenuCard(id) {

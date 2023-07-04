@@ -13,15 +13,15 @@ export default class Article {
   #content = []
 
   /**
-   * @param {number} module id
+   * @param {number} id id
    */
 
-  constructor(module) {
-    if (!module) {
-      throw new Error('Missing required parameter "module"')
+  constructor(id) {
+    if (!id) {
+      throw new Error('Missing required parameter "id"')
     }
 
-    this.#id = module
+    this.#id = id
   }
 
   get id() {
@@ -97,12 +97,12 @@ export default class Article {
     return this.#article.author?.trim() || undefined
   }
 
-  get length() {
-    return this.id ? 1 : 0
+  get exists() {
+    return !!this.id
   }
 
   get data() {
-    if (!this.length) return null
+    if (!this.exists) return null
 
     return {
       id: this.id,

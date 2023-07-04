@@ -16,9 +16,10 @@ export default async function (App) {
 
       if (album.exists) {
         request.data = album.data
+
         response.send(request.data)
       } else {
-        App.notFoundHandler(response, 'No pictures found.')
+        App.notFoundHandler(response, 'Album not found.')
       }
     }
   })
@@ -26,15 +27,16 @@ export default async function (App) {
   App.get('/gallery/:id', {
     handler: async (request, response) => {
       const { params } = request
-      const gallery = new Gallery(+params.id)
+      const gallery = new Gallery(params.id)
 
       await gallery.load()
 
       if (gallery.exists) {
         request.data = gallery.data
+
         response.send(request.data)
       } else {
-        App.notFoundHandler(response, 'No galleries found.')
+        App.notFoundHandler(response, 'Gallery not found.')
       }
     }
   })

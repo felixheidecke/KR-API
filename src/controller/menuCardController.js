@@ -1,5 +1,5 @@
 import * as caching from '#hooks/cacheHooks'
-import MenuCard from '#model/menuCardModel'
+import Menu from '#model/menuCardModel'
 
 export default async (App) => {
   App.addHook('onRequest', caching.setupCacheHook)
@@ -19,14 +19,16 @@ export default async (App) => {
     },
     handler: async (request, response) => {
       const { params } = request
-      const menuCard = new MenuCard(params.id)
+      const menu = new Menu(params.id)
 
-      try {
-        request.data = (await menuCard.load()).data
+      await menu.load()
+
+      if (menu.exists) {
+        request.data = menu.data
 
         response.send(request.data)
-      } catch (error) {
-        App.catchHandler(response, error)
+      } else {
+        App.notFoundHandler(response, 'Menu not found')
       }
     }
   })

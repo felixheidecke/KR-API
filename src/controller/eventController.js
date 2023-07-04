@@ -1,12 +1,12 @@
-import { pick } from 'lodash-es'
 import * as caching from '#hooks/cacheHooks'
 import Event from '#model/eventModel'
 import Events from '#model/eventsModel'
+import valiDate from '#utils/vali-date'
 
 export default async function (App) {
-  // App.addHook('onRequest', caching.setupCacheHook)
-  // App.addHook('preHandler', caching.readCacheHook)
-  // App.addHook('onResponse', caching.writeCacheHook)
+  App.addHook('onRequest', caching.setupCacheHook)
+  App.addHook('preHandler', caching.readCacheHook)
+  App.addHook('onResponse', caching.writeCacheHook)
 
   /**
    * Return a single event based on it's id
@@ -35,14 +35,14 @@ export default async function (App) {
       const { params, query } = request
       const event = new Event(params.id)
 
-      try {
-        await event.load(query)
+      await event.load(query)
 
+      if (event.exists) {
         request.data = event.data
 
         response.send(request.data)
-      } catch (error) {
-        App.catchHandler(response, error)
+      } else {
+        App.notFoundHandler(response, 'Event not found')
       }
     }
   })
@@ -113,16 +113,16 @@ export default async function (App) {
     },
     handler: async function (request, response) {
       const { params, query } = request
-      const eventsModel = new Events(params.module)
+      const events = new Events(params.module)
 
-      try {
-        await eventsModel.load(query)
+      await events.load(query)
 
-        request.data = eventsModel.data
+      if (events.exists) {
+        request.data = events.data
 
         response.send(request.data)
-      } catch (error) {
-        App.catchHandler(response, error)
+      } else {
+        App.notFoundHandler(response, 'Events not found')
       }
     }
   })

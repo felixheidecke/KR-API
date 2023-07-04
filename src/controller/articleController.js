@@ -36,18 +36,14 @@ export default async function (App) {
       const { params, query } = request
       const article = new Article(params.id)
 
-      try {
-        await article.load(query)
+      await article.load(query)
 
+      if (article.exists) {
         request.data = article.data
 
-        if (request.data) {
-          response.send(request.data)
-        } else {
-          App.notFoundHandler(response, `No article with ID ${params.module}`)
-        }
-      } catch (error) {
-        App.catchHandler(response, error)
+        response.send(request.data)
+      } else {
+        App.notFoundHandler(response, 'Article not found')
       }
     }
   })
@@ -90,21 +86,14 @@ export default async function (App) {
       const { params, query } = request
       const articles = new Articles(params.module)
 
-      try {
-        await articles.load(query)
+      await articles.load(query)
 
+      if (articles.exists) {
         request.data = articles.data
 
-        if (request.data) {
-          response.send(request.data)
-        } else {
-          App.notFoundHandler(
-            response,
-            `No articles found for ID ${params.module}`
-          )
-        }
-      } catch (error) {
-        App.catchHandler(response, error)
+        response.send(request.data)
+      } else {
+        App.notFoundHandler(response, 'Articles not found.')
       }
     }
   })

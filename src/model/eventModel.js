@@ -134,8 +134,8 @@ export default class Event {
     }
   }
 
-  get length() {
-    return this.id ? 1 : 0
+  get exists() {
+    return !!this.id
   }
 
   async load({ parts }) {

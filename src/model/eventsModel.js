@@ -5,6 +5,7 @@ import Event from '#model/eventModel'
 import SimpleQuery from '#libs/simple-query-builder'
 
 export default class Events {
+  #exists
   #module
 
   // Data
@@ -14,9 +15,14 @@ export default class Events {
     if (!module) throw new Error('Missing required parameter "module"')
 
     this.#module = module
+    this.#exists = false
   }
 
   get data() {
+    if (!this.exists) return
+
+    if (!this.length) return []
+
     return this.#events.map(({ data }) => data)
   }
 
@@ -24,7 +30,19 @@ export default class Events {
     return this.#events.length
   }
 
+  get exists() {
+    return this.#exists
+  }
+
+  async checkExists() {
+    this.#exists = await Events.moduleExists(this.#module)
+  }
+
   async load(config = {}) {
+    await this.checkExists()
+
+    if (!this.exists) return
+
     const eventsConfig = pick(config, [
       'startsBefore',
       'startsAfter',
@@ -59,6 +77,20 @@ export default class Events {
       )) || []
 
     return this
+  }
+
+  static async moduleExists(module) {
+    const query = `
+      SELECT
+        COUNT(_id) as found
+      FROM
+        \`Module\`
+      WHERE
+        \`type\` = "events" AND \`_id\` = ${module}`
+
+    const [rows] = await database.execute(query)
+
+    return !!rows[0].found
   }
 
   static async fetchEvents(

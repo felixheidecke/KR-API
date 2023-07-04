@@ -4,6 +4,7 @@ import SimpleQuery from '#libs/simple-query-builder'
 
 export default class Articles {
   #module
+  #exists
 
   // Data
   #articles = []
@@ -14,17 +15,34 @@ export default class Articles {
     }
 
     this.#module = module
+    this.#exists = false
   }
 
   get data() {
-    return this.length ? this.#articles.map(({ data }) => data) : undefined
+    if (!this.exists) return
+
+    if (!this.length) return []
+
+    return this.#articles.map(({ data }) => data)
   }
 
   get length() {
     return this.#articles.length
   }
 
+  get exists() {
+    return this.#exists
+  }
+
+  async checkExists() {
+    this.#exists = await Articles.moduleExists(this.#module)
+  }
+
   async load({ parts, status, limit }) {
+    await this.checkExists()
+
+    if (!this.exists) return
+
     const articles =
       (await Articles.fetchArticles(this.#module, { status, limit })) || []
     const loadContent = parts?.includes('content')
@@ -43,6 +61,22 @@ export default class Articles {
     )
 
     return this
+  }
+
+  static async moduleExists(module) {
+    const query = `
+      SELECT
+        COUNT(_id) as found
+      FROM
+        Module
+      WHERE
+        \`type\` = "articles"
+      AND
+        _id = ${module}`
+
+    const [rows] = await database.execute(query)
+
+    return !!rows[0].found
   }
 
   static async fetchArticles(module, { status, limit }) {
