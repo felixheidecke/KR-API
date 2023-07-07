@@ -4,12 +4,18 @@ import ShopProduct from '#model/shop/shopProductModel'
 
 export default class ShopProducts {
   #module
+  #exists
 
   // Data
   #products = []
 
-  constructor(module = 0) {
+  constructor(module) {
+    if (!module) {
+      throw new Error('Missing required parameter "module"')
+    }
+
     this.#module = module
+    this.#exists = false
   }
 
   get data() {
@@ -20,7 +26,19 @@ export default class ShopProducts {
     return this.#products.length
   }
 
+  get exists() {
+    return this.#exists
+  }
+
+  async checkExists() {
+    this.#exists = await ShopProducts.moduleExists(this.#module)
+  }
+
   async load(config = {}) {
+    await this.checkExists()
+
+    if (!this.exists) return
+
     this.#products =
       (await ShopProducts.fetchProducts(this.#module, config)) || []
 
@@ -99,6 +117,22 @@ export default class ShopProducts {
     })
 
     return products
+  }
+
+  static async moduleExists(module) {
+    const query = `
+      SELECT
+        COUNT(_id) as found
+      FROM
+        Module
+      WHERE
+        \`type\` = "articles"
+      AND
+        _id = ${module}`
+
+    const [rows] = await database.execute(query)
+
+    return !!rows[0].found
   }
 
   import({ products }) {

@@ -1,5 +1,11 @@
 import nodemailer from 'nodemailer'
-import { host, port, requireTLS, user, password } from '#config/nodemailer'
+import {
+  host,
+  port,
+  requireTLS,
+  user,
+  password
+} from '#config/nodemailer.config'
 
 const config = {
   host,

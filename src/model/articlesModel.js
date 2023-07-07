@@ -87,10 +87,10 @@ export default class Articles {
       .and('active = 1')
 
     if (status === 'live') {
-      query.and(['(archiveDate = 0 OR archiveDate >', Date.now(), ')'])
+      query.and(['(archiveDate = 0 OR archiveDate >', Date.now() / 1000, ')'])
     } else if (status === 'archived') {
       query.and('archiveDate > 0')
-      query.and(['(archiveDate <', Date.now(), ')'])
+      query.and(['(archiveDate <', Date.now() / 1000, ')'])
     }
 
     query.order('date', 'DESC')

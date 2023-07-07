@@ -33,6 +33,7 @@ App.register(import('#controller/galleryController'))
 App.register(import('#controller/invalidateCacheController'))
 App.register(import('#controller/menuCardController'))
 App.register(import('#controller/pingController'))
+App.register(import('#controller/formController'))
 
 /**
  * Xioni Shop Controller

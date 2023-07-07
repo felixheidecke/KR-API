@@ -1,9 +1,9 @@
 import { omit } from 'lodash-es'
 import mailer from '#libs/mailer'
-import { jsonToCSV, jsonToText } from '#helper/convert-json'
+import { jsonToCSV, jsonToText } from '#utils/convert-json'
 import { toFilenameWithDate } from '#libs/slugify'
-import { from, bcc } from '#config/nodemailer'
-import { getEmailAddress } from '#data/formmail'
+import { from, bcc } from '../config/nodemailer.config.js'
+import { getEmailAddress } from '../data/formmail.data.js'
 import { cacheNoStoreHook } from '#hooks/headerHooks'
 
 export default async (App) => {
