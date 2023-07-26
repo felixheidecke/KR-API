@@ -20,22 +20,13 @@ export default async function (App) {
         properties: {
           id: { type: 'number' }
         }
-      },
-      query: {
-        type: 'object',
-        properties: {
-          parts: {
-            type: 'array',
-            default: 'images'
-          }
-        }
       }
     },
     handler: async function (request, response) {
-      const { params, query } = request
+      const { params } = request
       const event = new Event(params.id)
 
-      await event.load(query)
+      await event.load({ parts: 'images,flags' })
 
       if (event.exists) {
         request.data = event.data
@@ -64,8 +55,7 @@ export default async function (App) {
         type: 'object',
         properties: {
           parts: {
-            type: 'string',
-            default: 'images'
+            type: 'string'
           },
           limit: {
             type: 'number'
