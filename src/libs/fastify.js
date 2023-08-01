@@ -7,6 +7,16 @@ export default Fastify({
   logger: {
     mixin() {
       return { version: pkg.version }
+    },
+    serializers: {
+      req(request) {
+        return {
+          method: request.method,
+          origin: request.headers.origin || 'unknown',
+          url: request.url,
+          parameters: request.params
+        }
+      }
     }
   },
   trustProxy: true,
