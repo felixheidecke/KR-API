@@ -12,9 +12,11 @@ export default Fastify({
       req(request) {
         return {
           method: request.method,
-          origin: request.headers.origin || 'unknown',
           url: request.url,
-          parameters: request.params
+          origin: request.headers.origin
+            ? new URL(request.headers.origin).hostname
+            : 'unknown',
+          remote: request.ip
         }
       }
     }

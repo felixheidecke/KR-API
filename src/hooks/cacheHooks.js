@@ -12,8 +12,8 @@ export const setupCacheHook = async (request, config = {}) => {
   request.data = null
   request.cache = {
     wasHit: false,
-    redisTTL: 60, // 1 minute
-    browserTTL: 900, // 15 minutes
+    redisTTL: 60 * 5, // 5 minutes
+    browserTTL: 60 * 5, // 5 minutes
     ...config
   }
 }
@@ -44,7 +44,7 @@ export const readCacheHook = async (request, response) => {
 
     if (request.data) {
       response.send(request.data)
-      request.log.info(`Serving ${request.url} from Cache`)
+      request.log.info(`Serving from Cache`)
     }
   } catch (error) {
     request.log.error(error)
@@ -65,7 +65,7 @@ export const writeCacheHook = async ({ cache, url, log, data }) => {
   if (cache.wasHit || !data || data === {} || data === null || data === [])
     return
 
-  log.info(`Serving ${url} from Datasource`)
+  log.info(`Serving from Datasource`)
 
   try {
     await redis.SETEX(url, cache.redisTTL, JSON.stringify(data))
