@@ -26,7 +26,7 @@ export default async function (App) {
       const { params } = request
       const event = new Event(params.id)
 
-      await event.load({ parts: 'images,flags' })
+      await event.load({ parts: ['images', 'flags'] })
 
       if (event.exists) {
         request.data = event.data

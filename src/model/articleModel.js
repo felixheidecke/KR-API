@@ -90,7 +90,7 @@ export default class Article {
   }
 
   get website() {
-    return this.#article.website?.trim() || undefined
+    return this.#article.web?.trim() || undefined
   }
 
   get author() {

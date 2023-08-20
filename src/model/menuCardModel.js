@@ -39,6 +39,7 @@ export default class MenuCard {
             description: description || undefined,
             items: items.map((item) => {
               return {
+                id: item.id,
                 name: item.title,
                 description: item.description.trim().length
                   ? textile.parse(item.description)
