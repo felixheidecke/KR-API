@@ -1,6 +1,8 @@
 import { HEADER, MIME_TYPE } from '#constants'
 import redis from '#libs/redis'
 
+const salt = Math.random().toString(36).substring(2)
+
 /**
  * Add cache model to request models
  *
@@ -28,7 +30,7 @@ export const setupCacheHook = async (request, config = {}) => {
 
 export const readCacheHook = async (request, response) => {
   try {
-    request.data = await redis.get(request.url)
+    request.data = await redis.get(salt + ':' + request.url)
     request.cache.wasHit = !!request.data
 
     response.headers({
@@ -68,7 +70,7 @@ export const writeCacheHook = async ({ cache, url, log, data }) => {
   log.info(`Serving from Datasource`)
 
   try {
-    await redis.SETEX(url, cache.redisTTL, JSON.stringify(data))
+    await redis.SETEX(salt + ':' + url, cache.redisTTL, JSON.stringify(data))
   } catch (error) {
     console.error({ error })
   }

@@ -18,7 +18,9 @@ export default async function (App) {
         type: 'object',
         required: ['id'],
         properties: {
-          id: { type: 'number' }
+          id: {
+            type: 'number'
+          }
         }
       }
     },
