@@ -1,7 +1,13 @@
 import { HEADER, MIME_TYPE } from '#constants'
 import redis from '#libs/redis'
+import { reject } from '#utils/promise-timeout'
 
 const salt = Math.random().toString(36).substring(2)
+const maxWait = 2000
+
+redis
+  .on('error', (error) => console.log('Redis Connection Error', error.message))
+  .connect()
 
 /**
  * Add cache model to request models
@@ -30,7 +36,11 @@ export const setupCacheHook = async (request, config = {}) => {
 
 export const readCacheHook = async (request, response) => {
   try {
-    request.data = await redis.get(salt + ':' + request.url)
+    request.data = await Promise.race([
+      redis.get(salt + ':' + request.url),
+      reject(maxWait)
+    ])
+
     request.cache.wasHit = !!request.data
 
     response.headers({
@@ -64,8 +74,7 @@ export const readCacheHook = async (request, response) => {
 export const writeCacheHook = async ({ cache, url, log, data }) => {
   // Skip if data came from cache or data (should not be cached)
 
-  if (cache.wasHit || !data || data === {} || data === null || data === [])
-    return
+  if (cache.wasHit || !data || data === null) return
 
   log.info(`Serving from Datasource`)
 

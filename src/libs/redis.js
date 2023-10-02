@@ -10,6 +10,4 @@ const client = createClient({
   password
 })
 
-client.connect()
-
 export default client
