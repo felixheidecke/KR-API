@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node'
-import { omit } from 'lodash-es'
+import { omit, pick } from 'lodash-es'
 import { transportConfig, createTransport } from '#libs/mailer'
 import { jsonToCSV, jsonToText } from '#utils/convert-json'
 import { toFilenameWithDate } from '#libs/slugify'
@@ -37,7 +37,7 @@ export default async (App) => {
     preValidation: async (request) => {
       request.body = {
         ...request.body,
-        id: request.body?.id.split(',').map((id) => +id),
+        id: request.body?.id?.split(',').map((id) => +id),
         required: request.body?.required.split(',')
       }
     },
@@ -64,17 +64,15 @@ export default async (App) => {
      * @param {import("fastify").FastifyRequest} request
      * @param {import("fastify").FastifyReply} response
      */
-    handler: async ({ body, query }, response) => {
-      const mailer = createTransport(transportConfig)
+    handler: async (request, response) => {
+      const { body, query } = request
+      const scope = new Sentry.Scope()
 
-      mailer.verify(function (error) {
-        if (!error) return
-
-        App.catchHandler(response, error)
-        Sentry.captureException(error)
-      })
+      scope.setTag('origin', request.headers.origin || 'unknown')
+      scope.setContext('context', { url: request.url })
 
       try {
+        const mailer = createTransport(transportConfig)
         const emailAddresses = await getEmailAddress(body.id)
         const content = omit(body, ['id', 'subject', 'required', 'honig'])
 
@@ -82,7 +80,7 @@ export default async (App) => {
           App.notFoundHandler(response, `No entry/s found for id ${body.id}`)
         }
 
-        mailer.sendMail({
+        await mailer.sendMail({
           from,
           bcc,
           to: emailAddresses.join(','),
@@ -101,10 +99,10 @@ export default async (App) => {
         })
 
         // Don't wait for email being send
-        response.code(202).send({ message: 'success' })
+        response.code(200).send({ message: 'success' })
       } catch (error) {
         App.catchHandler(response, error)
-        Sentry.captureException(error)
+        Sentry.captureException(error, scope)
       }
     }
   })
