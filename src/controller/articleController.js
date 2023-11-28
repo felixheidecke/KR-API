@@ -1,4 +1,5 @@
 import * as caching from '#hooks/cacheHooks'
+import * as Sentry from '@sentry/node'
 import Article from '#model/articleModel'
 import Articles from '#model/articlesModel'
 
@@ -36,14 +37,18 @@ export default async function (App) {
       const { params, query } = request
       const article = new Article(params.id)
 
-      await article.load(query)
+      try {
+        await article.load(query)
 
-      if (article.exists) {
-        request.data = article.data
+        if (article.exists) {
+          request.data = article.data
 
-        response.send(request.data)
-      } else {
-        App.notFoundHandler(response, 'Article not found')
+          response.send(request.data)
+        } else {
+          App.notFoundHandler(response, 'Article not found')
+        }
+      } catch (error) {
+        Sentry.captureException(error)
       }
     }
   })
@@ -86,14 +91,18 @@ export default async function (App) {
       const { params, query } = request
       const articles = new Articles(params.module)
 
-      await articles.load(query)
+      try {
+        await articles.load(query)
 
-      if (articles.exists) {
-        request.data = articles.data
+        if (articles.exists) {
+          request.data = articles.data
 
-        response.send(request.data)
-      } else {
-        App.notFoundHandler(response, 'Articles not found.')
+          response.send(request.data)
+        } else {
+          App.notFoundHandler(response, 'Articles not found.')
+        }
+      } catch (error) {
+        Sentry.captureException(error)
       }
     }
   })

@@ -1,4 +1,5 @@
 import * as caching from '#hooks/cacheHooks'
+import * as Sentry from '@sentry/node'
 import Event from '#model/eventModel'
 import Events from '#model/eventsModel'
 import valiDate from '#utils/vali-date'
@@ -28,14 +29,18 @@ export default async function (App) {
       const { params } = request
       const event = new Event(params.id)
 
-      await event.load({ parts: ['images', 'flags'] })
+      try {
+        await event.load({ parts: ['images', 'flags'] })
 
-      if (event.exists) {
-        request.data = event.data
+        if (event.exists) {
+          request.data = event.data
 
-        response.send(request.data)
-      } else {
-        App.notFoundHandler(response, 'Event not found')
+          response.send(request.data)
+        } else {
+          App.notFoundHandler(response, 'Event not found')
+        }
+      } catch (error) {
+        Sentry.captureException(error)
       }
     }
   })
@@ -106,15 +111,18 @@ export default async function (App) {
     handler: async function (request, response) {
       const { params, query } = request
       const events = new Events(params.module)
+      try {
+        await events.load(query)
 
-      await events.load(query)
+        if (events.exists) {
+          request.data = events.data
 
-      if (events.exists) {
-        request.data = events.data
-
-        response.send(request.data)
-      } else {
-        App.notFoundHandler(response, 'Events not found')
+          response.send(request.data)
+        } else {
+          App.notFoundHandler(response, 'Events not found')
+        }
+      } catch (error) {
+        Sentry.captureException(error)
       }
     }
   })

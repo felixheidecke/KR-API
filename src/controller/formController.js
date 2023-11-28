@@ -1,5 +1,6 @@
+import * as Sentry from '@sentry/node'
 import { omit } from 'lodash-es'
-import mailer from '#libs/mailer'
+import { transportConfig, createTransport } from '#libs/mailer'
 import { jsonToCSV, jsonToText } from '#utils/convert-json'
 import { toFilenameWithDate } from '#libs/slugify'
 import { from, bcc } from '../config/nodemailer.config.js'
@@ -64,6 +65,15 @@ export default async (App) => {
      * @param {import("fastify").FastifyReply} response
      */
     handler: async ({ body, query }, response) => {
+      const mailer = createTransport(transportConfig)
+
+      mailer.verify(function (error) {
+        if (!error) return
+
+        App.catchHandler(response, error)
+        Sentry.captureException(error)
+      })
+
       try {
         const emailAddresses = await getEmailAddress(body.id)
         const content = omit(body, ['id', 'subject', 'required', 'honig'])
@@ -94,6 +104,7 @@ export default async (App) => {
         response.code(202).send({ message: 'success' })
       } catch (error) {
         App.catchHandler(response, error)
+        Sentry.captureException(error)
       }
     }
   })

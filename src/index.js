@@ -1,11 +1,24 @@
 import '#env'
-import App from '#libs/fastify'
-import notFoundHandler from './decorators/notFoundHandler.js'
-import clientErrorHandler from './decorators/clientErrorHandler.js'
-import catchHandler from './decorators/catchHandler.js'
+import { dsn as sentryDsn } from '#config/sentry.config'
+import { host, port } from '#config/app.config'
 import { messageHook } from '#hooks/headerHooks'
-import { host, port, secret } from '#config/app.config'
-import { COOKIE_NAME } from './constants.js'
+import * as Sentry from '@sentry/node'
+import App from '#libs/fastify'
+import catchHandler from './decorators/catchHandler.js'
+import clientErrorHandler from './decorators/clientErrorHandler.js'
+import notFoundHandler from './decorators/notFoundHandler.js'
+import pkg from '../package.json' assert { type: 'json' }
+
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    initialScope: {
+      tags: {
+        app_version: pkg.version
+      }
+    }
+  })
+}
 
 // Hooks
 App.addHook('onRequest', messageHook)
@@ -35,31 +48,30 @@ App.register(import('#controller/menuCardController'))
 App.register(import('#controller/pingController'))
 App.register(import('#controller/formController'))
 
-/**
- * Xioni Shop Controller
- */
+// --- [ Error Handler ] ---------------------------------------------------------------------------
 
-App.register(async function ({ register }) {
-  register(import('@fastify/session'), {
-    secret,
-    cookie: { sameSite: 'None' },
-    cookieName: COOKIE_NAME('shopSessionId'),
-    maxAge: 1800000 // 30 min.
-  })
+App.setErrorHandler(function (error, _, reply) {
+  const statusCode = 'statusCode' in error ? error.statusCode : 500
+  const response = {
+    message: error.message,
+    payload: undefined
+  }
 
-  register(import('#controller/shop/shopCartController'))
-  register(import('#controller/shop/shopOrderController'))
-  register(import('#controller/shop/shopCategoryController'))
-  register(import('#controller/shop/shopProductsController'))
-  register(import('#controller/shop/shopInfoController'))
+  if ('payload' in error && error.payload) {
+    response.payload = error.payload
+  }
+
+  reply.status(statusCode).send(response)
+  Sentry.captureException(error)
 })
 
 // Startup
 ;(async () => {
   try {
     await App.listen({ port, host })
-  } catch (err) {
-    App.log.error({ err })
+  } catch (error) {
+    App.log.error({ error })
+    Sentry.captureException(error)
     process.exit(1)
   }
 })()

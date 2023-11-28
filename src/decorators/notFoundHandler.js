@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/node'
+
 /**
  * Send a 404 error
  * notFoundHandler(response, message)
@@ -12,11 +14,12 @@ export default function notFoundHandler(
   message = 'Resouce not found'
 ) {
   const statusCode = 404
-
-  response.code(statusCode).send({
+  const payload = {
     message,
     error: 'Not Found',
     code: 'NOT_FOUND',
     statusCode
-  })
+  }
+
+  response.code(statusCode).send(payload)
 }

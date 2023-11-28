@@ -7,7 +7,7 @@ import {
   password
 } from '#config/nodemailer.config'
 
-const config = {
+export const transportConfig = {
   host,
   port,
   requireTLS,
@@ -17,4 +17,4 @@ const config = {
   }
 }
 
-export default nodemailer.createTransport(config)
+export const createTransport = nodemailer.createTransport
