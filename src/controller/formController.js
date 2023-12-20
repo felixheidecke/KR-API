@@ -84,6 +84,7 @@ export default async (App) => {
           from,
           bcc,
           to: emailAddresses.join(','),
+          replyTo: body.email?.trim() || undefined,
           subject: body.subject.trim(),
           text: jsonToText(content),
           attachments:
