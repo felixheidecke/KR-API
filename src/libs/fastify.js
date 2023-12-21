@@ -26,6 +26,7 @@ export default Fastify({
     ? {
         cert: fs.readFileSync(cert),
         key: fs.readFileSync(key),
+        http2: true,
         allowHTTP1: true
       }
     : false
