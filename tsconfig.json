@@ -1,0 +1,23 @@
+{
+  "include": ["src/**/*.ts", "src/**/*.js"],
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    "removeComments": true,
+    "esModuleInterop": true,
+    "declaration": false,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "module": "NodeNext",
+    "target": "ES2022",
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "resolveJsonModule": true,
+    "noUncheckedIndexedAccess": true,
+    "allowJs": true,
+    "checkJs": false,
+    "lib": ["es2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "sourceMap": true
+  }
+}

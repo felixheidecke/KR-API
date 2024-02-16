@@ -1,0 +1,96 @@
++ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
++                                                                 +
++                  T E S T   B E S T E L L U N G                  +
++                                                                 +
++    Diese Bestellung greift auf das standard Template zurück.    +
++    Original nur über Webserver verfügbar, oder mit fixed        +
++    "Origin" Request-Header != localhost oder 127.0.0.1          + 
++                                                                 +
++    Dies ist KEINE gültige Bestellung!                           +
++                                                                 +
++ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+
+Hallo <%= address.salutation + ' ' + address.name %>,
+
+Ihre Bestellung ist bei uns eingegangen:
+<%= new URL('/shop/order-confirmation/' + transactionId, origin) %>
+
+------------------------------------------------------------
+${ cart.join('\n') }
+------------------------------------------------------------
+
+Transaktion:  <%= transactionId.toUpperCase() %>
+Datum:        <%= date.toLocaleString('de-DE') %>
+
+Versand:      <%= shippingCost.formatted %>
+Gesamt:       <%= total.formatted %> (inkl. MwSt.)
+
+Adresse:      <%= address.company || address.salutation %>
+               <%= address.firstname + ' ' + address.name %>
+               <%= address.address %>
+               <%= address.zip + ' ' + address.city %>
+<% if (deliveryAddress) { %>
+Versand an:   <%= deliveryAddress.company %>
+               <%= deliveryAddress.name %>
+               <%= deliveryAddress.address %>
+               <%= deliveryAddress.zip + ' ' + deliveryAddress.city %>
+
+<% } if (message) {
+  print(message)
+} %>
+
+------------------------------------------------------------
+<% if (paymentType === 'prepayment') { %>
+Lieferung gegen Zahlung per Vorauskasse an folgendes Konto:
+
+Name des Kontoinhaber
+DE 70 5500 0000 1234 5678 00
+Musterbank Deutschland
+<% } else if (paymentType === 'paypal') { %>
+Die Zahlung wurde per PayPal beglichen.
+<% } %>
+
+Vielen Dank für Ihren Auftrag!
+
+Mit freundlichen Grüßen,
+<%= owner.name %>
+
+- Die Lieferung erfolgt als mit DHL. Die Lieferzeit beträgt ca. 3 - 5 Tage.
+- Die gelieferte Ware bleibt bis zur vollständigen Bezahlung mein Eigentum.
+- Die Zahlung wird innerhalb von 30 Tagen ab Rechnungsdatum rein netto erbeten.
+- Neukunden beliefern wir gegen Zahlung per Nachnahme oder Vorkasse.
+- Bestandskunden beliefern wir zusätzlich gegen Zahlung per Rechnung.
+- Lieferung gegen Vorauskasse erfolgt unter Angabe der Auftragsnummer an o. g. Konto
+
+Jugendschutz
+════════════
+
+Nach §9 des Jugendschutzgesetzes ist es untersagt, Branntwein, branntweinhaltige Getränke oder Lebensmittel, die Branntwein in nicht nur geringer Menge enthalten, an Kinder und Jugendliche abzugeben. Nach §9 des JuSchG ist darüber hinaus auch untersagt, andere alkoholische Getränke an Kinder und Jugendliche unter 16 Jahren abzugeben (so z.B. Wein, Bier und Sekt). Mit Anerkennung der AGB bestätigen Sie, dass Sie mindestens 16 Jahre (Bestellung von Wein und Sekt) bzw. 18 Jahre (Bestellung von Spirituosen) alt sind.
+
+Widerrufsbelehrung
+══════════════════
+
+Widerrufsrecht:
+Sie haben das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertrag zu widerrufen.
+Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag, an dem Sie oder ein von Ihnen benannter Dritter, der nicht der Beförderer ist, die Waren in Besitz genommen haben bzw. hat.
+Um Ihr Widerrufsrecht auszuüben, müssen Sie uns
+
+  <%= owner.name %>
+  <%= owner.address %>
+  <%= owner.zip %> <%= owner.city %>
+  ☎ <%= owner.phone %>
+  Mail: <%= owner.email %>
+
+mittels einer eindeutigen Erklärung (Bspw. postalisch oder per E-Mail) über Ihren Entschluss, diesen Vertrag zu widerrufen, informieren. Sie können dafür das beigefügte Muster-Widerrufsformular verwenden.
+<%= new URL('widerrufsformular.pdf', origin) %>
+
+Machen Sie von dieser Möglichkeit Gebrauch, so werden wir Ihnen unverzüglich eine Bestätigung über den Eingang eines solchen Widerrufs übermitteln.
+
+Zur Wahrung der Widerrufsfrist reicht es aus, dass Sie die Mitteilung über die Ausübung des Widerrufsrechts vor Ablauf der Widerrufsfrist absenden.
+
+Folgen des Widerrufs:
+Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle Zahlungen, die wir von Ihnen erhalten haben, einschließlich der Lieferkosten (mit Ausnahme der zusätzlichen Kosten, die sich daraus ergeben, dass Sie eine andere Art der Lieferung als die von uns angebotene, günstigste Standardlieferung gewählt haben), unverzüglich und spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem die Mitteilung über Ihren Widerruf dieses Vertrags bei uns eingegangen ist. Für diese Rückzahlung verwenden wir dasselbe Zahlungsmittel, das Sie bei der ursprünglichen Transaktion eingesetzt haben, es sei denn, mit Ihnen wurde ausdrücklich etwas anderes vereinbart; in keinem Fall werden Ihnen wegen dieser Rückzahlung Entgelte berechnet. Wir können die Rückzahlung verweigern, bis wir die Waren wieder zurückerhalten haben oder bis Sie den Nachweis erbracht haben, dass Sie die Waren zurückgesandt haben, je nachdem, welches der frühere Zeitpunkt ist. Sie haben die Waren unverzüglich und in jedem Fall spätestens binnen vierzehn Tagen ab dem Tag, an dem Sie uns über den Widerruf dieses Vertrags unterrichten, an uns zurückzusenden oder zu übergeben. Die Frist ist gewahrt, wenn Sie die Waren vor Ablauf der Frist von vierzehn Tagen absenden. Sie tragen die unmittelbaren Kosten der Rücksendung der Waren. Sie müssen für einen etwaigen Wertverlust der Waren nur aufkommen, wenn dieser Wertverlust auf einen zur Prüfung der Beschaffenheit, Eigenschaften und Funktionsweise der Waren nicht notwendigen Umgang mit ihnen zurückzuführen ist.
+
+Ende der Widerrufsbelehrung:
+Information zur Verbraucherstreitbeilegung nach § 36 Verbraucherstreitbeilegungsgesetz (VSBG):
+Wir möchten etwaige Meinungsverschiedenheiten und Unstimmigkeiten in der direkten Kommunikation mit Ihnen klären und nehmen daher nicht an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teil. Bitte nehmen Sie direkt zu uns Kontakt auf, wenn es Fragen oder Probleme gibt.

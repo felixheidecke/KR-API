@@ -1,0 +1,11 @@
+{
+  "workbench.editor.labelFormat": "short",
+  "search.exclude": {
+    "dist/": true
+  },
+  "files.exclude": {
+    ".env.example": false,
+    "Desktop.ini": true
+  },
+  "editor.rulers": [100]
+}
