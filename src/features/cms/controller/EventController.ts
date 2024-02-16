@@ -13,9 +13,6 @@ export default async function (App: FastifyInstance) {
       const { params, query } = getEventRequestSchema.parse(request)
       request.params = params
       request.query = query
-
-      console.log('params:', params)
-      console.log('query:', query)
     },
     handler: async function (request, reply) {
       const { params } = request
@@ -31,9 +28,6 @@ export default async function (App: FastifyInstance) {
       const { params, query } = getEventsRequestSchema.parse(request)
       request.params = params
       request.query = query
-
-      console.log('params:', params)
-      console.log('query:', query)
     },
     handler: async function (request, reply) {
       const { params, query } = request

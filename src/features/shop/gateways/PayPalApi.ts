@@ -15,8 +15,6 @@ export class PayPalApi {
     clientId: string,
     secret: string
   ): Promise<{ accessToken: string; expiresIn: number }> {
-    console.log()
-
     const response = await fetch(`${PAYPAL_API_HOST}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
@@ -29,8 +27,6 @@ export class PayPalApi {
       access_token: string
       expires_in: number
     }
-
-    console.log({ payload })
 
     return {
       accessToken: payload.access_token,
