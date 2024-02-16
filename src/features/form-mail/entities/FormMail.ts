@@ -8,7 +8,7 @@ export class FormMail extends Mail {
   public set jsonBody(body: Record<string, string | number>) {
     this.body = Object.entries(body)
       .map(([key, value]) => {
-        return `${key.toLocaleUpperCase()}: ${value}`
+        return `${key.toLocaleUpperCase()}: ${value.toString().trim()}`
       })
       .join('\n\n')
   }

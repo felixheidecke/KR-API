@@ -12,14 +12,9 @@ export default function shop(App, _, done) {
     maxAge: toMilliseconds({ minutes: 10 })
   })
 
-  // Hooks
-  //App.addHook('onRequest', authOrigin)
-  // App.addHook('onRequest', cleanSession)
-
   // Controller
   App.register(import('./controller/CartController.js'))
   App.register(import('./controller/CategoryController.js'))
-  // App.register(import('./controller/InfoController.js'))
   App.register(import('./controller/OrderController.js'))
   App.register(import('./controller/ProductsController.js'))
   App.register(import('./controller/PaymentController.js'))
