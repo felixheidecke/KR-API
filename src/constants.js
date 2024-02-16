@@ -7,16 +7,11 @@ export const HEADER = {
   CACHE_MISS: 'MISS',
   CACHE: 'X-Cache',
   CONTENT_TYPE: 'Content-Type',
-  MESSAGE: 'Message',
+  MESSAGE: 'X-Message',
   PUBLIC: 'public',
   PRIVATE: 'private',
   NO_STORE: 'no-store',
-  VERSION: 'Version'
-}
-
-export const TOKEN = {
-  BEARER: (token) => `Bearer ${token}`,
-  BASIC: (token) => `Basic ${token}`
+  VERSION: 'X-Version'
 }
 
 export const MIME_TYPE = {
@@ -24,13 +19,6 @@ export const MIME_TYPE = {
   TEXT: 'text/plain'
 }
 
-export const ASSET_BASE_URL = 'https://www.rheingau.de/data/'
-
+export const ASSET_BASE_URL = 'https://www.rheingau.de/data'
 export const LOCALE = 'de-DE'
-
-export const NUMBER_FORMAT_CURRENCY = Intl.NumberFormat(LOCALE, {
-  style: 'currency',
-  currency: 'EUR'
-})
-
-export const NUMBER_FORMAT = Intl.NumberFormat(LOCALE)
+export const CURRENCY = 'EUR'

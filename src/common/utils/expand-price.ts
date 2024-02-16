@@ -1,4 +1,4 @@
-import { NUMBER_FORMAT_CURRENCY } from '../../constants.js'
+import { formatCurrency } from './number-format.js'
 
 /**
  * Adds the formatted price
@@ -8,6 +8,8 @@ import { NUMBER_FORMAT_CURRENCY } from '../../constants.js'
 export default function expandPrice(price: number) {
   return {
     value: price,
-    formatted: NUMBER_FORMAT_CURRENCY.format(price)
+    formatted: formatCurrency.format(price)
   }
 }
+
+export type ExpandedPrice = ReturnType<typeof expandPrice>

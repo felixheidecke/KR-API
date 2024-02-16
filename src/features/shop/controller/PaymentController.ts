@@ -12,7 +12,7 @@ import type { FastifyInstance } from 'fastify'
 import type { InferFastifyRequest } from '../../../common/types/InferFastifyRequest.js'
 
 export default async function (App: FastifyInstance) {
-  App.addHook('onRequest', cacheHeadersNoStoreHook)
+  App.addHook('onSend', cacheHeadersNoStoreHook)
 
   App.post('/:module/payment/paypal/create', {
     preValidation: async (request: InferFastifyRequest<CreatePayPalRequestSchema>) => {
@@ -23,8 +23,12 @@ export default async function (App: FastifyInstance) {
       session.paypal ??= new PayPal(params.module)
       session.order = await OrderService.getOrder(params.module, body.transactionId)
 
+      if (!session.order) {
+        throw HttpError.BAD_REQUEST('No order in session')
+      }
+
       if (session.order.paymentType === 'paypal') {
-        throw new HttpError('Order has already been processed', 400)
+        throw HttpError.CONFLICT('Order has already been processed')
       }
 
       await PayPalInteractor.createOrder(session.paypal, session.order.total)

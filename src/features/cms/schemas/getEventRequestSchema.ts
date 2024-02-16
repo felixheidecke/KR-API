@@ -8,7 +8,7 @@ export const getEventRequestSchema = z.object({
   }),
   query: z.object({
     detailLevel: z
-      .enum(['minimal', 'basic'])
+      .enum(['minimal', 'default'])
       .optional()
       .transform(level => mapDetailLevel(level))
   })

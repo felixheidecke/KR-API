@@ -9,7 +9,7 @@ export const getArticlesRequestSchema = z.object({
     status: z.enum(['archived']).optional(),
     limit: z.coerce.number().gt(0).optional(),
     detailLevel: z
-      .enum(['minimal', 'extended', 'full'])
+      .enum(['minimal', 'extended'])
       .optional()
       .transform(level => mapDetailLevel(level))
   })

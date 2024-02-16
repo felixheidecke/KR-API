@@ -1,4 +1,4 @@
-import { ArticleInteractor } from '../services/ArticleService.js'
+import { ArticleService } from '../services/ArticleService.js'
 import { getArticleRequestSchema } from '../schemas/getArticleRequestSchema.js'
 import { getArticlesRequestSchema } from '../schemas/getArticlesRequestSchema.js'
 
@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify'
 import type { GetArticleRequestSchema } from '../schemas/getArticleRequestSchema.js'
 import type { GetArticlesRequestSchema } from '../schemas/getArticlesRequestSchema.js'
 import type { InferFastifyRequest } from '../../../common/types/InferFastifyRequest.js'
+import type { Article } from '../entities/Article.js'
 
 export default async function (App: FastifyInstance) {
   /**
@@ -21,12 +22,16 @@ export default async function (App: FastifyInstance) {
   App.get('/articles/:module/:id', {
     preValidation: async (request: InferFastifyRequest<GetArticleRequestSchema>) => {
       const { params } = getArticleRequestSchema.parse(request)
+
       request.params = params
     },
     handler: async (request, reply) => {
-      const { params } = request
-      const article = await ArticleInteractor.getArticle(params.module, params.id)
-      request.data = article.display()
+      const { module, id } = request.params
+      const article = await ArticleService.getArticle(module, id, {
+        shouldThrow: true
+      })
+
+      request.data = (article as Article).display()
 
       reply.send(request.data)
     }
@@ -45,13 +50,18 @@ export default async function (App: FastifyInstance) {
   App.get('/articles/:module', {
     preValidation: async (request: InferFastifyRequest<GetArticlesRequestSchema>) => {
       const { params, query } = getArticlesRequestSchema.parse(request)
+
       request.params = params
       request.query = query
     },
     handler: async (request: InferFastifyRequest<GetArticlesRequestSchema>, reply) => {
       const { params, query } = request
-      const articles = await ArticleInteractor.getArticles(params.module, query, query.detailLevel)
-      request.data = articles.map(article => article.display())
+      const articles = await ArticleService.getArticles(params.module, query, {
+        skipModuleCheck: true,
+        shouldThrow: true
+      })
+
+      request.data = (articles as Article[]).map(article => article.display())
 
       reply.send(request.data)
     }

@@ -12,7 +12,7 @@ export class SupplementalCost {
   public description = ''
 
   public display() {
-    return Object.freeze(new SupplementalCostDisplay(this))
+    return new SupplementalCostDisplay(this)
   }
 }
 
@@ -21,14 +21,12 @@ class SupplementalCostDisplay {
     const { value, formatted } = expandPrice(supplementalCost.price)
     this.value = value
     this.formatted = formatted
-    this.$module = supplementalCost.module
     this.title = supplementalCost.title
     this.description = supplementalCost.description
       ? textile.parse(supplementalCost.description)
       : ''
   }
 
-  readonly $module: number
   readonly value: number
   readonly formatted: string
   readonly title: string

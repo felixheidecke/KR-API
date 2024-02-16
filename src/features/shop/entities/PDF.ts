@@ -1,11 +1,11 @@
 import { ASSET_BASE_URL } from '../../../constants.js'
 
 export class PDF {
-  constructor(src?: string) {
+  constructor(src?: string, title?: string) {
     this.src = src || ''
+    this.title = title || ''
   }
 
-  public path = ASSET_BASE_URL
   public src = ''
   public title = ''
 
@@ -13,8 +13,8 @@ export class PDF {
 
   public display() {
     return Object.freeze({
-      src: this.path + this.src,
-      title: this.title
+      src: this.src,
+      title: this.title.trim()
     })
   }
 }

@@ -1,5 +1,5 @@
-import { ErrorCodes, ModuleError } from '../../../common/decorators/Error.js'
-import { CredentialsRepository } from '../gateways/CredentialsRepository.js'
+import { HttpError } from '../../../common/decorators/Error.js'
+import { CredentialsRepo } from '../gateways/CredentialsRepo.js'
 import { PayPalApi } from '../gateways/PayPalApi.js'
 
 import type { PayPal } from '../entities/PayPal.js'
@@ -10,7 +10,7 @@ export class PayPalInteractor {
    *
    * @param {PayPal} paypal - The PayPal object containing relevant details.
    * @param {number} total - The total amount for the order.
-   * @throws {ModuleError} If the order cannot be created.
+   * @throws {HttpError} If the order cannot be created.
    */
 
   public static async createOrder(paypal: PayPal, total: number) {
@@ -22,7 +22,7 @@ export class PayPalInteractor {
     const response = await PayPalApi.createOrder(total, paypal.accessToken)
 
     if (response.status !== 'CREATED') {
-      throw new ModuleError('Could not capture PayPal order.', ErrorCodes.BAD_REQUEST, response)
+      throw HttpError.BAD_REQUEST('Could not capture PayPal order.', response)
     }
 
     paypal.orderId = response.id
@@ -32,7 +32,7 @@ export class PayPalInteractor {
    * Captures a PayPal order.
    *
    * @param {PayPal} paypal - The PayPal object containing relevant details.
-   * @throws {ModuleError} If the order cannot be captured.
+   * @throws {HttpError} If the order cannot be captured.
    */
 
   public static async captureOrder(paypal: PayPal) {
@@ -44,7 +44,7 @@ export class PayPalInteractor {
     const response = await PayPalApi.captureOrder(paypal.orderId, paypal.accessToken)
 
     if (response.status !== 'COMPLETED') {
-      throw new ModuleError('Could not capture PayPal order.', ErrorCodes.BAD_REQUEST, response)
+      throw HttpError.BAD_REQUEST('Could not capture PayPal order.', response)
     }
 
     paypal.paymentId = response.id
@@ -64,17 +64,17 @@ export class PayPalInteractor {
   }
 
   /**
-   * Loads PayPal credentials from the credentials repository.
+   * Loads PayPal credentials from the credentials repo.
    *
    * @param {PayPal} paypal - The PayPal object to populate with credentials.
-   * @throws {ModuleError} If PayPal is not configured for the specified module.
+   * @throws {HttpError} If PayPal is not configured for the specified module.
    */
 
   private static async loadCredentials(paypal: PayPal) {
-    const credentials = await CredentialsRepository.readPayPalCredentials(paypal.module)
+    const credentials = await CredentialsRepo.readPayPalCredentials(paypal.module)
 
     if (!credentials) {
-      throw new ModuleError('Paypal is not configured for this module.', ErrorCodes.NOT_IMPLEMENTED)
+      throw HttpError.BAD_REQUEST('Paypal is not configured for this module.')
     }
 
     paypal.clientId = credentials.clientId

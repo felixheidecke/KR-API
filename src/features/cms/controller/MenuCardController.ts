@@ -22,9 +22,13 @@ export default async (App: FastifyInstance) => {
     },
     handler: async (request, reply) => {
       const { module } = request.params
-      const menuCard = await MenuCardService.getMenuCard(module)
+      const menuCard = await MenuCardService.getMenuCard(module, {
+        shouldThrow: true
+      })
 
-      reply.send(menuCard?.map(card => card.display()))
+      request.data = menuCard?.map(card => card.display())
+
+      reply.send(request.data)
     }
   })
 }

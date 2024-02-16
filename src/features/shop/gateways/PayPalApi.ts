@@ -39,7 +39,7 @@ export class PayPalApi {
    * @param total The total amount of the order.
    * @param accessToken The access token for authentication.
    * @returns A promise that resolves to the created order.
-   * @throws {ModuleError} If there is an error creating the order.
+   * @throws {HttpError} If there is an error creating the order.
    */
   public static async createOrder(total: number, accessToken: string) {
     const url = new URL('v2/checkout/orders', PAYPAL_API_HOST)
@@ -68,7 +68,7 @@ export class PayPalApi {
    * @param orderId - The ID of the order to capture.
    * @param accessToken - The access token for authentication.
    * @returns The captured order details if successful.
-   * @throws ModuleError if there is an error capturing the payment.
+   * @throws {HttpError} if there is an error capturing the payment.
    */
   public static async captureOrder(orderId: string, accessToken: string) {
     const url = new URL(`v2/checkout/orders/${orderId}/capture`, PAYPAL_API_HOST)

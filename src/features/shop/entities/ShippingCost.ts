@@ -49,8 +49,7 @@ export class ShippingCost {
 
 class ShippingCostDisplay {
   constructor(shippingCost: ShippingCost) {
-    this.$module = shippingCost.module
-    this.$id = shippingCost.id
+    this.id = shippingCost.id
     this.rates = shippingCost.rates.map(({ threshold, rate }) => ({
       threshold,
       rate: expandPrice(rate)
@@ -59,8 +58,7 @@ class ShippingCostDisplay {
     this.unit = shippingCost.unit
   }
 
-  readonly $module: number
-  readonly $id: number
+  readonly id: number
   readonly rates: {
     threshold: number
     rate: ReturnType<typeof expandPrice>

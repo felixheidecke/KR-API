@@ -79,7 +79,7 @@ export class Cart {
 
     gross = gross // fix rounding error
     total = gross
-    total += this.supplementalCost?.price || 0
+    total += this.supplementalCost.price || 0
 
     shipping = this.shippingCost.getRateByWeight(weight) ?? 0
     total += shipping

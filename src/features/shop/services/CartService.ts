@@ -1,8 +1,8 @@
+import { HttpError } from '../../../common/decorators/Error.js'
 import { Cart } from '../entities/Cart.js'
-import { ErrorCodes, ModuleError } from '../../../common/decorators/Error.js'
-import { ProductRepository } from '../gateways/ProductRepository.js'
-import { ShippingCostRepository } from '../gateways/ShippingCostRepository.js'
-import { SupplementalCostRepository } from '../gateways/SupplementalCostRepository.js'
+import { ProductService } from './ProductService.js'
+import { ShippingCostService } from './ShippingCostService.js'
+import { SupplementalCostService } from './SupplementalCostService.js'
 
 export class CartService {
   /**
@@ -23,7 +23,7 @@ export class CartService {
    *
    * @param {Cart} cart - The cart to update.
    * @param {{ productId: number; quantity: number }[]} products - An array of product and quantity pairs.
-   * @throws {ModuleError} If one or more products are not found.
+   * @throws {HttpError} If one or more products are not found.
    */
 
   public static async updateProductQuantityById(
@@ -44,10 +44,10 @@ export class CartService {
       products
         .filter(({ quantity }) => quantity > 0)
         .map(async ({ productId, quantity }) => {
-          const product = await ProductRepository.getProduct(cart.module, productId)
+          const product = await ProductService.getProduct(cart.module, productId)
 
           if (!product) {
-            throw new ModuleError('One or more products not found.', ErrorCodes.BAD_REQUEST)
+            throw HttpError.NOT_FOUND('One or more products not found.')
           }
 
           return { product, quantity }
@@ -69,8 +69,8 @@ export class CartService {
 
   private static async initialise(cart: Cart) {
     const [supplementalCost, shippingCost] = await Promise.all([
-      SupplementalCostRepository.getSupplementalCost(cart.module),
-      ShippingCostRepository.getShippingCost(cart.module)
+      SupplementalCostService.getSupplementalCost(cart.module),
+      ShippingCostService.getShippingCost(cart.module)
     ])
 
     if (supplementalCost) {

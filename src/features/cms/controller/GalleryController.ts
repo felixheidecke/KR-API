@@ -1,4 +1,4 @@
-import { GalleryInteractor } from '../services/GalleryService.js'
+import { GalleryService } from '../services/GalleryService.js'
 import { getAlbumRequestSchema } from '../schemas/getAlbumRequestSchema.js'
 import { getGalleryRequestSchema } from '../schemas/getGalleryRequestSchema.js'
 
@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify'
 import type { GetAlbumRequestSchema } from '../schemas/getAlbumRequestSchema.js'
 import type { GetGalleryRequestSchema } from '../schemas/getGalleryRequestSchema.js'
 import type { InferFastifyRequest } from '../../../common/types/InferFastifyRequest.js'
+import type { Album } from '../entities/Album.js'
 
 export default async function (App: FastifyInstance) {
   /**
@@ -27,8 +28,13 @@ export default async function (App: FastifyInstance) {
     handler: async (request, reply) => {
       const { params, query } = request
 
-      const gallery = await GalleryInteractor.getGallery(params.module, query.detailLevel)
-      request.data = gallery.map(album => album.display())
+      const gallery = await GalleryService.getGallery(params.module, {
+        detailLevel: query.detailLevel,
+        skipModuleCheck: true,
+        shouldThrow: true
+      })
+
+      request.data = (gallery as Album[]).map(album => album.display())
 
       reply.send(request.data)
     }
@@ -51,8 +57,9 @@ export default async function (App: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { module, id } = request.params
-      const album = await GalleryInteractor.getAlbum(module, id)
-      request.data = album.display()
+      const album = await GalleryService.getAlbum(module, id, { shouldThrow: true })
+
+      request.data = (album as Album).display()
 
       reply.send(request.data)
     }

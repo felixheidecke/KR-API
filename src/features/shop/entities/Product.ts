@@ -1,15 +1,15 @@
 // @ts-ignore: Missing declaration
 import textile from 'textile-js'
+import { formatCurrency, formatNumber } from '../../../common/utils/number-format.js'
 import { GroupPath } from './GroupPath.js'
+import { isNumber } from 'lodash-es'
 import { toUrlSlug } from '../../../common/utils/slugify.js'
 import { UNIT } from '../utils/constants.js'
+import expandPrice from '../../../common/utils/expand-price.js'
 import round from '../../../common/utils/round.js'
 
 import type { PDF } from './PDF.js'
 import type { Image } from '../../../common/entities/Image.js'
-import { NUMBER_FORMAT, NUMBER_FORMAT_CURRENCY } from '../../../constants.js'
-import expandPrice from '../../../common/utils/expand-price.js'
-import { isNumber } from 'lodash-es'
 
 type Quantity = { value: number; unit: string } | undefined
 type Weight = { value: number; unit: string } | undefined
@@ -24,10 +24,10 @@ export class Product {
   public ean?: string
   public price?: number
   public vat?: number
-  public isHighlight?: boolean
+  public frontpage?: boolean
   public image?: Image
   public pdf?: PDF
-  public path?: GroupPath
+  public path = new GroupPath()
   public name?: string
   public description?: string
   public teaser?: string
@@ -90,10 +90,9 @@ export class Product {
 
   public display() {
     return Object.freeze({
-      $id: this.id,
-      $group: this.group,
-      // $module: this.module,
+      id: this.id,
       name: this.name,
+      group: this.group,
       slug: this.slug,
       code: this.code,
       ean: this.ean,
@@ -104,13 +103,13 @@ export class Product {
       quantity: this.quantity
         ? {
             value: this.quantity.value,
-            formatted: NUMBER_FORMAT.format(this.quantity.value) + ' ' + this.quantity.unit
+            formatted: formatNumber.format(this.quantity.value) + ' ' + this.quantity.unit
           }
         : undefined,
       weight: this.weight
         ? {
             value: this.weight.value,
-            formatted: NUMBER_FORMAT.format(this.weight.value) + ' ' + this.weight.unit
+            formatted: formatNumber.format(this.weight.value) + ' ' + this.weight.unit
           }
         : undefined,
       price: isNumber(this.price) ? expandPrice(this.price) : undefined,
@@ -118,8 +117,7 @@ export class Product {
         this.pricePerUnit && this.quantity
           ? {
               value: this.pricePerUnit,
-              formatted:
-                NUMBER_FORMAT_CURRENCY.format(this.pricePerUnit) + ' pro ' + this.quantity.unit
+              formatted: formatCurrency.format(this.pricePerUnit) + ' pro ' + this.quantity.unit
             }
           : undefined,
       vat: this.vat
@@ -130,7 +128,7 @@ export class Product {
         : undefined,
       image: this.image?.display(),
       pdf: this.pdf?.display(),
-      isHighlight: this.isHighlight
+      frontpage: this.frontpage
     })
   }
 }

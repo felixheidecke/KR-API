@@ -1,21 +1,17 @@
 export enum DetailLevel {
-  MINIMAL = -2,
-  BASIC = -1,
-  FULL = 0,
+  MINIMAL = -1,
+  DEFAULT = 0,
   EXTENDED = 1
 }
 
-export function mapDetailLevel(level?: 'minimal' | 'basic' | 'full' | 'extended'): DetailLevel {
+export function mapDetailLevel(level?: 'minimal' | 'default' | 'extended'): DetailLevel {
   switch (level) {
     case 'minimal':
       return DetailLevel.MINIMAL
-    case 'basic':
-      return DetailLevel.BASIC
-    case 'full':
-      return DetailLevel.FULL
     case 'extended':
       return DetailLevel.EXTENDED
+    case 'default':
     default:
-      return 0
+      return DetailLevel.DEFAULT
   }
 }

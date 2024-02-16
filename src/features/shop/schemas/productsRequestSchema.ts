@@ -5,11 +5,10 @@ export const getProductsRequestSchema = z.object({
     module: z.coerce.number().gt(0)
   }),
   query: z.object({
-    detailLevel: z.enum(['minimal', 'basic']).optional(),
     limit: z.coerce.number().gt(0).optional(),
-    highlights: z
+    frontpage: z
       .string()
-      .transform((val: string) => val === 'true')
+      .transform(frontpage => frontpage === 'true')
       .optional()
   })
 })

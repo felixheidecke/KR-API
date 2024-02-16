@@ -15,6 +15,16 @@ import type { PostOrderRequestSchema } from '../schemas/postOrderRequestSchema.j
 export default async function (App: FastifyInstance) {
   App.addHook('onSend', cacheHeadersNoStoreHook)
 
+  App.get('/:module/order', {
+    handler: async ({ session }: FastifyRequest, reply: FastifyReply) => {
+      if (session.order) {
+        reply.send(session.order.display())
+      } else {
+        throw HttpError.BAD_REQUEST('No order in session.')
+      }
+    }
+  })
+
   App.patch('/:module/order', {
     preValidation: async function (request: InferFastifyRequest<PatchOrderRequestSchema>) {
       patchOrderRequestSchema.parse(request)
@@ -55,26 +65,15 @@ export default async function (App: FastifyInstance) {
     }
   })
 
-  App.get('/:module/order', {
-    handler: async ({ session }: FastifyRequest, reply: FastifyReply) => {
-      if (session.order) {
-        reply.send(session.order.display())
-      } else {
-        throw new HttpError('No order in session.', 400)
-      }
-    }
-  })
-
   App.get('/:module/order/:transactionId', {
     preValidation: async function (request: InferFastifyRequest<GetOrderRequestSchema>) {
       getOrderRequestSchema.parse(request)
     },
-
     handler: async (request: InferFastifyRequest<GetOrderRequestSchema>, reply: FastifyReply) => {
       const { module, transactionId } = request.params
-      const order = await OrderService.getOrder(module, transactionId)
+      const order = await OrderService.getOrder(module, transactionId, { shouldThrow: true })
 
-      reply.send(order.display())
+      reply.send((order as Order).display())
     }
   })
 

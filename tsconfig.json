@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*.ts", "src/**/*.js"],
+  "include": ["src/**/*.ts", "src/**/*.js", "src/features/cms/gateways/EventRepo.ts_"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "removeComments": true,

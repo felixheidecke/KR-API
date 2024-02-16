@@ -12,7 +12,7 @@ export const getEventsRequestSchema = z.object({
     endsAfter: z.coerce.date().optional(),
     limit: z.coerce.number().gt(0).optional(),
     detailLevel: z
-      .enum(['minimal', 'basic'])
+      .enum(['minimal', 'default', 'extended'])
       .optional()
       .transform(level => mapDetailLevel(level))
   })

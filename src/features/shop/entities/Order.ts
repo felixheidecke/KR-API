@@ -1,6 +1,6 @@
 import { fromUnixTime } from 'date-fns'
 import { isEmpty, isNumber, omitBy } from 'lodash-es'
-import expandPrice from '../../../common/utils/expand-price.js'
+import expandPrice, { type ExpandedPrice } from '../../../common/utils/expand-price.js'
 import randomId from '../../../common/utils/random-id.js'
 
 import type { Product } from './Product.js'
@@ -17,7 +17,7 @@ type CartProduct = {
 
 type Address = {
   company?: string
-  salutation?: string
+  salutation?: 'Herr' | 'Frau'
   firstname?: string
   name?: string
   address?: string
@@ -41,6 +41,7 @@ export class Order {
 
   public total = 0
   public shippingCost = 0
+  public discount = 0
   public paymentType: 'paypal' | 'prepayment' = 'prepayment'
   public message: string | undefined
   private _address: Address = {}
@@ -78,7 +79,12 @@ export class Order {
    * @returns The current instance for chaining.
    */
   public set address(address: Address) {
-    this._address = address ? (omitBy(address, isEmpty) as Address) : {}
+    const newAddress = {
+      ...address,
+      email: address?.email?.toLowerCase()
+    }
+
+    this._address = address ? (omitBy(newAddress, isEmpty) as Address) : {}
   }
 
   /**
@@ -198,8 +204,8 @@ class OrderDisplay {
   readonly address: Address | undefined
   readonly deliveryAddress: DeliveryAddress | undefined
   readonly message: string | undefined
-  readonly total: ReturnType<typeof expandPrice>
-  readonly shippingCost: ReturnType<typeof expandPrice>
+  readonly total: ExpandedPrice
+  readonly shippingCost: ExpandedPrice
   readonly cart: {
     price: {
       value: number

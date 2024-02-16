@@ -1,31 +1,23 @@
-import { Client } from './Client.js'
+import { Customer } from './Customer.js'
 import { ShippingCost } from './ShippingCost.js'
 import { SupplementalCost } from './SupplementalCost.js'
 
 export class Info {
   constructor(readonly module: number) {
-    this.client = new Client(module)
+    this.client = new Customer()
     this.shippingCost = new ShippingCost(module)
     this.supplementalCost = new SupplementalCost(module)
   }
 
-  public client: Client
+  public client: Customer
   public shippingCost: ShippingCost
   public supplementalCost: SupplementalCost
 
   public display() {
-    return Object.freeze(new InfoDisplay(this))
+    return Object.freeze({
+      client: this.client.display(),
+      supplementalCost: this.supplementalCost.display(),
+      shippingCost: this.shippingCost.display()
+    })
   }
-}
-
-class InfoDisplay {
-  constructor(info: Info) {
-    this.client = info.client.display()
-    this.supplementalCost = info.supplementalCost.display()
-    this.shippingCost = info.shippingCost.display()
-  }
-
-  readonly client
-  readonly supplementalCost
-  readonly shippingCost
 }

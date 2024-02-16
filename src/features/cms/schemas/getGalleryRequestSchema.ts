@@ -1,4 +1,3 @@
-import { get } from 'http'
 import { z } from 'zod'
 import { mapDetailLevel } from '../../shop/utils/detail-level.js'
 
@@ -8,7 +7,7 @@ export const getGalleryRequestSchema = z.object({
   }),
   query: z.object({
     detailLevel: z
-      .enum(['minimal'])
+      .enum(['minimal', 'default'])
       .optional()
       .transform(level => mapDetailLevel(level))
   })

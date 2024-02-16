@@ -1,0 +1,1 @@
+export const DATA_BASE_PATH = 'https://www.rheingau.de/data'

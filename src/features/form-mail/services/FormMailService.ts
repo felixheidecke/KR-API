@@ -1,7 +1,7 @@
-import { ErrorCodes, ModuleError } from '../../../common/decorators/Error.js'
 import { FormMail } from '../entities/FormMail.js'
-import { MailApi } from '../../../common/repositories/MailApi.js'
-import { MailRepository } from '../../../common/repositories/MailRepository.js'
+import { MailApi } from '../../../common/gateways/MailApi.js'
+import { MailRepo } from '../../../common/gateways/MailRepo.js'
+import { HttpError } from '../../../common/decorators/Error.js'
 
 export class FormMailService {
   public static async send(
@@ -9,11 +9,11 @@ export class FormMailService {
     subject: string,
     body: Record<string, string | number>
   ) {
-    const recipients = await MailRepository.readMailAddresses(recipientId)
+    const recipients = await MailRepo.readMailAddresses(recipientId)
     const mail = new FormMail()
 
     if (!recipients.length) {
-      throw new ModuleError('Recipient not found', ErrorCodes.BAD_REQUEST)
+      throw HttpError.BAD_REQUEST('Recipient not found.')
     }
 
     if (body['email'] || body['Email']) {

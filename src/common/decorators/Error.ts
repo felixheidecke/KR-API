@@ -1,28 +1,5 @@
 import type { ZodError } from 'zod'
 
-export enum ErrorCodes {
-  BAD_REQUEST,
-  IS_EMPTY,
-  IS_NULL,
-  IS_UNDEFINED,
-  NOT_FOUND,
-  NOT_IMPLEMENTED,
-  VALIDATION_ERROR,
-  INTERNAL_SERVER_ERROR
-}
-
-export class ModuleError extends Error {
-  name: string = 'ModuleError'
-
-  constructor(
-    public message: string,
-    public code: ErrorCodes = ErrorCodes.INTERNAL_SERVER_ERROR,
-    public details?: any
-  ) {
-    super(message)
-  }
-}
-
 export class HttpError extends Error {
   name: string = 'HttpError'
 
@@ -43,45 +20,34 @@ export class HttpError extends Error {
     }
   }
 
+  public static BAD_REQUEST(message = 'Bad Request', details?: any) {
+    return new HttpError(message, 400, 'BAD_REQUEST', details)
+  }
+
+  public static UNAUTHORIZED(message = 'Unauthorized', details?: any) {
+    return new HttpError(message, 401, 'UNAUTHORIZED', details)
+  }
+
+  public static FORBIDDEN(message = 'Forbidden', details?: any) {
+    return new HttpError(message, 403, 'FORBIDDEN', details)
+  }
+
+  public static NOT_FOUND(message = 'Not Found', details?: any) {
+    return new HttpError(message, 404, 'NOT_FOUND', details)
+  }
+
+  public static CONFLICT(message = 'Conflict', details?: any) {
+    return new HttpError(message, 409, 'CONFLICT', details)
+  }
+
   public static fromZodError(error: ZodError) {
     const { formErrors, fieldErrors } = error.flatten()
     const details = formErrors.length ? formErrors : fieldErrors
 
-    return new HttpError(
-      'Request Validation Error',
-      400,
-      ErrorCodes[ErrorCodes.VALIDATION_ERROR],
-      details
-    )
+    return new HttpError('Request Validation Error', 400, 'VALIDATION_ERROR', details)
   }
 
   public static fromError(error: Error) {
-    return new HttpError(error.message, 500, ErrorCodes[ErrorCodes.INTERNAL_SERVER_ERROR])
-  }
-
-  public static fromModuleError(error: ModuleError) {
-    return new HttpError(
-      error.message,
-      this.codeToStatusCode(error.code),
-      ErrorCodes[error.code],
-      error.details
-    )
-  }
-
-  private static codeToStatusCode(code?: ErrorCodes) {
-    switch (code) {
-      case ErrorCodes.BAD_REQUEST:
-      case ErrorCodes.VALIDATION_ERROR:
-        return 400
-      case ErrorCodes.IS_EMPTY:
-      case ErrorCodes.IS_NULL:
-      case ErrorCodes.IS_UNDEFINED:
-      case ErrorCodes.NOT_FOUND:
-        return 404
-      case ErrorCodes.NOT_IMPLEMENTED:
-        return 501
-      default:
-        return 500
-    }
+    return new HttpError(error.message, 500, 'INTERNAL_SERVER_ERROR')
   }
 }

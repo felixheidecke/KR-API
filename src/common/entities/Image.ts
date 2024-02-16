@@ -1,5 +1,3 @@
-import { ASSET_BASE_URL } from '../../constants.js'
-
 type SrcSet = {
   small?: string
   medium?: string
@@ -15,7 +13,6 @@ export class Image {
     this.align = align || undefined
   }
 
-  public path = ASSET_BASE_URL
   public srcset: SrcSet = {}
   public src = ''
   public align?: Align
@@ -33,13 +30,13 @@ export class Image {
 
   public display() {
     return Object.freeze({
-      src: this.path + this.src,
+      src: this.src,
       alt: this.alt,
       align: this.align,
       srcset: {
-        small: this.srcset.small ? this.path + this.srcset.small : undefined,
-        medium: this.srcset.medium ? this.path + this.srcset.medium : undefined,
-        large: this.srcset.large ? this.path + this.srcset.large : undefined
+        small: this.srcset.small ? this.srcset.small : undefined,
+        medium: this.srcset.medium ? this.srcset.medium : undefined,
+        large: this.srcset.large ? this.srcset.large : undefined
       }
     })
   }

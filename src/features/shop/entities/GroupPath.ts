@@ -15,7 +15,7 @@ export class GroupPath {
 
   public display() {
     return this.path.map(({ id, name }) => ({
-      $id: id,
+      id: id,
       name: name.trim(),
       slug: toUrlSlug(name, 25)
     }))

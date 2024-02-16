@@ -1,6 +1,7 @@
 import { EventService } from '../services/EventService.js'
 import { getEventRequestSchema } from '../schemas/getEventRequestSchema.js'
 import { getEventsRequestSchema } from '../schemas/getEventsRequestSchema.js'
+import { Event } from '../entities/Event.js'
 
 import type { FastifyInstance } from 'fastify'
 import type { GetEventRequestSchema } from '../schemas/getEventRequestSchema.js'
@@ -15,9 +16,10 @@ export default async function (App: FastifyInstance) {
       request.query = query
     },
     handler: async function (request, reply) {
-      const { params } = request
-      const event = await EventService.getEvent(params.module, params.id)
-      request.data = event.display()
+      const { module, id } = request.params
+      const event = await EventService.getEvent(module, id, { shouldThrow: true })
+
+      request.data = (event as Event).display()
 
       reply.send(request.data)
     }
@@ -31,8 +33,12 @@ export default async function (App: FastifyInstance) {
     },
     handler: async function (request, reply) {
       const { params, query } = request
-      const events = await EventService.getEvents(params.module, query, query.detailLevel)
-      request.data = events.map(event => event.display())
+      const events = await EventService.getEvents(params.module, query, {
+        skipModuleCheck: true,
+        shouldThrow: true
+      })
+
+      request.data = (events as Event[]).map(event => event.display())
 
       reply.send(request.data)
     }

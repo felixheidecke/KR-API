@@ -40,15 +40,12 @@ Versand an:   <%= deliveryAddress.company %>
 } %>
 
 ------------------------------------------------------------
-<% if (paymentType === 'prepayment') { %>
-Lieferung gegen Zahlung per Vorauskasse an folgendes Konto:
+Lieferung gegen Zahlung via PayPal oder Banküberweisung an folgendes Konto:
 
 Name des Kontoinhaber
 DE 70 5500 0000 1234 5678 00
 Musterbank Deutschland
-<% } else if (paymentType === 'paypal') { %>
-Die Zahlung wurde per PayPal beglichen.
-<% } %>
+Verwendungszweck: <%= address.name %> <%= transactionId.toUpperCase() %>
 
 Vielen Dank für Ihren Auftrag!
 

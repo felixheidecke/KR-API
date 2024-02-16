@@ -7,7 +7,8 @@ import type { InferFastifyRequest } from '../../../common/types/InferFastifyRequ
 export default async (App: FastifyInstance) => {
   App.post('/send', {
     preValidation: async function (request: InferFastifyRequest<FormMailSchema>) {
-      formMailSchema.parse(request)
+      const { body } = formMailSchema.parse(request)
+      request.body = body
     },
     handler: async (request, reply) => {
       const { config, body } = request.body
