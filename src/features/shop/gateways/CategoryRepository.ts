@@ -74,7 +74,7 @@ export class CategoryRepository {
 
     const repositoryCategories = (await moduleQuery
       .groupBy('_id')
-      .orderBy('group', 'priority')) as RepositoryCategory[]
+      .orderBy('priority', 'group')) as RepositoryCategory[]
 
     return await Promise.all(
       repositoryCategories.map(async repositoryCategory => {
