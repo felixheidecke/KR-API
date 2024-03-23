@@ -2,6 +2,10 @@ import { toMilliseconds } from '../../common/utils/convert-time.js'
 
 export default function shop(App, _, done) {
   // Plugins
+  App.register(import('../../common/plugins/authorization.js'), {
+    credentials: JSON.parse(process.env.AUTHORIZED_USER || '[]')
+  })
+
   App.register(import('@fastify/cookie'))
 
   App.register(import('@fastify/session'), {
