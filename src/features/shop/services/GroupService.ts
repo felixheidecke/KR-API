@@ -1,19 +1,20 @@
-import * as GroupRepo from '../gateways/GroupRepo.js'
 import { Group } from '../entities/Group.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { GroupPath } from '../entities/GroupPath.js'
 import { HttpError } from '../../../common/decorators/Error.js'
+import { GroupRepo } from '../gateways/GroupRepo.js'
 
 export class GroupService {
   /**
-   * Retrieves a specific category by its ID.
+   * Retrieves a single group based on module and group ID with optional error handling.
    *
-   * @param {number} module - The module number.
-   * @param {number} id - The ID of the category to be retrieved.
-   * @returns {Promise<Group>} A promise that resolves to the retrieved category.
-   * @throws {HttpError} If the category is not found.
+   * @param {number} module - The module ID.
+   * @param {number} id - The group ID.
+   * @param {object} [config={}] - Configuration options.
+   * @param {boolean} [config.shouldThrow=false] - Flag to throw an error if the group or module doesn't exist.
+   * @returns {Promise<Group|null>} The requested group or null if not found, wrapped in a Promise.
+   * @throws {HttpError} Throws NOT_FOUND if the group or module is not found and shouldThrow is true.
    */
-
   public static async getGroup(
     module: number,
     id: number,
@@ -41,6 +42,15 @@ export class GroupService {
     return this.utils.createCategoryFromRepo(repoGroup)
   }
 
+  /**
+   * Retrieves multiple groups based on a module ID with optional error handling.
+   *
+   * @param {number} module - The module ID.
+   * @param {object} [config={}] - Configuration options.
+   * @param {boolean} [config.shouldThrow=false] - Flag to throw an error if no groups or module are found.
+   * @returns {Promise<Array<Group>|null>} An array of groups or null if no groups are found, wrapped in a Promise.
+   * @throws {HttpError} Throws NOT_FOUND if no groups or the module is not found and shouldThrow is true.
+   */
   public static async getGroups(
     module: number,
     config: {
@@ -73,7 +83,13 @@ export class GroupService {
 
 // --- [ Utility functions ] -----------------------------------------------------------------------
 
-function createGroupFromRepo(repoGroup: GroupRepo.RepoGroup): Group {
+/**
+ * Converts a repository group object into a Group entity.
+ *
+ * @param {GroupRepo.Group} repoGroup - The repository group object to convert.
+ * @returns {Group} The converted Group entity.
+ */
+function createGroupFromRepo(repoGroup: GroupRepo.Group): Group {
   const group = new Group(repoGroup.module)
 
   group.id = repoGroup._id
@@ -92,7 +108,13 @@ function createGroupFromRepo(repoGroup: GroupRepo.RepoGroup): Group {
   return group
 }
 
-function createGroupPathFromRepo(repoGroupPath: GroupRepo.RepoGroupPath[]): GroupPath {
+/**
+ * Converts repository group path data into a GroupPath entity.
+ *
+ * @param {Array<GroupRepo.GroupPath>} repoGroupPath - The array of repository group paths to convert.
+ * @returns {GroupPath} The converted GroupPath entity.
+ */
+function createGroupPathFromRepo(repoGroupPath: GroupRepo.GroupPath[]): GroupPath {
   const groupPath = new GroupPath()
 
   groupPath.path = repoGroupPath.map(({ _id, name }) => ({ id: _id, name }))

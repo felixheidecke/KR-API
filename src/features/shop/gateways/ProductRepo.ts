@@ -1,8 +1,8 @@
 import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
+import { GroupRepo } from './GroupRepo.js'
 import { isBoolean, isUndefined, omitBy } from 'lodash-es'
-import { join } from 'path'
-import { readGroupIdsRecursive, readGroupPath, type RepoGroupPath } from './GroupRepo.js'
 import knex from '../../../modules/knex.js'
+
 import type { Knex } from 'knex'
 
 export namespace ProductRepo {
@@ -17,7 +17,7 @@ export namespace ProductRepo {
     ean: string
     image: string | null
     imageBig: string | null
-    path?: RepoGroupPath[]
+    path?: GroupRepo.GroupPath[]
     pdf?: string | null
     pdfName?: string | null
     pdfTitle?: string
@@ -75,7 +75,7 @@ export class ProductRepo {
     }
   ) {
     let groupIds: number[] = config?.recursive
-      ? await readGroupIdsRecursive(module, group)
+      ? await GroupRepo.readGroupIdsRecursive(module, group)
       : [group]
 
     return new RepoProductBuilder(module).whereIn('product.group', groupIds).readMany(config?.limit)
@@ -131,7 +131,7 @@ class RepoProductBuilder {
       if (!repoProduct) return null
 
       if (repoProduct.group) {
-        repoProduct.path = await readGroupPath(+repoProduct.group)
+        repoProduct.path = await GroupRepo.readGroupPath(+repoProduct.group)
       }
 
       return this._mapRawProduct(repoProduct)
@@ -149,7 +149,7 @@ class RepoProductBuilder {
     return await Promise.all(
       repoProducts.map(async (repoProduct: ProductRepo.Product) => {
         if (repoProduct.group) {
-          repoProduct.path = await readGroupPath(+repoProduct.group)
+          repoProduct.path = await GroupRepo.readGroupPath(+repoProduct.group)
         }
 
         return this._mapRawProduct(repoProduct)

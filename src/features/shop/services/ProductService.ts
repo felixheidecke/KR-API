@@ -5,8 +5,8 @@ import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { PDF } from '../entities/PDF.js'
 import { Product } from '../entities/Product.js'
 
-import * as GroupRepo from '../gateways/GroupRepo.js'
 import { ProductRepo } from '../gateways/ProductRepo.js'
+import { GroupRepo } from '../gateways/GroupRepo.js'
 
 export class ProductService {
   public static async getProduct(
