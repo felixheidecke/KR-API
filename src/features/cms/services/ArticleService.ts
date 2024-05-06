@@ -1,13 +1,11 @@
 import { Article } from '../entities/Article.js'
 import { ArticleContent } from '../entities/ArticleContent.js'
-import { ArticleRepository } from '../gateways/ArticleRepo.js'
-import { DetailLevel } from '../../shop/utils/detail-level.js'
+import { ArticleRepo } from '../gateways/ArticleRepo.js'
 import { Image } from '../../../common/entities/Image.js'
 import { PDF } from '../../shop/entities/PDF.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { HttpError } from '../../../common/decorators/Error.js'
-
-import type { RepoArticle, RepoArticleContent } from '../gateways/ArticleRepo.js'
+import type { ArticleContentRepo } from '../gateways/ArticleContentRepo.js'
 
 export class ArticleService {
   /**
@@ -25,7 +23,7 @@ export class ArticleService {
       shouldThrow?: boolean
     } = {}
   ) {
-    const repoArticle = await ArticleRepository.readArticle(module, id)
+    const repoArticle = await ArticleRepo.readArticle(module, id)
 
     if (!repoArticle && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Article not found.')
@@ -54,22 +52,18 @@ export class ArticleService {
     query?: {
       status?: 'archived'
       limit?: number
-      detailLevel?: DetailLevel
+      parts?: string[]
     },
     config: {
       skipModuleCheck?: boolean
       shouldThrow?: boolean
     } = {}
   ): Promise<Article[] | null> {
-    if (!config.skipModuleCheck && !(await ModuleRepo.moduleExists(module))) {
-      if (config.shouldThrow) {
-        throw HttpError.NOT_FOUND('Module not found.')
-      }
-
-      return null
+    if (config.shouldThrow && !(await ModuleRepo.moduleExists(module))) {
+      throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    const repoArticles = await ArticleRepository.readArticles(module, query)
+    const repoArticles = await ArticleRepo.readArticles(module, query)
 
     return repoArticles ? repoArticles.map(utils.createArticleFromRepo) : []
   }
@@ -83,10 +77,10 @@ export const utils = {
    * @returns {Article} The constructed Article object.
    */
 
-  createArticleFromRepo(repoArticle: RepoArticle) {
+  createArticleFromRepo(repoArticle: ArticleRepo.Article) {
     const article = new Article(repoArticle.module)
 
-    article.id = repoArticle.id
+    article.id = repoArticle._id
     article.title = repoArticle.title
     article.date = repoArticle.date
     article.text = repoArticle.text
@@ -121,7 +115,7 @@ export const utils = {
    * @param {RepoArticleContent} repoArticleContent - The repo article content object to convert.
    * @returns The converted article content object.
    */
-  createArticleContentfromRepo(repoArticleContent: RepoArticleContent) {
+  createArticleContentfromRepo(repoArticleContent: ArticleContentRepo.ArticleContent) {
     const articleContent = new ArticleContent()
 
     articleContent.id = repoArticleContent.id

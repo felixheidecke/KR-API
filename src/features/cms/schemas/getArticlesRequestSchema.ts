@@ -1,17 +1,16 @@
 import { z } from 'zod'
-import { mapDetailLevel } from '../../shop/utils/detail-level.js'
 
 export const getArticlesRequestSchema = z.object({
   params: z.object({
     module: z.coerce.number().gt(0)
   }),
   query: z.object({
-    status: z.enum(['archived']).optional(),
+    archived: z.coerce.boolean().optional().default(false),
     limit: z.coerce.number().gt(0).optional(),
-    detailLevel: z
-      .enum(['minimal', 'extended'])
+    parts: z
+      .string()
       .optional()
-      .transform(level => mapDetailLevel(level))
+      .transform(parts => parts?.split(','))
   })
 })
 
