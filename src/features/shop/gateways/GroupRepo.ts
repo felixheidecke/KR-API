@@ -40,6 +40,30 @@ export class GroupRepo {
       })
   }
 
+  public static async readGroupByProductId(
+    module: number,
+    id: number
+  ): Promise<GroupRepo.Group | null> {
+    return await knex('Shop3Product')
+      .select('group')
+      .where({ active: 1, module, _id: id })
+      .first()
+      .then(async function ({ group }: { group: number }) {
+        return await knex('Shop3Group')
+          .select('_id', 'module', 'name', 'description', 'group')
+          .where({ active: 1, module, _id: group })
+          .first()
+          .then(async function (group: GroupRepo.Group) {
+            if (!group) return null
+
+            group.path = group.group ? await GroupRepo.readGroupPath(group.group) : []
+            group.subgroups = (await GroupRepo.readGroups(module, group._id)) || []
+
+            return group
+          })
+      })
+  }
+
   public static async readGroupIdsRecursive(module: number, id: number): Promise<number[]> {
     return await knex
       .withRecursive('groups', qb => {

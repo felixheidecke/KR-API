@@ -9,6 +9,8 @@ import type { GetProductRequestSchema } from '../schemas/productRequestSchema.js
 import type { GetProductsRequestSchema } from '../schemas/productsRequestSchema.js'
 import type { InferFastifyRequest } from '../../../common/types/InferFastifyRequest.js'
 import type { Product } from '../entities/Product.js'
+import { GroupService } from '../services/GroupService.js'
+import type { Group } from '../entities/Group.js'
 
 export default async function (App: FastifyInstance) {
   App.register(caching, {
@@ -40,6 +42,19 @@ export default async function (App: FastifyInstance) {
       const { module, id } = request.params
       const product = await ProductService.getProduct(module, id, { shouldThrow: true })
       request.data = (product as Product).display()
+
+      reply.send(request.data)
+    }
+  })
+
+  App.get('/:module/products/:id/group', {
+    preValidation: async function (request: InferFastifyRequest<GetProductRequestSchema>) {
+      getProductRequestSchema.parse(request)
+    },
+    handler: async function (request: InferFastifyRequest<GetProductRequestSchema>, reply) {
+      const { module, id } = request.params
+      const group = await GroupService.getGroupByProductId(module, id, { shouldThrow: true })
+      request.data = (group as Group).display()
 
       reply.send(request.data)
     }

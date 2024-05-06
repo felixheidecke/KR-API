@@ -42,6 +42,33 @@ export class GroupService {
     return this.utils.createCategoryFromRepo(repoGroup)
   }
 
+  public static async getGroupByProductId(
+    module: number,
+    id: number,
+    config: {
+      shouldThrow?: boolean
+    } = {}
+  ) {
+    const [moduleExists, repoGroup] = await Promise.all([
+      ModuleRepo.moduleExists(module, 'shop3'),
+      GroupRepo.readGroupByProductId(module, id)
+    ])
+
+    if (config.shouldThrow && !moduleExists) {
+      throw HttpError.NOT_FOUND('Module not found.')
+    }
+
+    if (config.shouldThrow && !repoGroup) {
+      throw HttpError.NOT_FOUND('Group not found.')
+    }
+
+    if (!repoGroup) {
+      return null
+    }
+
+    return this.utils.createCategoryFromRepo(repoGroup)
+  }
+
   /**
    * Retrieves multiple groups based on a module ID with optional error handling.
    *
