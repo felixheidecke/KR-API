@@ -1,9 +1,7 @@
+import { isBoolean } from 'lodash-es'
 import knex from '../../../modules/knex.js'
-import { head } from 'lodash-es'
-import { ArticleContentRepo } from './ArticleContentRepo.js'
 import type { Knex } from 'knex'
-
-const DATA_BASE_PATH = 'https://www.rheingau.de/data'
+import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
 
 export namespace ArticleRepo {
   export type Article = {
@@ -11,16 +9,15 @@ export namespace ArticleRepo {
     module: number
     title: string
     date: number
-    text?: string
-    image?: string
-    imageSmall?: string
-    imageDescription?: string
-    pdf?: string
-    pdfName?: string
-    pdfTitle?: string
-    web?: string
-    author?: string
-    content?: ArticleContentRepo.ArticleContent[]
+    text: string
+    image: string
+    imageSmall: string
+    imageDescription: string
+    pdf: string
+    pdfName: string
+    pdfTitle: string
+    web: string
+    author: string
   }
 }
 
@@ -34,12 +31,7 @@ export class ArticleRepo {
    */
 
   public static async readArticle(module: number, id: number): Promise<ArticleRepo.Article | null> {
-    const articlesQuery = new RepoArticleBuilder(module)
-
-    await articlesQuery.readOne(id)
-    await articlesQuery.withContent()
-
-    return articlesQuery.articles ? (head(articlesQuery.articles) as ArticleRepo.Article) : null
+    return new RepoArticleBuilder(module).readOne(id)
   }
 
   /**
@@ -54,27 +46,18 @@ export class ArticleRepo {
 
   public static async readArticles(
     module: number,
-    query?: {
+    query: {
       archived?: boolean
       limit?: number
       parts?: string[]
-    }
-  ): Promise<ArticleRepo.Article[] | null> {
-    const articlesQuery = new RepoArticleBuilder(module)
-
-    await articlesQuery.isArchived(query?.archived || false).readMany(query?.limit || 1000)
-
-    if ((query?.parts || []).includes('content')) {
-      return await articlesQuery.withContent()
-    } else {
-      return articlesQuery.articles
-    }
+    } = {}
+  ): Promise<ArticleRepo.Article[]> {
+    return new RepoArticleBuilder(module).isArchived(query.archived).readMany(query.limit)
   }
 }
 
-export class RepoArticleBuilder {
+class RepoArticleBuilder {
   private _query: Knex.QueryBuilder
-  private _articles: ArticleRepo.Article[] = []
 
   constructor(readonly module: number) {
     this._query = knex('Article')
@@ -83,14 +66,19 @@ export class RepoArticleBuilder {
         'module',
         'title',
         'date',
-        'active',
         'text',
-        'image',
-        'imageSmall',
-        'imageDescription',
-        'pdf',
-        'pdfName',
-        'pdfTitle',
+        knex.raw(
+          `IF(ISNULL(image) OR image = '', NULL, CONCAT('${DATA_BASE_PATH}/', image)) AS image`
+        ),
+        knex.raw(
+          `IF(ISNULL(imageSmall) OR imageSmall = '', '', CONCAT('${DATA_BASE_PATH}/', imageSmall)) AS imageSmall`
+        ),
+        knex.raw('IF(ISNULL(imageDescription), "", imageDescription) as imageDescription'),
+        knex.raw(`IF(ISNULL(pdf) OR pdf = '', NULL, CONCAT('${DATA_BASE_PATH}/', pdf)) AS pdf`),
+        knex.raw('CAST(pdfName AS CHAR) as pdfName'),
+        knex.raw(
+          `IF(ISNULL(pdfTitle) OR pdfTitle = '', 'Weitere Informationen', pdfTitle) AS pdfTitle`
+        ),
         'web',
         'author'
       )
@@ -101,60 +89,29 @@ export class RepoArticleBuilder {
     return this._query
   }
 
-  get articles() {
-    if (!this._articles.length) return null
+  public isArchived(archived?: boolean) {
+    if (!isBoolean(archived)) return this
 
-    return [...this._articles.map(this._mapRawArticle)]
-  }
-
-  public isArchived(archived: boolean) {
     const now = Math.round(Date.now() / 1000)
 
     if (archived) {
       this._query.where(function () {
-        this.andWhere('archiveDate', '>', 0).andWhere('archiveDate', '<', now)
+        this.where('archiveDate', '>', 0).andWhere('archiveDate', '<', now)
       })
     } else {
       this._query.where(function () {
-        this.andWhere('archiveDate', 0).orWhere('archiveDate', '>', now)
+        this.where('archiveDate', 0).orWhere('archiveDate', '>', now)
       })
     }
 
     return this
   }
 
-  public async readMany(limit?: number) {
-    this._articles = await this._query.orderBy('date', 'desc').limit(limit ?? 1000)
-
-    return this.articles
+  public async readMany(limit = 1000): Promise<ArticleRepo.Article[]> {
+    return await this._query.orderBy('date', 'desc').limit(limit)
   }
 
-  public async readOne(id: number) {
-    this._articles = (await this._query.andWhere({ _id: id }).limit(1)) as ArticleRepo.Article[]
-
-    return this.articles ? (head(this.articles) as ArticleRepo.Article) : null
-  }
-
-  public async withContent() {
-    if (!this._articles.length) {
-      throw new Error('No products loaded')
-    }
-
-    await Promise.all(
-      this._articles.map(async article => {
-        article.content = (await ArticleContentRepo.readArticleContent(article._id)) || undefined
-
-        return article
-      })
-    )
-
-    return this.articles
-  }
-
-  private _mapRawArticle(article: ArticleRepo.Article) {
-    article.image = DATA_BASE_PATH + '/' + article.image
-    article.imageSmall = DATA_BASE_PATH + '/' + article.imageSmall
-
-    return article
+  public async readOne(id: number): Promise<ArticleRepo.Article | null> {
+    return this._query.andWhere({ _id: id }).first()
   }
 }

@@ -29,8 +29,6 @@ export default async function (App: FastifyInstance) {
       const { params, query } = request
 
       const gallery = await GalleryService.getGallery(params.module, {
-        detailLevel: query.detailLevel,
-        skipModuleCheck: true,
         shouldThrow: true
       })
 

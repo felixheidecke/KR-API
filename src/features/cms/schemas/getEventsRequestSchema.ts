@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { mapDetailLevel } from '../../shop/utils/detail-level.js'
 
 export const getEventsRequestSchema = z.object({
   params: z.object({
@@ -11,10 +10,10 @@ export const getEventsRequestSchema = z.object({
     endsBefore: z.coerce.date().optional(),
     endsAfter: z.coerce.date().optional(),
     limit: z.coerce.number().gt(0).optional(),
-    detailLevel: z
-      .enum(['minimal', 'default', 'extended'])
+    parts: z
+      .string()
+      .transform(parts => parts.split(','))
       .optional()
-      .transform(level => mapDetailLevel(level))
   })
 })
 

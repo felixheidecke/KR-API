@@ -3,34 +3,22 @@ import { first, uniqBy } from 'lodash-es'
 import { GalleryRepo, type RepoAlbum } from '../gateways/GalleryRepo.js'
 import { Image } from '../../../common/entities/Image.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
-import { DetailLevel } from '../../shop/utils/detail-level.js'
 import { HttpError } from '../../../common/decorators/Error.js'
-import path from 'path'
 
 export class GalleryService {
   public static async getGallery(
     module: number,
     config: {
-      detailLevel?: DetailLevel
       shouldThrow?: boolean
-      skipModuleCheck?: boolean
     } = {}
   ) {
-    const detailLevel = config.detailLevel || DetailLevel.DEFAULT
-    const skipModuleCheck = config.skipModuleCheck || false
-    const shouldThrow = config.shouldThrow || false
-
-    if (!skipModuleCheck && !(await ModuleRepo.moduleExists(module))) {
-      if (shouldThrow) {
-        throw HttpError.NOT_FOUND('Module not found.')
-      }
-
-      return null
+    if (config.shouldThrow && !(await ModuleRepo.moduleExists(module))) {
+      throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    const gallery = await GalleryRepo.readGallery(module, { detailLevel })
+    const gallery = await GalleryRepo.readGallery(module)
 
-    return gallery ? GalleryServiceUtils.createGalleryFromRepo(gallery) : []
+    return GalleryService.createGalleryFromRepo(gallery)
   }
 
   public static async getAlbum(
@@ -40,17 +28,15 @@ export class GalleryService {
       shouldThrow?: boolean
     } = {}
   ) {
-    const repoAlbum = await GalleryRepo.readAlbum(module, id)
-
-    if (!repoAlbum && config.shouldThrow) {
-      throw HttpError.NOT_FOUND('Album not found.')
+    if (config.shouldThrow && !(await ModuleRepo.moduleExists(module))) {
+      throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    return repoAlbum ? GalleryServiceUtils.createAlbumFromRepo(repoAlbum) : null
-  }
-}
+    const repoAlbum = await GalleryRepo.readAlbum(module, id)
 
-export class GalleryServiceUtils {
+    return GalleryService.createAlbumFromRepo(repoAlbum)
+  }
+
   /**
    * Converts a collection of repo albums to a gallery format.
    *
@@ -59,25 +45,19 @@ export class GalleryServiceUtils {
    * @returns {Album[]} An array of Album objects.
    */
 
-  static createGalleryFromRepo(repoGallery: RepoAlbum[]) {
+  private static createGalleryFromRepo(repoGallery: RepoAlbum[]) {
     return uniqBy(repoGallery, 'id').map(repoAlbum => {
       const album = new Album(repoAlbum.module)
-      album.id = repoAlbum.id
+      album.id = repoAlbum._id
       album.title = repoAlbum.title
 
       if (repoAlbum.image) {
         album.images = repoGallery
-          .filter(photo => photo.id === repoAlbum.id)
+          .filter(photo => photo._id === repoAlbum._id)
           .map(photo => {
-            const image = new Image(
-              [photo.path, photo.image, photo.filename.toLowerCase()].join('/'),
-              photo.description || ''
-            )
+            const image = new Image(photo.image, photo.description)
 
-            image.addSrc(
-              [photo.path, photo.image, '_tumb', photo.filename.toLowerCase()].join('/'),
-              'small'
-            )
+            image.addSrc(photo.thumb, 'small')
 
             return image
           })
@@ -95,20 +75,14 @@ export class GalleryServiceUtils {
    * @returns {Album} The converted Album object.
    */
 
-  static createAlbumFromRepo(repoAlbum: RepoAlbum[]) {
+  private static createAlbumFromRepo(repoAlbum: RepoAlbum[]) {
     const album = new Album(first(repoAlbum)?.module as number)
-    album.id = first(repoAlbum)?.id as number
+    album.id = first(repoAlbum)?._id as number
     album.title = first(repoAlbum)?.title as string
     album.images = repoAlbum.map(photo => {
-      const image = new Image(
-        [photo.path, photo.image, photo.filename.toLowerCase()].join('/'),
-        photo.description || ''
-      )
+      const image = new Image(photo.image, photo.description)
 
-      image.addSrc(
-        [photo.path, photo.image, '_tumb', photo.filename.toLowerCase()].join('/'),
-        'small'
-      )
+      image.addSrc(photo.thumb, 'small')
 
       return image
     })

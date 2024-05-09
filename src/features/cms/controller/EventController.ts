@@ -34,7 +34,6 @@ export default async function (App: FastifyInstance) {
     handler: async function (request, reply) {
       const { params, query } = request
       const events = await EventService.getEvents(params.module, query, {
-        skipModuleCheck: true,
         shouldThrow: true
       })
 

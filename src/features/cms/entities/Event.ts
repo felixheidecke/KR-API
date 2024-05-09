@@ -6,6 +6,7 @@ import { toUrlSlug } from '../../../common/utils/slugify.js'
 
 import type { Image } from '../../../common/entities/Image.js'
 import type { PDF } from '../../shop/entities/PDF.js'
+import type { Flags } from './Flags.js'
 
 export class Event {
   constructor(readonly module: number) {}
@@ -18,7 +19,7 @@ export class Event {
   public address?: string
   public description?: string
   public details?: string
-  public flags?: string[]
+  public flags?: Flags
   public id: number = 0
   public image?: Image
   public images?: Image[]
@@ -84,7 +85,7 @@ export class Event {
       title: this.title,
       description: this.description ? textile.parse(this.description) : undefined,
       details: this.details ? textile.parse(this.details) : undefined,
-      address: this.address?.trim(),
+      address: this.address,
       starts: this._startDate?.toString(),
       ends: this._endDate?.toString(),
       image: this.image?.display(),
@@ -93,7 +94,7 @@ export class Event {
       ticketshop: this.ticketshop,
       organizer: this.organizer,
       coordinates: this.coodinates,
-      flags: this.flags,
+      flags: this.flags?.display(),
       images: this.images?.map(image => image.display())
     })
   }

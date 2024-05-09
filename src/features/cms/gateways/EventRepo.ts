@@ -1,42 +1,39 @@
-import { DetailLevel } from '../../shop/utils/detail-level.js'
 import { getUnixTime } from 'date-fns'
 import knex from '../../../modules/knex.js'
-import path from 'path'
+import type { Knex } from 'knex'
+import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
 
-const DATA_BASE_PATH = 'https://www.rheingau.de/data'
+export namespace EventRepo {
+  export type Event = {
+    _id: number
+    module: number
+    title: string
+    startDate: number
+    endDate: number
+    description?: string
+    details?: string
+    image?: string
+    thumb?: string
+    imageDescription?: string
+    flagset: number | null
+    pdf?: string
+    pdfName?: string
+    pdfTitle?: string
+    address?: string
+    detailsURL?: string
+    url?: string
+    presenter?: string
+    lat?: number | null
+    lng?: number | null
+  }
 
-export type RepoEvent = {
-  _id: number
-  module: number
-  title: string
-  startDate: number
-  endDate: number
-  description?: string
-  details?: string
-  image?: string
-  thumb?: string
-  imageDescription?: string
-  pdf?: string
-  pdfName?: string
-  pdfTitle?: string
-  eventURL?: string | null
-  images?: RepoEventImage[]
-  flags?: RepoEventFlag[]
-  address?: string
-  detailsURL?: string
-  url?: string
-  presenter?: string
-  lat?: number | null
-  lng?: number | null
+  export type EventImage = {
+    image: string
+    description: string
+  }
+
+  export type EventFlag = string
 }
-
-type RepoEventImage = {
-  image: string
-  description: string
-}
-
-type RepoEventFlag = string
-
 export class EventRepo {
   /**
    * Reads and returns multiple events based on the provided module and query parameters.
@@ -48,77 +45,20 @@ export class EventRepo {
 
   public static async readEvents(
     module: number,
-    query?: {
+    query: {
       startsBefore?: Date | number
       startsAfter?: Date | number
       endsBefore?: Date | number
       endsAfter?: Date | number
       limit?: number
-      detailLevel?: DetailLevel
-    }
-  ): Promise<RepoEvent[] | null> {
-    const detailLevel = query?.detailLevel || DetailLevel.DEFAULT
-    const eventsQuery = knex('Event')
-
-    if (detailLevel === DetailLevel.MINIMAL) {
-      eventsQuery.select('_id', 'module', 'title', 'startDate', 'endDate')
-    } else {
-      eventsQuery.select()
-    }
-
-    eventsQuery.where({ module })
-
-    if (query?.startsBefore) {
-      eventsQuery.andWhere('startDate', '<', getUnixTime(query.startsBefore))
-    }
-
-    if (query?.startsAfter) {
-      eventsQuery.andWhere('startDate', '>', getUnixTime(query.startsAfter))
-    }
-
-    if (query?.endsBefore) {
-      eventsQuery.andWhere('endDate', '<', getUnixTime(query.endsBefore))
-    }
-
-    if (query?.endsAfter) {
-      eventsQuery.andWhere('endDate', '>', getUnixTime(query.endsAfter))
-    }
-
-    if (query?.limit) {
-      eventsQuery.limit(query.limit)
-    }
-
-    let events = await eventsQuery.orderBy('startDate')
-
-    if (!events) return null
-
-    if (detailLevel >= DetailLevel.DEFAULT) {
-      events = events.map(event => ({
-        ...event,
-        pdf: event.pdf ? DATA_BASE_PATH + '/' + event.pdf : undefined,
-        image: event.image ? DATA_BASE_PATH + '/' + event.image : undefined,
-        thumb: event.thumb ? DATA_BASE_PATH + '/' + event.thumb : undefined
-      }))
-    }
-
-    if (detailLevel === DetailLevel.EXTENDED) {
-      events = await Promise.all(
-        events.map(async event => {
-          const [images, flags] = await Promise.all([
-            EventRepo.readImages(event._id),
-            EventRepo.readFlags(event._id)
-          ])
-
-          return {
-            ...event,
-            images: images || undefined,
-            flags: flags || undefined
-          }
-        })
-      )
-    }
-
-    return events
+    } = {}
+  ): Promise<EventRepo.Event[]> {
+    return await new EventQueryBuilder(module)
+      .startsBefore(query.startsBefore)
+      .startsAfter(query.startsAfter)
+      .endsBefore(query.endsBefore)
+      .endsAfter(query.endsAfter)
+      .readMany(query.limit)
   }
 
   /**
@@ -129,23 +69,8 @@ export class EventRepo {
    * @returns {Promise<Event | null>} A promise that resolves to an Event object or null if not found.
    */
 
-  public static async readEvent(module: number, id: number): Promise<RepoEvent | null> {
-    const eventQuery = knex('Event').where({ module, _id: id }).first()
-
-    const [event, images, flags] = await Promise.all([
-      eventQuery,
-      EventRepo.readImages(id),
-      EventRepo.readFlags(id)
-    ])
-
-    return {
-      ...event,
-      pdf: event.pdf ? DATA_BASE_PATH + '/' + event.pdf : undefined,
-      image: event.image ? DATA_BASE_PATH + '/' + event.image : undefined,
-      thumb: event.thumb ? DATA_BASE_PATH + '/' + event.thumb : undefined,
-      images: images || undefined,
-      flags: flags || undefined
-    }
+  public static async readEvent(module: number, id: number): Promise<EventRepo.Event | null> {
+    return await new EventQueryBuilder(module).readOne(id)
   }
 
   /**
@@ -155,20 +80,11 @@ export class EventRepo {
    * @returns {Promise<{ image: string; description: string }[]>} A promise that resolves to an array of images and their descriptions.
    */
 
-  private static async readImages(id: number): Promise<RepoEventImage[] | null> {
-    const repoImagesQuery = knex('EventImage')
-      .select('image', 'description')
+  public static async readEventImages(id: number): Promise<EventRepo.EventImage[]> {
+    return knex('EventImage')
+      .select(knex.raw(`CONCAT('${DATA_BASE_PATH}/', image)as image`), 'description')
       .where({ event: id })
       .orderBy('position')
-
-    const repoImages = (await repoImagesQuery) as RepoEventImage[]
-
-    return repoImages
-      ? repoImages.map(repoImage => ({
-          image: DATA_BASE_PATH + '/' + repoImage.image,
-          description: repoImage.description
-        }))
-      : null
   }
 
   /**
@@ -178,9 +94,90 @@ export class EventRepo {
    * @returns {Promise<string[]>} A promise that resolves to an array of flag titles.
    */
 
-  private static async readFlags(id: number): Promise<RepoEventFlag[] | null> {
-    const flags = await knex('Flag').select('title').where({ flagset: id })
+  public static async readEventFlags(module: number, id: number): Promise<EventRepo.EventFlag[]> {
+    return knex
+      .select('Flag.title')
+      .from('Event')
+      .rightJoin('Flag', 'Event.flagset', 'Flag.flagset')
+      .where({ 'Event._id': id, 'Event.module': module })
+      .then(rows => rows.map(({ title }) => title))
+  }
+}
 
-    return flags.map(({ title }) => title)
+class EventQueryBuilder {
+  constructor(private readonly module: number) {
+    this._query = knex('Event')
+      .select(
+        '_id',
+        'title',
+        'startDate',
+        'endDate',
+        'description',
+        'details',
+        knex.raw(
+          `IF(image IS NULL OR image = '', NULL, CONCAT('${DATA_BASE_PATH}/', image)) AS image`
+        ),
+        knex.raw(
+          `IF(thumb IS NULL OR thumb = '', NULL, CONCAT('${DATA_BASE_PATH}/', thumb)) AS thumb`
+        ),
+        knex.raw('CAST(imageDescription AS CHAR) as imageDescription'),
+        knex.raw(`IF(pdf IS NULL OR pdf = '', NULL, CONCAT('${DATA_BASE_PATH}/', pdf)) AS pdf`),
+        knex.raw('CAST(pdfName AS CHAR) as pdfName'),
+        knex.raw('CAST(pdfTitle AS CHAR) as pdfTitle'),
+        knex.raw('CAST(commune AS CHAR) as commune'),
+        'module',
+        'address',
+        'detailsURL',
+        'url',
+        'presenter',
+        'lat',
+        'lng'
+      )
+      .where({ 'Event.module': module })
+  }
+
+  private _query: Knex.QueryBuilder
+
+  public startsBefore(date?: Date | number) {
+    if (date) {
+      this._query.andWhere('Event.startDate', '<', getUnixTime(date))
+    }
+
+    return this
+  }
+
+  public startsAfter(date?: Date | number) {
+    if (date) {
+      this._query.andWhere('Event.startDate', '>', getUnixTime(date))
+    }
+
+    return this
+  }
+
+  public endsBefore(date?: Date | number) {
+    if (date) {
+      this._query.andWhere('Event.endDate', '<', getUnixTime(date))
+    }
+    return this
+  }
+
+  public endsAfter(date?: Date | number) {
+    if (date) {
+      this._query.andWhere('Event.endDate', '>', getUnixTime(date))
+    }
+
+    return this
+  }
+
+  public async readOne(id: number): Promise<EventRepo.Event | null> {
+    const event = await this._query
+      .andWhere({ 'Event.module': this.module, 'Event._id': id })
+      .first()
+
+    return event || null
+  }
+
+  public async readMany(limit = 1000): Promise<EventRepo.Event[]> {
+    return await this._query.orderBy('Event.startDate').limit(limit)
   }
 }

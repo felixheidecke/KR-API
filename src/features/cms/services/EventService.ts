@@ -1,11 +1,12 @@
 import { fromUnixTime } from 'date-fns'
-import { DetailLevel } from '../../shop/utils/detail-level.js'
-import { EventRepo, type RepoEvent } from '../gateways/EventRepo.js'
+import { EventRepo } from '../gateways/EventRepo.js'
 import { Event } from '../entities/Event.js'
 import { Image } from '../../../common/entities/Image.js'
 import { PDF } from '../../shop/entities/PDF.js'
 import { ModuleService } from '../../../common/services/ModuleService.js'
 import { HttpError } from '../../../common/decorators/Error.js'
+import { omit } from 'lodash-es'
+import { Flags } from '../entities/Flags.js'
 
 export class EventService {
   public static async getEvent(module: number, id: number, config: { shouldThrow?: boolean } = {}) {
@@ -13,84 +14,102 @@ export class EventService {
 
     if (!repoEvent && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Event not found.')
+    } else if (!repoEvent) {
+      return null
     }
 
-    return repoEvent ? createEventFromRepo(repoEvent) : null
+    const event = this.createEventFromRepo(repoEvent)
+
+    await Promise.all([EventService.addImages(event), EventService.addFlags(event)])
+
+    return event
   }
 
   public static async getEvents(
     module: number,
-    query?: {
+    query: {
       startsBefore?: Date | number
       startsAfter?: Date | number
       endsBefore?: Date | number
       endsAfter?: Date | number
       limit?: number
-      detailLevel?: DetailLevel
-    },
+      parts?: string[]
+    } = {},
     config: {
-      skipModuleCheck?: boolean
       shouldThrow?: boolean
     } = {}
   ) {
-    if (!config.skipModuleCheck && !(await ModuleService.getModule(module))) {
-      if (config.shouldThrow) {
-        throw HttpError.NOT_FOUND('Module not found.')
-      }
-
-      return null
+    if (config.shouldThrow && !(await ModuleService.getModule(module))) {
+      throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    const events = await EventRepo.readEvents(module, query)
+    const repoEvents = await EventRepo.readEvents(module, omit(query, 'parts'))
+    const events = repoEvents.map(EventService.createEventFromRepo)
 
-    return events ? events.map(createEventFromRepo) : []
-  }
-}
+    if (query.parts?.includes('images')) {
+      await Promise.all(events.map(EventService.addImages))
+    }
 
-// --- [ Utility functions ] -----------------------------------------------------------------------
+    if (query.parts?.includes('flags')) {
+      await Promise.all(events.map(EventService.addFlags))
+    }
 
-/**
- * Creates an Event object from repo data.
- *
- * @param {number} module - The module identifier.
- * @param {RepoEvent} event - The raw event data from the repo.
- * @param {ReturnType<typeof EventRepo.getImages>} images - Array of images associated with the event.
- * @param {ReturnType<typeof EventRepo.getFlags>} flags - Array of flags associated with the event.
- * @returns {Event} The constructed Event object.
- */
-
-function createEventFromRepo(repoEvent: RepoEvent): Event {
-  const event = new Event(repoEvent.module)
-  event.id = repoEvent._id
-  event.title = repoEvent.title
-  event.startDate = fromUnixTime(repoEvent.startDate)
-  event.endDate = fromUnixTime(repoEvent.endDate)
-  event.description = repoEvent.description
-  event.details = repoEvent.details
-  event.website = repoEvent.url || undefined
-  event.address = repoEvent.address
-  event.coordinates = repoEvent.lat && repoEvent.lng ? [repoEvent.lat, repoEvent.lng] : [0, 0]
-  event.flags = repoEvent.flags
-
-  if (repoEvent.image) {
-    event.image = new Image(repoEvent.image, repoEvent.imageDescription || repoEvent.title)
-    event.image.addSrc(repoEvent.thumb as string, 'small')
+    return events
   }
 
-  if (repoEvent.pdf) {
-    event.pdf = new PDF(repoEvent.pdf)
-    event.pdf.title = repoEvent.pdfTitle as string
+  private static async addFlags(event: Event): Promise<void> {
+    const repoFlags = await EventRepo.readEventFlags(event.module, event.id)
+
+    event.flags = EventService.createFlagsFromRepo(repoFlags)
   }
 
-  if (repoEvent.images?.length) {
-    repoEvent.images.forEach(({ image, description }) => {
-      event.addImage(new Image(image, description))
-    })
+  private static async addImages(event: Event): Promise<void> {
+    const repoImages = await EventRepo.readEventImages(event.id)
+
+    event.images = repoImages.map(EventService.createImageFromRepo)
   }
 
-  return event
-}
+  /**
+   * Creates an Event object from repo data.
+   *
+   * @param {number} module - The module identifier.
+   * @param {RepoEvent} event - The raw event data from the repo.
+   * @param {ReturnType<typeof EventRepo.getImages>} images - Array of images associated with the event.
+   * @param {ReturnType<typeof EventRepo.getFlags>} flags - Array of flags associated with the event.
+   * @returns {Event} The constructed Event object.
+   */
 
-export const utils = {
-  createEventFromRepo
+  private static createEventFromRepo(repoEvent: EventRepo.Event): Event {
+    const event = new Event(repoEvent.module)
+    event.id = repoEvent._id
+    event.title = repoEvent.title
+    event.startDate = fromUnixTime(repoEvent.startDate)
+    event.endDate = fromUnixTime(repoEvent.endDate)
+    event.description = repoEvent.description
+    event.details = repoEvent.details
+    event.website = repoEvent.url || undefined
+    event.address = repoEvent.address
+    event.organizer = repoEvent.presenter
+    event.coordinates = repoEvent.lat && repoEvent.lng ? [repoEvent.lat, repoEvent.lng] : [0, 0]
+
+    if (repoEvent.image) {
+      event.image = new Image(repoEvent.image, repoEvent.imageDescription || repoEvent.title)
+      event.image.addSrc(repoEvent.thumb as string, 'small')
+    }
+
+    if (repoEvent.pdf) {
+      event.pdf = new PDF(repoEvent.pdf)
+      event.pdf.title = repoEvent.pdfTitle as string
+    }
+
+    return event
+  }
+
+  private static createImageFromRepo(repoImage: EventRepo.EventImage): Image {
+    return new Image(repoImage.image, repoImage.description)
+  }
+
+  private static createFlagsFromRepo(repoFlags: EventRepo.EventFlag[]): Flags {
+    return new Flags(repoFlags)
+  }
 }

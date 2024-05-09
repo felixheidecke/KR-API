@@ -1,11 +1,11 @@
 import { Article } from '../entities/Article.js'
 import { ArticleContent } from '../entities/ArticleContent.js'
+import { ArticleContentRepo } from '../gateways/ArticleContentRepo.js'
 import { ArticleRepo } from '../gateways/ArticleRepo.js'
-import { Image } from '../../../common/entities/Image.js'
-import { PDF } from '../../shop/entities/PDF.js'
-import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { HttpError } from '../../../common/decorators/Error.js'
-import type { ArticleContentRepo } from '../gateways/ArticleContentRepo.js'
+import { Image } from '../../../common/entities/Image.js'
+import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
+import { PDF } from '../../shop/entities/PDF.js'
 
 export class ArticleService {
   /**
@@ -23,17 +23,19 @@ export class ArticleService {
       shouldThrow?: boolean
     } = {}
   ) {
-    const repoArticle = await ArticleRepo.readArticle(module, id)
+    let repoArticle = await ArticleRepo.readArticle(module, id)
 
     if (!repoArticle && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Article not found.')
-    }
-
-    if (!repoArticle) {
+    } else if (!repoArticle) {
       return null
     }
 
-    return utils.createArticleFromRepo(repoArticle)
+    const article = this.createArticleFromRepo(repoArticle)
+
+    await this.addArticleContent(article)
+
+    return article
   }
 
   /**
@@ -49,11 +51,11 @@ export class ArticleService {
 
   public static async getArticles(
     module: number,
-    query?: {
-      status?: 'archived'
+    query: {
+      archived?: boolean
       limit?: number
       parts?: string[]
-    },
+    } = {},
     config: {
       skipModuleCheck?: boolean
       shouldThrow?: boolean
@@ -63,13 +65,31 @@ export class ArticleService {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
+    let articles: Article[]
     const repoArticles = await ArticleRepo.readArticles(module, query)
 
-    return repoArticles ? repoArticles.map(utils.createArticleFromRepo) : []
-  }
-}
+    if (query.parts?.includes('content')) {
+      articles = await Promise.all(
+        repoArticles.map(async repoArticle => {
+          const article = this.createArticleFromRepo(repoArticle)
 
-export const utils = {
+          await this.addArticleContent(article)
+
+          return article
+        })
+      )
+    } else {
+      articles = repoArticles.map(this.createArticleFromRepo)
+    }
+
+    return articles
+  }
+
+  private static async addArticleContent(article: Article): Promise<void> {
+    const repoContent = await ArticleContentRepo.readArticleContent(article.id)
+    article.content = repoContent.map(this.createArticleContentfromRepo)
+  }
+
   /**
    * Creates an Article object from a repo article.
    * @param {number} module - The module identifier.
@@ -77,7 +97,7 @@ export const utils = {
    * @returns {Article} The constructed Article object.
    */
 
-  createArticleFromRepo(repoArticle: ArticleRepo.Article) {
+  private static createArticleFromRepo(repoArticle: ArticleRepo.Article) {
     const article = new Article(repoArticle.module)
 
     article.id = repoArticle._id
@@ -89,7 +109,7 @@ export const utils = {
 
     if (repoArticle.image) {
       article.image = new Image()
-      article.image.alt = repoArticle.imageDescription || ''
+      article.image.alt = repoArticle.imageDescription
 
       article.image.addSrc(repoArticle.image)
 
@@ -100,25 +120,23 @@ export const utils = {
 
     if (repoArticle.pdf) {
       article.pdf = new PDF(repoArticle.pdf)
-      article.pdf.title = repoArticle.pdfTitle || 'Weitere Informationen'
-    }
-
-    if (repoArticle.content) {
-      article.content = repoArticle.content.map(utils.createArticleContentfromRepo)
+      article.pdf.title = repoArticle.pdfTitle
     }
 
     return article
-  },
+  }
 
   /**
    * Converts a repo article content object to an article content object.
    * @param {RepoArticleContent} repoArticleContent - The repo article content object to convert.
    * @returns The converted article content object.
    */
-  createArticleContentfromRepo(repoArticleContent: ArticleContentRepo.ArticleContent) {
+  private static createArticleContentfromRepo(
+    repoArticleContent: ArticleContentRepo.ArticleContent
+  ) {
     const articleContent = new ArticleContent()
 
-    articleContent.id = repoArticleContent.id
+    articleContent.id = repoArticleContent._id
     articleContent.title = repoArticleContent.title || ''
     articleContent.text = repoArticleContent.text
 
