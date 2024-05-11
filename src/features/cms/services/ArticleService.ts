@@ -57,7 +57,6 @@ export class ArticleService {
       parts?: string[]
     } = {},
     config: {
-      skipModuleCheck?: boolean
       shouldThrow?: boolean
     } = {}
   ): Promise<Article[] | null> {
@@ -65,21 +64,11 @@ export class ArticleService {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    let articles: Article[]
     const repoArticles = await ArticleRepo.readArticles(module, query)
+    const articles = repoArticles.map(this.createArticleFromRepo)
 
     if (query.parts?.includes('content')) {
-      articles = await Promise.all(
-        repoArticles.map(async repoArticle => {
-          const article = this.createArticleFromRepo(repoArticle)
-
-          await this.addArticleContent(article)
-
-          return article
-        })
-      )
-    } else {
-      articles = repoArticles.map(this.createArticleFromRepo)
+      await Promise.all(articles.map(this.addArticleContent))
     }
 
     return articles
@@ -87,6 +76,7 @@ export class ArticleService {
 
   private static async addArticleContent(article: Article): Promise<void> {
     const repoContent = await ArticleContentRepo.readArticleContent(article.id)
+
     article.content = repoContent.map(this.createArticleContentfromRepo)
   }
 
@@ -109,7 +99,7 @@ export class ArticleService {
 
     if (repoArticle.image) {
       article.image = new Image()
-      article.image.alt = repoArticle.imageDescription
+      article.image.description = repoArticle.imageDescription
 
       article.image.addSrc(repoArticle.image)
 
@@ -144,7 +134,7 @@ export class ArticleService {
       articleContent.image = new Image()
 
       articleContent.image.src = repoArticleContent.image
-      articleContent.image.alt = repoArticleContent.imageDescription || ''
+      articleContent.image.description = repoArticleContent.imageDescription || ''
       articleContent.image.align = repoArticleContent.imageAlign
     }
 

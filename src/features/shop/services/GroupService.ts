@@ -19,19 +19,20 @@ export class GroupService {
     module: number,
     id: number,
     config: {
+      skipModuleCheck?: boolean
       shouldThrow?: boolean
     } = {}
   ) {
     const [moduleExists, repoGroup] = await Promise.all([
-      ModuleRepo.moduleExists(module, 'shop3'),
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.readGroup(module, id)
     ])
 
-    if (config.shouldThrow && !moduleExists) {
+    if (!moduleExists && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (config.shouldThrow && !repoGroup) {
+    if (!repoGroup && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Group not found.')
     }
 
@@ -46,27 +47,24 @@ export class GroupService {
     module: number,
     id: number,
     config: {
+      skipModuleCheck?: boolean
       shouldThrow?: boolean
     } = {}
   ) {
     const [moduleExists, repoGroup] = await Promise.all([
-      ModuleRepo.moduleExists(module, 'shop3'),
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.readGroupByProductId(module, id)
     ])
 
-    if (config.shouldThrow && !moduleExists) {
+    if (!moduleExists && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (config.shouldThrow && !repoGroup) {
+    if (!repoGroup && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Group not found.')
     }
 
-    if (!repoGroup) {
-      return null
-    }
-
-    return this.utils.createCategoryFromRepo(repoGroup)
+    return repoGroup ? this.utils.createCategoryFromRepo(repoGroup) : null
   }
 
   /**
@@ -81,19 +79,20 @@ export class GroupService {
   public static async getGroups(
     module: number,
     config: {
+      skipModuleCheck?: boolean
       shouldThrow?: boolean
     } = {}
   ) {
     const [moduleExists, repoGroups] = await Promise.all([
-      ModuleRepo.moduleExists(module, 'shop3'),
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.readGroups(module, null)
     ])
 
-    if (config.shouldThrow && !moduleExists) {
+    if (!moduleExists && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (config.shouldThrow && !repoGroups) {
+    if (!repoGroups && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Categories not found.')
     }
 

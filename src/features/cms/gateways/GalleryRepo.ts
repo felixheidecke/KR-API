@@ -1,3 +1,4 @@
+import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
 import knex from '../../../modules/knex.js'
 
 export type RepoAlbum = {
@@ -8,8 +9,6 @@ export type RepoAlbum = {
   thumb: string
   description: string
 }
-
-const PATH = 'https://cdn.klickrhein.de/xioni/gallery.php\\?'
 
 export class GalleryRepo {
   /**
@@ -25,11 +24,9 @@ export class GalleryRepo {
         'Album._id AS _id',
         'Album.module AS module',
         'Album.title AS title',
-        knex.raw(`CONCAT('${PATH}', Photo.image, '/image') AS image`),
-        knex.raw(`CONCAT('${PATH}', Photo.image, '/_thumb/image') AS thumb`),
-        knex.raw(
-          `IF(Photo.description IS NULL OR Photo.description = '', LOWER(Photo.filename), Photo.description) AS description`
-        )
+        knex.raw(`CONCAT('${DATA_BASE_PATH}/', Photo.image, '#', LOWER(Photo.filename)) AS image`),
+        knex.raw(`CONCAT('${DATA_BASE_PATH}/', Photo.image, '_thumb') AS thumb`),
+        knex.raw(`IF(ISNULL(Photo.description), '', Photo.description) AS description`)
       ])
       .from('PhotoAlbum as Album')
       .leftJoin('Photo', 'Album._id', 'Photo.album')
@@ -53,11 +50,9 @@ export class GalleryRepo {
         'Album._id AS _id',
         'Album.module AS module',
         'Album.title as title',
-        knex.raw(`CONCAT('${PATH}', Photo.image, '/image') AS image`),
-        knex.raw(`CONCAT('${PATH}', Photo.image, '/_thumb/image') AS thumb`),
-        knex.raw(
-          `IF(Photo.description IS NULL OR Photo.description = '', LOWER(Photo.filename), Photo.description) AS description`
-        )
+        knex.raw(`CONCAT('${DATA_BASE_PATH}/', Photo.image, '#', LOWER(Photo.filename)) AS image`),
+        knex.raw(`CONCAT('${DATA_BASE_PATH}/', Photo.image, '_thumb') AS thumb`),
+        knex.raw(`IF(ISNULL(Photo.description), '', Photo.description) AS description`)
       ])
       .from('PhotoAlbum AS Album')
       .leftJoin('Photo', 'Album._id', 'Photo.album')

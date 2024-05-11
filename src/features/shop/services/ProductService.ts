@@ -1,31 +1,31 @@
 import { GroupPath } from '../entities/GroupPath.js'
+import { GroupRepo } from '../gateways/GroupRepo.js'
 import { HttpError } from '../../../common/decorators/Error.js'
 import { Image } from '../../../common/entities/Image.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { PDF } from '../entities/PDF.js'
 import { Product } from '../entities/Product.js'
-
 import { ProductRepo } from '../gateways/ProductRepo.js'
-import { GroupRepo } from '../gateways/GroupRepo.js'
 
 export class ProductService {
   public static async getProduct(
     module: number,
     id: number,
     config: {
+      skipModuleCheck?: boolean
       shouldThrow?: boolean
     } = {}
   ): Promise<Product | null> {
     const [moduleExists, repoProduct] = await Promise.all([
-      ModuleRepo.moduleExists(module),
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       ProductRepo.readProduct(module, id)
     ])
 
-    if (config.shouldThrow && !moduleExists) {
+    if (!moduleExists && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
-    if (config.shouldThrow && !repoProduct) {
+    if (!repoProduct && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Product not found')
     }
 
@@ -39,11 +39,12 @@ export class ProductService {
       frontpage?: boolean
     },
     config: {
+      skipModuleCheck?: boolean
       shouldThrow?: boolean
     } = {}
   ): Promise<Product[]> {
     const [moduleExists, repoProducts] = await Promise.all([
-      ModuleRepo.moduleExists(module),
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       ProductRepo.readProducts(module, query)
     ])
 
@@ -62,20 +63,21 @@ export class ProductService {
       frontpage?: boolean
     },
     config: {
+      skipModuleCheck?: boolean
       shouldThrow?: boolean
     } = {}
   ): Promise<Product[]> {
     const [moduleExists, categoryExists, repoCategoryProducts] = await Promise.all([
-      ModuleRepo.moduleExists(module),
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.groupExists(module, group),
       ProductRepo.readProductsByGroup(module, group, query)
     ])
 
-    if (config.shouldThrow && !moduleExists) {
+    if (!moduleExists && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
-    if (config.shouldThrow && !categoryExists) {
+    if (!categoryExists && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Group not found')
     }
 

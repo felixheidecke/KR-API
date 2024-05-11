@@ -1,5 +1,7 @@
 import { HttpError } from '../../../common/decorators/Error.js'
+import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { Cart } from '../entities/Cart.js'
+import type { Product } from '../entities/Product.js'
 import { ProductService } from './ProductService.js'
 import { ShippingCostService } from './ShippingCostService.js'
 import { SupplementalCostService } from './SupplementalCostService.js'
@@ -30,8 +32,6 @@ export class CartService {
     cart: Cart,
     products: { productId: number; quantity: number }[]
   ) {
-    await CartService.initialise(cart)
-
     // Remove products with quantity <= 0
     products
       .filter(({ quantity }) => quantity <= 0)
@@ -44,13 +44,15 @@ export class CartService {
       products
         .filter(({ quantity }) => quantity > 0)
         .map(async ({ productId, quantity }) => {
-          const product = await ProductService.getProduct(cart.module, productId)
+          const product = await ProductService.getProduct(cart.module, productId, {
+            shouldThrow: true,
+            skipModuleCheck: true
+          })
 
-          if (!product) {
-            throw HttpError.NOT_FOUND('One or more products not found.')
+          return {
+            product: product as Product,
+            quantity
           }
-
-          return { product, quantity }
         })
     )
 
@@ -67,11 +69,21 @@ export class CartService {
    * @param {Cart} cart - The cart to initialise.
    */
 
-  private static async initialise(cart: Cart) {
-    const [supplementalCost, shippingCost] = await Promise.all([
-      SupplementalCostService.getSupplementalCost(cart.module),
-      ShippingCostService.getShippingCost(cart.module)
+  public static async initialise(
+    cart: Cart,
+    config: { skipModuleCheck?: boolean; shouldThrow?: boolean } = {}
+  ) {
+    const [moduleExists, supplementalCost, shippingCost] = await Promise.all([
+      config.skipModuleCheck
+        ? ModuleRepo.moduleExists(cart.module, 'shop3')
+        : Promise.resolve(true),
+      SupplementalCostService.getSupplementalCost(cart.module, { skipModuleCheck: true }),
+      ShippingCostService.getShippingCost(cart.module, { skipModuleCheck: true })
     ])
+
+    if (!moduleExists && config.shouldThrow) {
+      throw HttpError.NOT_FOUND('Module not found.')
+    }
 
     if (supplementalCost) {
       cart.supplementalCost = supplementalCost
@@ -80,21 +92,7 @@ export class CartService {
     if (shippingCost) {
       cart.shippingCost = shippingCost
     }
-  }
 
-  /**
-   * Creates and initialises a new cart for a given module.
-   *
-   * @param {number} module - The module number for which to create the cart.
-   * @returns {Promise<Cart>} A promise that resolves to the newly created and initialised cart.
-   */
-
-  public static async load(module: number) {
-    const cart = new Cart(module)
-
-    await CartService.initialise(cart)
     cart.calculate()
-
-    return cart
   }
 }

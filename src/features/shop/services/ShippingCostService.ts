@@ -1,13 +1,28 @@
 import { head } from 'lodash-es'
 import { ShippingCost } from '../entities/ShippingCost.js'
 import { ShippingRatesRepo, type RepoShippingRate } from '../gateways/ShippingRatesRepo.js'
+import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
+import { HttpError } from '../../../common/decorators/Error.js'
 
 export class ShippingCostService {
-  static async getShippingCost(module: number, config: { shouldThrow?: boolean } = {}) {
-    const repoShippingCost = await ShippingRatesRepo.readShippingRates(module)
+  static async getShippingCost(
+    module: number,
+    config: {
+      skipModuleCheck?: boolean
+      shouldThrow?: boolean
+    } = {}
+  ) {
+    const [moduleExists, repoShippingCost] = await Promise.all([
+      config.shouldThrow ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      ShippingRatesRepo.readShippingRates(module)
+    ])
 
-    if (!repoShippingCost && config.shouldThrow) {
-      throw new Error('Shipping cost not found.')
+    if (!moduleExists && config.shouldThrow) {
+      throw HttpError.NOT_FOUND('Module not found.')
+    }
+
+    if (config.shouldThrow && !moduleExists) {
+      throw HttpError.NOT_FOUND('Module not found')
     }
 
     return repoShippingCost ? createShippingCostFromRepo(repoShippingCost) : null

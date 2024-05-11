@@ -7,16 +7,16 @@ type SrcSet = {
 type Align = 'left' | 'right'
 
 export class Image {
-  constructor(src?: string, alt?: string, align?: Align) {
+  constructor(src?: string, description?: string, align?: Align) {
     this.src = src || ''
-    this.alt = alt || ''
+    this.description = description || ''
     this.align = align || undefined
   }
 
   public srcset: SrcSet = {}
   public src = ''
   public align?: Align
-  public alt = ''
+  public description = ''
 
   public addSrc(src: string, type?: keyof SrcSet) {
     if (!type) {
@@ -31,7 +31,7 @@ export class Image {
   public display() {
     return Object.freeze({
       src: this.src,
-      alt: this.alt,
+      description: this.description,
       align: this.align,
       srcset: {
         small: this.srcset.small ? this.srcset.small : undefined,

@@ -10,44 +10,33 @@ export class SupplementalCostService {
   static async getSupplementalCost(
     module: number,
     config: {
-      shouldThrow?: boolean
       skipModuleCheck?: boolean
+      shouldThrow?: boolean
     } = {}
   ) {
-    if (!config.skipModuleCheck && !(await ModuleRepo.moduleExists(module))) {
-      if (config.shouldThrow) {
-        throw HttpError.NOT_FOUND('Module not found.')
-      }
+    const [moduleExists, supplementalCost] = await Promise.all([
+      config.shouldThrow ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      SupplementalCostRepo.readSupplementalCost(module)
+    ])
 
-      return null
+    if (!moduleExists && config.shouldThrow) {
+      throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    const repoSupplementalCost = await SupplementalCostRepo.readSupplementalCost(module)
-
-    if (!repoSupplementalCost && config.shouldThrow) {
+    if (!supplementalCost && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Supplemental cost not found.')
     }
 
-    return repoSupplementalCost
-      ? this.utils.createSupplementalCostFromRepo(repoSupplementalCost)
-      : null
+    return supplementalCost ? this.createSupplementalCostFromRepo(supplementalCost) : null
   }
 
-  static get utils() {
-    return {
-      createSupplementalCostFromRepo
-    }
+  private static createSupplementalCostFromRepo(repoSupplementalCost: RepoSupplementalCost) {
+    const cost = new SupplementalCost(repoSupplementalCost.module)
+
+    cost.price = repoSupplementalCost.price
+    cost.title = repoSupplementalCost.title || ''
+    cost.description = repoSupplementalCost.description || ''
+
+    return cost
   }
-}
-
-// Helper functions
-
-function createSupplementalCostFromRepo(repoSupplementalCost: RepoSupplementalCost) {
-  const cost = new SupplementalCost(repoSupplementalCost.module)
-
-  cost.price = repoSupplementalCost.price
-  cost.title = repoSupplementalCost.title || ''
-  cost.description = repoSupplementalCost.description || ''
-
-  return cost
 }

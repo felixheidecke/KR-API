@@ -7,6 +7,7 @@ import { ModuleService } from '../../../common/services/ModuleService.js'
 import { HttpError } from '../../../common/decorators/Error.js'
 import { omit } from 'lodash-es'
 import { Flags } from '../entities/Flags.js'
+import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 
 export class EventService {
   public static async getEvent(module: number, id: number, config: { shouldThrow?: boolean } = {}) {
@@ -20,7 +21,11 @@ export class EventService {
 
     const event = this.createEventFromRepo(repoEvent)
 
-    await Promise.all([EventService.addImages(event), EventService.addFlags(event)])
+    // prettier-ignore
+    await Promise.all([
+      EventService.addImages(event),
+      EventService.addFlags(event)
+    ])
 
     return event
   }
@@ -39,7 +44,7 @@ export class EventService {
       shouldThrow?: boolean
     } = {}
   ) {
-    if (config.shouldThrow && !(await ModuleService.getModule(module))) {
+    if (config.shouldThrow && !(await ModuleRepo.moduleExists(module))) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 

@@ -22,6 +22,7 @@ export class Cart {
 
   // --- [ Member ] --------------------------------------------------------------------------------
 
+  private _isCalculated = false
   protected _products: CartProducts = new Map()
 
   public supplementalCost: SupplementalCost
@@ -33,6 +34,10 @@ export class Cart {
   public weight = 0
 
   // --- [ Getter ] --------------------------------------------------------------------------------
+
+  get isCalculated() {
+    return this._isCalculated
+  }
 
   get products() {
     return Array.from(this._products.values())
@@ -56,16 +61,22 @@ export class Cart {
       total: (product?.price || 0) * quantity
     })
 
+    this._isCalculated = false
+
     return this
   }
 
   public removeProduct(productId: number) {
     this._products.delete(productId)
 
+    this._isCalculated = false
+
     return this
   }
 
   public calculate() {
+    if (this._isCalculated) return
+
     let gross = 0
     let shipping = 0
     let total = 0
@@ -90,6 +101,8 @@ export class Cart {
 
     this.shipping = shipping
     this.shippingUnit = this.shippingCost.unit
+
+    this._isCalculated = true
   }
 
   public display() {

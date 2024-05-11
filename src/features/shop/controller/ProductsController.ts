@@ -28,7 +28,7 @@ export default async function (App: FastifyInstance) {
       const { params, query } = request
 
       const products = await ProductService.getProducts(params.module, query, { shouldThrow: true })
-      request.data = (products as Product[]).map(product => product.display())
+      request.data = products.map(product => product.display())
 
       reply.send(request.data)
     }
