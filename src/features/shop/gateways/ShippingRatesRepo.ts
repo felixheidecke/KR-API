@@ -1,15 +1,17 @@
 import knex from '../../../modules/knex.js'
 
-export type RepoShippingRate = {
-  module: number
-  price: number
-  threshold: number
-  freeShippingThreshold: number
-  unit: string
+export namespace ShippingRatesRepo {
+  export type ShippingRate = {
+    module: number
+    price: number
+    threshold: number
+    freeShippingThreshold: number
+    unit: string
+  }
 }
 
 export class ShippingRatesRepo {
-  static async readShippingRates(module: number): Promise<RepoShippingRate[] | null> {
+  static async readShippingRates(module: number): Promise<ShippingRatesRepo.ShippingRate[] | null> {
     const response = await knex('Shop3ShippingCharges AS charges')
       .select({
         price: 'weight.charge',

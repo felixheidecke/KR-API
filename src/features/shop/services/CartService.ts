@@ -1,10 +1,16 @@
+import { Cart } from '../entities/Cart.js'
 import { HttpError } from '../../../common/decorators/Error.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
-import { Cart } from '../entities/Cart.js'
-import type { Product } from '../entities/Product.js'
 import { ProductService } from './ProductService.js'
 import { ShippingCostService } from './ShippingCostService.js'
 import { SupplementalCostService } from './SupplementalCostService.js'
+
+import type { Product } from '../entities/Product.js'
+
+type BaseConfig = {
+  skipModuleCheck?: boolean
+  shouldThrow?: boolean
+}
 
 export class CartService {
   /**
@@ -69,10 +75,7 @@ export class CartService {
    * @param {Cart} cart - The cart to initialise.
    */
 
-  public static async initialise(
-    cart: Cart,
-    config: { skipModuleCheck?: boolean; shouldThrow?: boolean } = {}
-  ) {
+  public static async initialise(cart: Cart, config: BaseConfig = {}) {
     const [moduleExists, supplementalCost, shippingCost] = await Promise.all([
       config.skipModuleCheck
         ? ModuleRepo.moduleExists(cart.module, 'shop3')

@@ -4,6 +4,11 @@ import { PayPalApi } from '../gateways/PayPalApi.js'
 
 import type { PayPal } from '../entities/PayPal.js'
 
+export interface PayPalInteractor {
+  createOrder(paypal: PayPal, total: number): Promise<void>
+  captureOrder(paypal: PayPal): Promise<void>
+}
+
 export class PayPalInteractor {
   /**
    * Creates a PayPal order.
@@ -12,7 +17,6 @@ export class PayPalInteractor {
    * @param {number} total - The total amount for the order.
    * @throws {HttpError} If the order cannot be created.
    */
-
   public static async createOrder(paypal: PayPal, total: number) {
     if (!paypal.accessToken) {
       await PayPalInteractor.loadCredentials(paypal)
@@ -34,7 +38,6 @@ export class PayPalInteractor {
    * @param {PayPal} paypal - The PayPal object containing relevant details.
    * @throws {HttpError} If the order cannot be captured.
    */
-
   public static async captureOrder(paypal: PayPal) {
     if (!paypal.accessToken) {
       await PayPalInteractor.loadCredentials(paypal)
@@ -55,7 +58,6 @@ export class PayPalInteractor {
    *
    * @param {PayPal} paypal - The PayPal object to populate with the access token.
    */
-
   private static async loadAccesToken(paypal: PayPal) {
     const token = await PayPalApi.getAccessToken(paypal.clientId, paypal.secret)
 
@@ -69,7 +71,6 @@ export class PayPalInteractor {
    * @param {PayPal} paypal - The PayPal object to populate with credentials.
    * @throws {HttpError} If PayPal is not configured for the specified module.
    */
-
   private static async loadCredentials(paypal: PayPal) {
     const credentials = await CredentialsRepo.readPayPalCredentials(paypal.module)
 

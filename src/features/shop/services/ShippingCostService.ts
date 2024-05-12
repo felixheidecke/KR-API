@@ -1,27 +1,30 @@
 import { head } from 'lodash-es'
 import { ShippingCost } from '../entities/ShippingCost.js'
-import { ShippingRatesRepo, type RepoShippingRate } from '../gateways/ShippingRatesRepo.js'
+import { ShippingRatesRepo } from '../gateways/ShippingRatesRepo.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { HttpError } from '../../../common/decorators/Error.js'
 
+type BaseConfig = {
+  skipModuleCheck?: boolean
+  shouldThrow?: boolean
+}
+
+export interface ShippingCostService {
+  getShippingCost(module: number, config?: BaseConfig): Promise<ShippingCost | null>
+}
+
 export class ShippingCostService {
-  static async getShippingCost(
-    module: number,
-    config: {
-      skipModuleCheck?: boolean
-      shouldThrow?: boolean
-    } = {}
-  ) {
+  static async getShippingCost(module: number, { skipModuleCheck, shouldThrow }: BaseConfig = {}) {
     const [moduleExists, repoShippingCost] = await Promise.all([
-      config.shouldThrow ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
       ShippingRatesRepo.readShippingRates(module)
     ])
 
-    if (!moduleExists && config.shouldThrow) {
+    if (!moduleExists && shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (config.shouldThrow && !moduleExists) {
+    if (shouldThrow && !moduleExists) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
@@ -29,7 +32,7 @@ export class ShippingCostService {
   }
 }
 
-function createShippingCostFromRepo(repoShippingCost: RepoShippingRate[]) {
+function createShippingCostFromRepo(repoShippingCost: ShippingRatesRepo.ShippingRate[]) {
   const shippingCost = new ShippingCost(head(repoShippingCost)?.module as number)
   shippingCost.freeShippingThreshold = head(repoShippingCost)?.freeShippingThreshold as number
 

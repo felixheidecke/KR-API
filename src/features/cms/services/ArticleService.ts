@@ -7,6 +7,11 @@ import { Image } from '../../../common/entities/Image.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { PDF } from '../../shop/entities/PDF.js'
 
+type BaseConfig = {
+  skipModuleCheck?: boolean
+  shouldThrow?: boolean
+}
+
 export class ArticleService {
   /**
    * Retrieves an article by module and ID.
@@ -19,13 +24,18 @@ export class ArticleService {
   public static async getArticle(
     module: number,
     id: number,
-    config: {
-      shouldThrow?: boolean
-    } = {}
+    { skipModuleCheck, shouldThrow }: BaseConfig = {}
   ) {
-    let repoArticle = await ArticleRepo.readArticle(module, id)
+    const [moduleExists, repoArticle] = await Promise.all([
+      skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      ArticleRepo.readArticle(module, id)
+    ])
 
-    if (!repoArticle && config.shouldThrow) {
+    if (!moduleExists && shouldThrow) {
+      throw HttpError.NOT_FOUND('Module not found.')
+    }
+
+    if (!repoArticle && shouldThrow) {
       throw HttpError.NOT_FOUND('Article not found.')
     } else if (!repoArticle) {
       return null
@@ -56,15 +66,17 @@ export class ArticleService {
       limit?: number
       parts?: string[]
     } = {},
-    config: {
-      shouldThrow?: boolean
-    } = {}
+    { skipModuleCheck, shouldThrow }: BaseConfig = {}
   ): Promise<Article[] | null> {
-    if (config.shouldThrow && !(await ModuleRepo.moduleExists(module))) {
+    const [moduleExists, repoArticles] = await Promise.all([
+      skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      ArticleRepo.readArticles(module, query)
+    ])
+
+    if (!moduleExists && shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    const repoArticles = await ArticleRepo.readArticles(module, query)
     const articles = repoArticles.map(this.createArticleFromRepo)
 
     if (query.parts?.includes('content')) {

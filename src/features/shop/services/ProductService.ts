@@ -7,29 +7,46 @@ import { PDF } from '../entities/PDF.js'
 import { Product } from '../entities/Product.js'
 import { ProductRepo } from '../gateways/ProductRepo.js'
 
-export class ProductService {
+type BaseConfig = {
+  skipModuleCheck?: boolean
+  shouldThrow?: boolean
+}
+
+export interface ProductService {
+  getProduct(module: number, id: number, config?: BaseConfig): Promise<Product | null>
+  getProducts(
+    module: number,
+    query?: { limit?: number; frontpage?: boolean },
+    config?: BaseConfig
+  ): Promise<Product[]>
+  getProductsByCategory(
+    module: number,
+    group: number,
+    query?: { limit?: number; frontpage?: boolean },
+    config?: BaseConfig
+  ): Promise<Product[]>
+}
+
+export class ProductService implements ProductService {
   public static async getProduct(
     module: number,
     id: number,
-    config: {
-      skipModuleCheck?: boolean
-      shouldThrow?: boolean
-    } = {}
-  ): Promise<Product | null> {
+    { skipModuleCheck, shouldThrow }: BaseConfig = {}
+  ) {
     const [moduleExists, repoProduct] = await Promise.all([
-      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
+      skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       ProductRepo.readProduct(module, id)
     ])
 
-    if (!moduleExists && config.shouldThrow) {
+    if (!moduleExists && shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
-    if (!repoProduct && config.shouldThrow) {
+    if (!repoProduct && shouldThrow) {
       throw HttpError.NOT_FOUND('Product not found')
     }
 
-    return repoProduct ? ProductServiceUtils.createProductFromRepository(repoProduct) : null
+    return repoProduct ? this.createProductFromRepository(repoProduct) : null
   }
 
   public static async getProducts(
@@ -38,21 +55,18 @@ export class ProductService {
       limit?: number
       frontpage?: boolean
     },
-    config: {
-      skipModuleCheck?: boolean
-      shouldThrow?: boolean
-    } = {}
-  ): Promise<Product[]> {
+    { skipModuleCheck, shouldThrow }: BaseConfig = {}
+  ) {
     const [moduleExists, repoProducts] = await Promise.all([
-      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
+      skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       ProductRepo.readProducts(module, query)
     ])
 
-    if (!moduleExists && config.shouldThrow) {
+    if (!moduleExists && shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
-    return repoProducts.map(ProductServiceUtils.createProductFromRepository)
+    return repoProducts.map(this.createProductFromRepository)
   }
 
   public static async getProductsByCategory(
@@ -62,31 +76,26 @@ export class ProductService {
       limit?: number
       frontpage?: boolean
     },
-    config: {
-      skipModuleCheck?: boolean
-      shouldThrow?: boolean
-    } = {}
-  ): Promise<Product[]> {
+    { skipModuleCheck, shouldThrow }: BaseConfig = {}
+  ) {
     const [moduleExists, categoryExists, repoCategoryProducts] = await Promise.all([
-      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
+      skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.groupExists(module, group),
       ProductRepo.readProductsByGroup(module, group, query)
     ])
 
-    if (!moduleExists && config.shouldThrow) {
+    if (!moduleExists && shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
-    if (!categoryExists && config.shouldThrow) {
+    if (!categoryExists && shouldThrow) {
       throw HttpError.NOT_FOUND('Group not found')
     }
 
-    return repoCategoryProducts.map(ProductServiceUtils.createProductFromRepository)
+    return repoCategoryProducts.map(this.createProductFromRepository)
   }
-}
 
-export class ProductServiceUtils {
-  public static createProductFromRepository(repoProduct: ProductRepo.Product): Product {
+  private static createProductFromRepository(repoProduct: ProductRepo.Product): Product {
     const product = new Product(repoProduct.module)
 
     product.id = repoProduct._id

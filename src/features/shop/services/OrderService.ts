@@ -3,6 +3,7 @@ import { getUnixTime } from 'date-fns'
 import { HttpError } from '../../../common/decorators/Error.js'
 import { Mail } from '../../../common/entities/Mail.js'
 import { MailApi } from '../../../common/gateways/MailApi.js'
+import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { Order } from '../entities/Order.js'
 import { OrderRepo } from '../gateways/OrderRepo.js'
 import { TemplateRepo } from '../gateways/TemplateRepo.js'
@@ -10,6 +11,19 @@ import { TemplateRepo } from '../gateways/TemplateRepo.js'
 import type { RepoOrder } from '../gateways/OrderRepo.js'
 import type { Cart } from '../entities/Cart.js'
 import type { Customer } from '../entities/Customer.js'
+
+type BaseConfig = {
+  skipModuleCheck?: boolean
+  shouldThrow?: boolean
+}
+
+export interface OrderService {
+  getOrder(module: number, transactionId: string, config?: BaseConfig): Promise<Order | null>
+  saveOrder(order: Order): Promise<void>
+  importCart(order: Order, cart: Cart): Promise<void>
+  updatePaymentStatus(order: Order, paymentType: Order['paymentType']): Promise<void>
+  sendOrderConfirmationMail(order: Order, origin: string): Promise<any>
+}
 
 export class OrderService {
   /**
@@ -21,21 +35,21 @@ export class OrderService {
    * @throws {Error} If the module or transaction ID is missing, or if the order is not found.
    */
 
-  public static async getOrder(
-    module: number,
-    transactionId: string,
-    config: { shouldThrow?: boolean } = {}
-  ): Promise<Order | null> {
-    if (!module || !transactionId) {
-      throw new Error('Module and/or transaction ID is missing.')
-    }
-    const order = await OrderRepo.getOrder(module, transactionId)
+  public static async getOrder(module: number, transactionId: string, config: BaseConfig = {}) {
+    const [moduleExists, repoOrder] = await Promise.all([
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      OrderRepo.getOrder(module, transactionId)
+    ])
 
-    if (!order && config.shouldThrow) {
-      throw HttpError.NOT_FOUND('Order not found.')
+    if (!moduleExists && config.shouldThrow) {
+      throw HttpError.NOT_FOUND('Module not found')
     }
 
-    return order ? createOrderFromRepo(order) : null
+    if (!repoOrder && config.shouldThrow) {
+      throw HttpError.NOT_FOUND('Order not found')
+    }
+
+    return repoOrder ? this.createOrderFromRepo(repoOrder) : null
   }
 
   /**
@@ -66,7 +80,7 @@ export class OrderService {
 
     order.generateDate()
 
-    if (!(await OrderRepo.writeOrder(createRepoOrderFromOrder(order)))) {
+    if (!(await OrderRepo.writeOrder(this.createRepoOrderFromOrder(order)))) {
       // Remove date if order could not be saved.
       order.date = null
     }
@@ -106,6 +120,7 @@ export class OrderService {
 
   public static async updatePaymentStatus(order: Order, paymentType: Order['paymentType']) {
     await OrderRepo.updateOrder(order, paymentType)
+
     order.paymentType = paymentType
   }
 
@@ -121,14 +136,14 @@ export class OrderService {
   public static async sendOrderConfirmationMail(order: Order, origin: string) {
     const { module, transactionId } = order
 
-    if (!transactionId || !module) {
-      throw HttpError.BAD_REQUEST('Order has no transaction ID.')
+    if (!transactionId) {
+      throw HttpError.BAD_REQUEST('Missing transaction ID')
     }
 
     const mail = new Mail()
     const [client, mailTemplate] = await Promise.all([
-      this._getCustomer(module),
-      this._getMailTemplate(origin)
+      CustomerService.getCustomerByModule(module, { shouldThrow: true }) as Promise<Customer>,
+      this.getMailTemplate(origin)
     ])
 
     mail.from = `${client.name} <${client.email}>`
@@ -149,16 +164,6 @@ export class OrderService {
     await MailApi.send(mail)
   }
 
-  private static async _getCustomer(module: number): Promise<Customer> {
-    const getCustomer = CustomerService.getCustomerByModule(module, { shouldThrow: true })
-
-    try {
-      return (await getCustomer) as Customer
-    } catch (error) {
-      throw new Error('Invalid client.')
-    }
-  }
-
   /**
    * Retrieves the mail template for order confirmation.
    *
@@ -169,7 +174,7 @@ export class OrderService {
    * @static
    */
 
-  private static async _getMailTemplate(origin: string) {
+  private static async getMailTemplate(origin: string) {
     const mailTemplate = await TemplateRepo.readTemplate('order-confirmation-mail.txt', origin)
 
     if (!mailTemplate) {
@@ -179,94 +184,87 @@ export class OrderService {
     return mailTemplate || null
   }
 
-  static get utils() {
+  private static createRepoOrderFromOrder(order: Order): Omit<RepoOrder, '_id'> {
     return {
-      createRepoOrderFromOrder,
-      createOrderFromRepo
+      module: order.module,
+      date: getUnixTime(order.date as Date),
+      transactionId: order.transactionId,
+      payment: order.paymentType,
+      amount: order.total,
+      shipmentName: order.deliveryAddress.name || '',
+      shipmentAddress: order.deliveryAddress.address || '',
+      shipmentZip: order.deliveryAddress.zip || '',
+      shipmentCity: order.deliveryAddress.city || '',
+      shipmentCompany: order.deliveryAddress.company || '',
+      shipmentPhone: order.deliveryAddress.phone || '',
+      name: order.address.name || '',
+      address: order.address.address || '',
+      zip: order.address.zip || '',
+      city: order.address.city || '',
+      company: order.address.company || '',
+      phone: order.address.phone || '',
+      salutation: order.address.salutation || 'Herr',
+      firstname: order.address.firstname || '',
+      email: order.address.email || '',
+      message: order.message || '',
+      discount: 0,
+      order: {
+        cart: order.cart.map(item => ({
+          productId: String(item.id),
+          productCode: item.code,
+          productName: item.name,
+          productDescription: item.description,
+          price: String(item.price),
+          count: item.quantity,
+          sum: item.total
+        })),
+        shipping: order.shippingCost,
+        discountValue: 0
+      }
     }
   }
-}
 
-function createRepoOrderFromOrder(order: Order): Omit<RepoOrder, '_id'> {
-  return {
-    module: order.module,
-    date: getUnixTime(order.date as Date),
-    transactionId: order.transactionId,
-    payment: order.paymentType,
-    amount: order.total,
-    shipmentName: order.deliveryAddress.name || '',
-    shipmentAddress: order.deliveryAddress.address || '',
-    shipmentZip: order.deliveryAddress.zip || '',
-    shipmentCity: order.deliveryAddress.city || '',
-    shipmentCompany: order.deliveryAddress.company || '',
-    shipmentPhone: order.deliveryAddress.phone || '',
-    name: order.address.name || '',
-    address: order.address.address || '',
-    zip: order.address.zip || '',
-    city: order.address.city || '',
-    company: order.address.company || '',
-    phone: order.address.phone || '',
-    salutation: order.address.salutation || 'Herr',
-    firstname: order.address.firstname || '',
-    email: order.address.email || '',
-    message: order.message || '',
-    discount: 0,
-    order: {
-      cart: order.cart.map(item => ({
-        productId: String(item.id),
-        productCode: item.code,
-        productName: item.name,
-        productDescription: item.description,
-        price: String(item.price),
-        count: item.quantity,
-        sum: item.total
-      })),
-      shipping: order.shippingCost,
-      discountValue: 0
+  private static createOrderFromRepo(repoOrder: RepoOrder): Order {
+    const order = new Order(repoOrder.module)
+
+    order.total = repoOrder.amount
+    order.message = repoOrder.message
+    order.transactionId = repoOrder.transactionId
+    order.paymentType = repoOrder.payment
+    order.address = {
+      company: repoOrder.company,
+      salutation: repoOrder.salutation,
+      firstname: repoOrder.firstname,
+      name: repoOrder.name,
+      address: repoOrder.address,
+      zip: repoOrder.zip,
+      city: repoOrder.city,
+      email: repoOrder.email,
+      phone: repoOrder.phone
     }
-  }
-}
+    order.deliveryAddress = {
+      name: repoOrder.shipmentName,
+      address: repoOrder.shipmentAddress,
+      zip: repoOrder.shipmentZip,
+      city: repoOrder.shipmentCity,
+      company: repoOrder.shipmentCompany,
+      phone: repoOrder.shipmentPhone
+    }
+    order.date = repoOrder.date
+    order.shippingCost = repoOrder.order.shipping
 
-function createOrderFromRepo(repoOrder: RepoOrder): Order {
-  const order = new Order(repoOrder.module)
-
-  order.total = repoOrder.amount
-  order.message = repoOrder.message
-  order.transactionId = repoOrder.transactionId
-  order.paymentType = repoOrder.payment
-  order.address = {
-    company: repoOrder.company,
-    salutation: repoOrder.salutation,
-    firstname: repoOrder.firstname,
-    name: repoOrder.name,
-    address: repoOrder.address,
-    zip: repoOrder.zip,
-    city: repoOrder.city,
-    email: repoOrder.email,
-    phone: repoOrder.phone
-  }
-  order.deliveryAddress = {
-    name: repoOrder.shipmentName,
-    address: repoOrder.shipmentAddress,
-    zip: repoOrder.shipmentZip,
-    city: repoOrder.shipmentCity,
-    company: repoOrder.shipmentCompany,
-    phone: repoOrder.shipmentPhone
-  }
-  order.date = repoOrder.date
-  order.shippingCost = repoOrder.order.shipping
-
-  repoOrder.order.cart.forEach(product => {
-    order.addCartProduct({
-      id: +product.productId,
-      code: product.productCode,
-      description: product.productDescription,
-      name: product.productName,
-      price: +product.price,
-      quantity: product.count,
-      total: product.sum
+    repoOrder.order.cart.forEach(product => {
+      order.addCartProduct({
+        id: +product.productId,
+        code: product.productCode,
+        description: product.productDescription,
+        name: product.productName,
+        price: +product.price,
+        quantity: product.count,
+        total: product.sum
+      })
     })
-  })
 
-  return order
+    return order
+  }
 }

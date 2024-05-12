@@ -4,35 +4,36 @@ import { GroupPath } from '../entities/GroupPath.js'
 import { HttpError } from '../../../common/decorators/Error.js'
 import { GroupRepo } from '../gateways/GroupRepo.js'
 
+type BaseConfig = {
+  skipModuleCheck?: boolean
+  shouldThrow?: boolean
+}
+
 export class GroupService {
   /**
-   * Retrieves a single group based on module and group ID with optional error handling.
+   * Retrieves a group based on module ID and group ID, with optional configurations.
    *
-   * @param {number} module - The module ID.
-   * @param {number} id - The group ID.
-   * @param {object} [config={}] - Configuration options.
-   * @param {boolean} [config.shouldThrow=false] - Flag to throw an error if the group or module doesn't exist.
-   * @returns {Promise<Group|null>} The requested group or null if not found, wrapped in a Promise.
-   * @throws {HttpError} Throws NOT_FOUND if the group or module is not found and shouldThrow is true.
+   * @param {number} module - The module identifier.
+   * @param {number} id - The group identifier.
+   * @param {BaseConfig} config - Configuration options for handling the group retrieval.
+   * @returns {Promise<Group|null>} Returns a Group object or null if the group doesn't exist, based on the provided configurations.
+   * @throws {HttpError} Throws an HTTP error if conditions defined in the config are met and the entity is not found.
    */
   public static async getGroup(
     module: number,
     id: number,
-    config: {
-      skipModuleCheck?: boolean
-      shouldThrow?: boolean
-    } = {}
+    { shouldThrow, skipModuleCheck }: BaseConfig = {}
   ) {
     const [moduleExists, repoGroup] = await Promise.all([
-      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
+      skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.readGroup(module, id)
     ])
 
-    if (!moduleExists && config.shouldThrow) {
+    if (!moduleExists && shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (!repoGroup && config.shouldThrow) {
+    if (!repoGroup && shouldThrow) {
       throw HttpError.NOT_FOUND('Group not found.')
     }
 
@@ -40,110 +41,102 @@ export class GroupService {
       return null
     }
 
-    return this.utils.createCategoryFromRepo(repoGroup)
-  }
-
-  public static async getGroupByProductId(
-    module: number,
-    id: number,
-    config: {
-      skipModuleCheck?: boolean
-      shouldThrow?: boolean
-    } = {}
-  ) {
-    const [moduleExists, repoGroup] = await Promise.all([
-      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
-      GroupRepo.readGroupByProductId(module, id)
-    ])
-
-    if (!moduleExists && config.shouldThrow) {
-      throw HttpError.NOT_FOUND('Module not found.')
-    }
-
-    if (!repoGroup && config.shouldThrow) {
-      throw HttpError.NOT_FOUND('Group not found.')
-    }
-
-    return repoGroup ? this.utils.createCategoryFromRepo(repoGroup) : null
+    return this.createGroupFromRepo(repoGroup)
   }
 
   /**
-   * Retrieves multiple groups based on a module ID with optional error handling.
+   * Retrieves a group by product ID, within a specific module, with optional configurations.
    *
-   * @param {number} module - The module ID.
-   * @param {object} [config={}] - Configuration options.
-   * @param {boolean} [config.shouldThrow=false] - Flag to throw an error if no groups or module are found.
-   * @returns {Promise<Array<Group>|null>} An array of groups or null if no groups are found, wrapped in a Promise.
-   * @throws {HttpError} Throws NOT_FOUND if no groups or the module is not found and shouldThrow is true.
+   * @param {number} module - The module identifier.
+   * @param {number} id - The product identifier associated with the group.
+   * @param {BaseConfig} config - Configuration options for handling the group retrieval.
+   * @returns {Promise<Group|null>} Returns a Group object or null if no group associated with the product ID exists, based on the provided configurations.
+   * @throws {HttpError} Throws an HTTP error if conditions defined in the config are met and the entity is not found.
    */
-  public static async getGroups(
+  public static async getGroupByProductId(
     module: number,
-    config: {
-      skipModuleCheck?: boolean
-      shouldThrow?: boolean
-    } = {}
+    id: number,
+    { shouldThrow, skipModuleCheck }: BaseConfig = {}
   ) {
-    const [moduleExists, repoGroups] = await Promise.all([
-      config.skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
-      GroupRepo.readGroups(module, null)
+    const [moduleExists, repoGroup] = await Promise.all([
+      skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
+      GroupRepo.readGroupByProductId(module, id)
     ])
 
-    if (!moduleExists && config.shouldThrow) {
+    if (!moduleExists && shouldThrow) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (!repoGroups && config.shouldThrow) {
+    if (!repoGroup && shouldThrow) {
+      throw HttpError.NOT_FOUND('Group not found.')
+    }
+
+    return repoGroup ? this.createGroupFromRepo(repoGroup) : null
+  }
+
+  /**
+   * Retrieves all groups in a specified module, with optional configurations.
+   *
+   * @param {number} module - The module identifier.
+   * @param {BaseConfig} config - Configuration options for handling the group retrieval.
+   * @returns {Promise<Array<Group>|null>} Returns an array of Group objects or null if no groups are found, based on the provided configurations.
+   * @throws {HttpError} Throws an HTTP error if conditions defined in the config are met and the entity is not found.
+   */
+  public static async getGroups(module: number, { shouldThrow, skipModuleCheck }: BaseConfig = {}) {
+    const [moduleExists, repoGroups] = await Promise.all([
+      skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
+      GroupRepo.readGroups(module, null)
+    ])
+
+    if (!moduleExists && shouldThrow) {
+      throw HttpError.NOT_FOUND('Module not found.')
+    }
+
+    if (!repoGroups && shouldThrow) {
       throw HttpError.NOT_FOUND('Categories not found.')
     }
 
-    return repoGroups ? repoGroups.map(createGroupFromRepo) : null
+    return repoGroups ? repoGroups.map(this.createGroupFromRepo) : null
   }
 
-  static get utils() {
-    return {
-      createCategoryFromRepo: createGroupFromRepo,
-      createCategoryPathFromRepo: createGroupPathFromRepo
+  /**
+   * Creates a Group instance from a repository group data.
+   *
+   * @param {GroupRepo.Group} repoGroup - The repository group data.
+   * @returns {Group} Returns a Group instance populated with data from the repository.
+   * @private
+   */
+  private static createGroupFromRepo(repoGroup: GroupRepo.Group): Group {
+    const group = new Group(repoGroup.module)
+
+    group.id = repoGroup._id
+    group.name = repoGroup.name
+    group.description = repoGroup.description
+    group.group = repoGroup.group || undefined
+
+    if (repoGroup.path) {
+      group.path = this.createGroupPathFromRepo(repoGroup.path)
     }
-  }
-}
 
-// --- [ Utility functions ] -----------------------------------------------------------------------
+    if (repoGroup.subgroups) {
+      group.subgroups = repoGroup.subgroups.map(this.createGroupFromRepo)
+    }
 
-/**
- * Converts a repository group object into a Group entity.
- *
- * @param {GroupRepo.Group} repoGroup - The repository group object to convert.
- * @returns {Group} The converted Group entity.
- */
-function createGroupFromRepo(repoGroup: GroupRepo.Group): Group {
-  const group = new Group(repoGroup.module)
-
-  group.id = repoGroup._id
-  group.name = repoGroup.name
-  group.description = repoGroup.description
-  group.group = repoGroup.group || undefined
-
-  if (repoGroup.path) {
-    group.path = createGroupPathFromRepo(repoGroup.path)
+    return group
   }
 
-  if (repoGroup.subgroups) {
-    group.subgroups = repoGroup.subgroups.map(createGroupFromRepo)
+  /**
+   * Converts repository group path data into a GroupPath instance.
+   *
+   * @param {GroupRepo.GroupPath[]} repoGroupPath - Array of repository group path data.
+   * @returns {GroupPath} Returns a GroupPath instance constructed from repository data.
+   * @private
+   */
+  private static createGroupPathFromRepo(repoGroupPath: GroupRepo.GroupPath[]): GroupPath {
+    const groupPath = new GroupPath()
+
+    groupPath.path = repoGroupPath.map(({ _id, name }) => ({ id: _id, name }))
+
+    return groupPath
   }
-
-  return group
-}
-
-/**
- * Converts repository group path data into a GroupPath entity.
- *
- * @param {Array<GroupRepo.GroupPath>} repoGroupPath - The array of repository group paths to convert.
- * @returns {GroupPath} The converted GroupPath entity.
- */
-function createGroupPathFromRepo(repoGroupPath: GroupRepo.GroupPath[]): GroupPath {
-  const groupPath = new GroupPath()
-
-  groupPath.path = repoGroupPath.map(({ _id, name }) => ({ id: _id, name }))
-
-  return groupPath
 }
