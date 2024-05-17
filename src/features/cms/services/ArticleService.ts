@@ -89,7 +89,7 @@ export class ArticleService {
   private static async addArticleContent(article: Article): Promise<void> {
     const repoContent = await ArticleContentRepo.readArticleContent(article.id)
 
-    article.content = repoContent.map(this.createArticleContentfromRepo)
+    article.content = repoContent.map(ArticleService.createArticleContentfromRepo)
   }
 
   /**
