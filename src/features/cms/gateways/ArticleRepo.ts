@@ -2,6 +2,7 @@ import { isBoolean } from 'lodash-es'
 import knex from '../../../modules/knex.js'
 import type { Knex } from 'knex'
 import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
+import { getUnixTime } from 'date-fns'
 
 export namespace ArticleRepo {
   export type Article = {
@@ -47,12 +48,19 @@ export class ArticleRepo {
   public static async readArticles(
     module: number,
     query: {
+      createdAfter?: Date
+      createdBefore?: Date
       archived?: boolean
       limit?: number
-      parts?: string[]
     } = {}
   ): Promise<ArticleRepo.Article[]> {
-    return new RepoArticleBuilder(module).isArchived(query.archived).readMany(query.limit)
+    console.log({ query })
+
+    return new RepoArticleBuilder(module)
+      .created('<', query.createdBefore)
+      .created('>', query.createdAfter)
+      .isArchived(query.archived)
+      .readMany(query.limit)
   }
 }
 
@@ -102,6 +110,14 @@ class RepoArticleBuilder {
       this._query.where(function () {
         this.where('archiveDate', 0).orWhere('archiveDate', '>', now)
       })
+    }
+
+    return this
+  }
+
+  public created(operator: '<' | '<=' | '>' | '>=', date?: Date) {
+    if (date) {
+      this.query.andWhere('date', operator, getUnixTime(date))
     }
 
     return this

@@ -6,6 +6,7 @@ import { HttpError } from '../../../common/decorators/Error.js'
 import { Image } from '../../../common/entities/Image.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { PDF } from '../../shop/entities/PDF.js'
+import { omit } from 'lodash-es'
 
 type BaseConfig = {
   skipModuleCheck?: boolean
@@ -62,6 +63,8 @@ export class ArticleService {
   public static async getArticles(
     module: number,
     query: {
+      createdAfter?: Date
+      createdBefore?: Date
       archived?: boolean
       limit?: number
       parts?: string[]
@@ -70,7 +73,7 @@ export class ArticleService {
   ): Promise<Article[] | null> {
     const [moduleExists, repoArticles] = await Promise.all([
       skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
-      ArticleRepo.readArticles(module, query)
+      ArticleRepo.readArticles(module, omit(query, 'parts'))
     ])
 
     if (!moduleExists && shouldThrow) {

@@ -7,6 +7,7 @@ import { isNumber } from 'lodash-es'
 import type { ArticleContent } from './ArticleContent.js'
 import type { Image } from '../../../common/entities/Image.js'
 import type { PDF } from '../../shop/entities/PDF.js'
+import { LOCALE, TIME_ZONE } from '../../../constants.js'
 
 export class Article {
   constructor(readonly module: number) {}
@@ -14,7 +15,7 @@ export class Article {
   public id = 0
   protected _title = ''
   protected _slug = ''
-  protected _date?: Date
+  protected _date = new Date()
   public text?: string
   public image?: Image
   public pdf?: PDF
@@ -32,7 +33,7 @@ export class Article {
     return this._slug
   }
 
-  public get date(): Date | undefined {
+  public get date(): Date {
     return this._date
   }
 
@@ -62,8 +63,8 @@ export class Article {
       id: +this.id,
       module: +this.module,
       slug: this._slug,
-      title: this.title,
-      date: this.date,
+      title: this._title,
+      date: this._date.toLocaleDateString(LOCALE, { timeZone: TIME_ZONE }),
       text: this.text ? textile.parse(this.text) : undefined,
       image: this.image?.display(),
       content: this.content?.map(item => item.display()),

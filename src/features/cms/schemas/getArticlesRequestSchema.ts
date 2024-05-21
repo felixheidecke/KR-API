@@ -5,6 +5,8 @@ export const getArticlesRequestSchema = z.object({
     module: z.coerce.number().gt(0)
   }),
   query: z.object({
+    createdBefore: z.coerce.date().optional(),
+    createdAfter: z.coerce.date().optional(),
     archived: z.coerce.boolean().optional().default(false),
     limit: z.coerce.number().gt(0).optional(),
     parts: z

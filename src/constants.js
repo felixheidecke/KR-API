@@ -20,5 +20,7 @@ export const MIME_TYPE = {
 }
 
 export const ASSET_BASE_URL = 'https://www.rheingau.de/data'
+
 export const LOCALE = 'de-DE'
+export const TIME_ZONE = 'Europe/Berlin'
 export const CURRENCY = 'EUR'
