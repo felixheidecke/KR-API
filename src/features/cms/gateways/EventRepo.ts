@@ -1,7 +1,7 @@
 import { getUnixTime } from 'date-fns'
 import knex from '../../../modules/knex.js'
 import type { Knex } from 'knex'
-import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
+import { MEDIA_BASE_PATH } from '../../../constants.js'
 
 export namespace EventRepo {
   export type Event = {
@@ -82,7 +82,7 @@ export class EventRepo {
 
   public static async readEventImages(id: number): Promise<EventRepo.EventImage[]> {
     return knex('EventImage')
-      .select(knex.raw(`CONCAT('${DATA_BASE_PATH}/', image)as image`), 'description')
+      .select(knex.raw(`CONCAT('${MEDIA_BASE_PATH}/', image)as image`), 'description')
       .where({ event: id })
       .orderBy('position')
   }
@@ -115,13 +115,13 @@ class EventQueryBuilder {
         'description',
         'details',
         knex.raw(
-          `IF(image IS NULL OR image = '', NULL, CONCAT('${DATA_BASE_PATH}/', image)) AS image`
+          `IF(image IS NULL OR image = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', image)) AS image`
         ),
         knex.raw(
-          `IF(thumb IS NULL OR thumb = '', NULL, CONCAT('${DATA_BASE_PATH}/', thumb)) AS thumb`
+          `IF(thumb IS NULL OR thumb = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', thumb)) AS thumb`
         ),
         knex.raw('CAST(imageDescription AS CHAR) as imageDescription'),
-        knex.raw(`IF(pdf IS NULL OR pdf = '', NULL, CONCAT('${DATA_BASE_PATH}/', pdf)) AS pdf`),
+        knex.raw(`IF(pdf IS NULL OR pdf = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', pdf)) AS pdf`),
         knex.raw('CAST(pdfName AS CHAR) as pdfName'),
         knex.raw('CAST(pdfTitle AS CHAR) as pdfTitle'),
         knex.raw('CAST(commune AS CHAR) as commune'),

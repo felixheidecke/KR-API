@@ -1,9 +1,9 @@
-import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
 import { GroupRepo } from './GroupRepo.js'
 import { isBoolean, isUndefined, omitBy } from 'lodash-es'
 import knex from '../../../modules/knex.js'
 
 import type { Knex } from 'knex'
+import { MEDIA_BASE_PATH } from '../../../constants.js'
 
 export namespace ProductRepo {
   export type Product = {
@@ -160,9 +160,9 @@ class RepoProductBuilder {
   private _mapRawProduct(repoProduct: ProductRepo.Product): ProductRepo.Product {
     return {
       ...repoProduct,
-      image: repoProduct.image ? DATA_BASE_PATH + '/' + repoProduct.image : null,
-      imageBig: repoProduct.imageBig ? DATA_BASE_PATH + '/' + repoProduct.imageBig : null,
-      pdf: repoProduct.pdf ? DATA_BASE_PATH + '/' + repoProduct.pdf : null
+      image: repoProduct.image ? MEDIA_BASE_PATH + '/' + repoProduct.image : null,
+      imageBig: repoProduct.imageBig ? MEDIA_BASE_PATH + '/' + repoProduct.imageBig : null,
+      pdf: repoProduct.pdf ? MEDIA_BASE_PATH + '/' + repoProduct.pdf : null
     }
   }
 }

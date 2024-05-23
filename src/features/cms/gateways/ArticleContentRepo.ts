@@ -1,4 +1,4 @@
-import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
+import { MEDIA_BASE_PATH } from '../../../constants.js'
 import knex from '../../../modules/knex.js'
 export namespace ArticleContentRepo {
   export type ArticleContent = {
@@ -26,7 +26,7 @@ export class ArticleContentRepo {
         knex.raw('CAST(title AS CHAR) as title'),
         'text',
         knex.raw(
-          `IF(image IS NULL OR image = '', NULL, CONCAT('${DATA_BASE_PATH}/', image)) AS image`
+          `IF(image IS NULL OR image = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', image)) AS image`
         ),
         knex.raw('CAST(imageDescription AS CHAR) as imageDescription'),
         knex.raw(`IF(imageAlign IS NULL OR imageAlign = '', 'left', imageAlign) AS imageAlign`)

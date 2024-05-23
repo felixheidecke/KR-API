@@ -1,4 +1,4 @@
-import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
+import { MEDIA_BASE_PATH } from '../../../constants.js'
 import knex from '../../../modules/knex.js'
 
 export type RepoAlbum = {
@@ -24,8 +24,8 @@ export class GalleryRepo {
         'Album._id AS _id',
         'Album.module AS module',
         'Album.title AS title',
-        knex.raw(`CONCAT('${DATA_BASE_PATH}/', Photo.image, '#', LOWER(Photo.filename)) AS image`),
-        knex.raw(`CONCAT('${DATA_BASE_PATH}/', Photo.image, '_thumb') AS thumb`),
+        knex.raw(`CONCAT('${MEDIA_BASE_PATH}/', Photo.image, '#', LOWER(Photo.filename)) AS image`),
+        knex.raw(`CONCAT('${MEDIA_BASE_PATH}/', Photo.image, '_thumb') AS thumb`),
         knex.raw(`IF(ISNULL(Photo.description), '', Photo.description) AS description`)
       ])
       .from('PhotoAlbum as Album')
@@ -50,8 +50,8 @@ export class GalleryRepo {
         'Album._id AS _id',
         'Album.module AS module',
         'Album.title as title',
-        knex.raw(`CONCAT('${DATA_BASE_PATH}/', Photo.image, '#', LOWER(Photo.filename)) AS image`),
-        knex.raw(`CONCAT('${DATA_BASE_PATH}/', Photo.image, '_thumb') AS thumb`),
+        knex.raw(`CONCAT('${MEDIA_BASE_PATH}/', Photo.image, '#', LOWER(Photo.filename)) AS image`),
+        knex.raw(`CONCAT('${MEDIA_BASE_PATH}/', Photo.image, '_thumb') AS thumb`),
         knex.raw(`IF(ISNULL(Photo.description), '', Photo.description) AS description`)
       ])
       .from('PhotoAlbum AS Album')

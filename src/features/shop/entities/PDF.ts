@@ -1,5 +1,3 @@
-import { ASSET_BASE_URL } from '../../../constants.js'
-
 export class PDF {
   constructor(src?: string, title?: string) {
     this.src = src || ''

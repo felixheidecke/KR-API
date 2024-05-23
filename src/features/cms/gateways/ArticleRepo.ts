@@ -1,8 +1,8 @@
 import { isBoolean } from 'lodash-es'
 import knex from '../../../modules/knex.js'
 import type { Knex } from 'knex'
-import { DATA_BASE_PATH } from '../../../common/utils/constants.js'
 import { getUnixTime } from 'date-fns'
+import { MEDIA_BASE_PATH } from '../../../constants.js'
 
 export namespace ArticleRepo {
   export type Article = {
@@ -76,13 +76,13 @@ class RepoArticleBuilder {
         'date',
         'text',
         knex.raw(
-          `IF(ISNULL(image) OR image = '', NULL, CONCAT('${DATA_BASE_PATH}/', image)) AS image`
+          `IF(ISNULL(image) OR image = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', image)) AS image`
         ),
         knex.raw(
-          `IF(ISNULL(imageSmall) OR imageSmall = '', '', CONCAT('${DATA_BASE_PATH}/', imageSmall)) AS imageSmall`
+          `IF(ISNULL(imageSmall) OR imageSmall = '', '', CONCAT('${MEDIA_BASE_PATH}/', imageSmall)) AS imageSmall`
         ),
         knex.raw('IF(ISNULL(imageDescription), "", imageDescription) as imageDescription'),
-        knex.raw(`IF(ISNULL(pdf) OR pdf = '', NULL, CONCAT('${DATA_BASE_PATH}/', pdf)) AS pdf`),
+        knex.raw(`IF(ISNULL(pdf) OR pdf = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', pdf)) AS pdf`),
         knex.raw('CAST(pdfName AS CHAR) as pdfName'),
         knex.raw(
           `IF(ISNULL(pdfTitle) OR pdfTitle = '', 'Weitere Informationen', pdfTitle) AS pdfTitle`
