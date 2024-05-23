@@ -15,7 +15,8 @@ export const HEADER = {
 }
 export const MIME_TYPE = {
   JSON: 'application/json',
-  TEXT: 'text/plain'
+  TEXT: 'text/plain',
+  CSV: 'text/csv',
 }
 export const MEDIA_BASE_PATH = 'https://www.rheingau.de/data'
 export const LOCALE = 'de-DE'

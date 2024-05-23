@@ -4,6 +4,7 @@ import { Mail } from '../../../common/entities/Mail.js'
 import { SendMailerApi } from '../../../common/gateways/SendMailerApi.js'
 import { MailRepo } from '../../../common/gateways/MailRepo.js'
 import { toFilenameWithDate } from '../../../common/utils/slugify.js'
+import { MIME_TYPE } from '../../../constants.js'
 
 export class FormMailService {
   public static async send(
@@ -31,7 +32,7 @@ export class FormMailService {
     mail.body = jsonToText(body)
 
     if (config.attachBodyAsCSV) {
-      mail.attach(toFilenameWithDate(subject, 'csv'), jsonToCSV(body), 'text/csv')
+      mail.attach(toFilenameWithDate(subject, 'csv'), jsonToCSV(body), MIME_TYPE.CSV)
     }
 
     return await SendMailerApi.send(mail)
