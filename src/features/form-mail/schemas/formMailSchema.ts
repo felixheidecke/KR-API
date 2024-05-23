@@ -26,7 +26,10 @@ export const formMailSchema = z.object({
           path: ['body']
         })
       })
-    })
+    }),
+  query: z.object({
+    attachBodyAsCSV: z.coerce.boolean().optional().default(false)
+  })
 })
 
 export type FormMailSchema = z.infer<typeof formMailSchema>

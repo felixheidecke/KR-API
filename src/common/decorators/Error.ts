@@ -41,6 +41,8 @@ export class HttpError extends Error {
   }
 
   public static fromZodError(error: ZodError) {
+    console.log(error)
+
     const { formErrors, fieldErrors } = error.flatten()
     const details = formErrors.length ? formErrors : fieldErrors
 

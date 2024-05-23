@@ -2,10 +2,10 @@ import { CustomerService } from './CustomerService.js'
 import { getUnixTime } from 'date-fns'
 import { HttpError } from '../../../common/decorators/Error.js'
 import { Mail } from '../../../common/entities/Mail.js'
-import { MailApi } from '../../../common/gateways/MailApi.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 import { Order } from '../entities/Order.js'
 import { OrderRepo } from '../gateways/OrderRepo.js'
+import { SendMailerApi } from '../../../common/gateways/SendMailerApi.js'
 import { TemplateRepo } from '../gateways/TemplateRepo.js'
 
 import type { RepoOrder } from '../gateways/OrderRepo.js'
@@ -161,7 +161,7 @@ export class OrderService {
     mail.addTo(order.address.email as string, order.address.firstname + ' ' + order.address.name)
     mail.addTo(client.email as string, client.name as string, 'bcc')
 
-    await MailApi.send(mail)
+    await SendMailerApi.send(mail)
   }
 
   /**

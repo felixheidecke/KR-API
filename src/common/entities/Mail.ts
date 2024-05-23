@@ -1,4 +1,9 @@
 type MailMap = Map<string, string | null>
+type MailAttachment = {
+  filename: string
+  content: string
+  contentType: string
+}
 
 export class Mail {
   // --- [ Members ] -------------------------------------------------------------------------------
@@ -7,11 +12,26 @@ export class Mail {
   public subject: string = ''
   public replyTo?: string
   public body: string = ''
+  public attachments: Array<MailAttachment> = []
   protected _to: MailMap = new Map()
   protected _cc: MailMap = new Map()
   protected _bcc: MailMap = new Map()
 
-  // --- [ Setter ] --------------------------------------------------------------------------------
+  // --- [ Getter ] --------------------------------------------------------------------------------
+
+  public get to() {
+    return this._to.size ? Mail.addressAdapter(this._to) : undefined
+  }
+
+  public get cc() {
+    return this._cc.size ? Mail.addressAdapter(this._cc) : undefined
+  }
+
+  public get bcc() {
+    return this._bcc.size ? Mail.addressAdapter(this._bcc) : undefined
+  }
+
+  // --- [ Methods ] -------------------------------------------------------------------------------
 
   public addTo(address: string, name?: string, as?: 'cc' | 'bcc') {
     switch (as) {
@@ -27,23 +47,15 @@ export class Mail {
     }
   }
 
-  // --- [ Getter ] --------------------------------------------------------------------------------
-
-  public get to() {
-    return this._to.size ? Mail.mailAdapter(this._to) : undefined
+  public attach(
+    filename: MailAttachment['filename'],
+    content: MailAttachment['content'],
+    contentType: MailAttachment['contentType'] = 'text/plain'
+  ) {
+    this.attachments.push({ filename, content, contentType })
   }
 
-  public get cc() {
-    return this._cc.size ? Mail.mailAdapter(this._cc) : undefined
-  }
-
-  public get bcc() {
-    return this._bcc.size ? Mail.mailAdapter(this._bcc) : undefined
-  }
-
-  // --- [ Methods ] -------------------------------------------------------------------------------
-
-  private static mailAdapter(map: MailMap) {
+  private static addressAdapter(map: MailMap) {
     return Array.from(map).map(([address, name]) => {
       if (!name) {
         return address

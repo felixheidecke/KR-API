@@ -1,16 +1,19 @@
-import { FormMail } from '../entities/FormMail.js'
-import { MailApi } from '../../../common/gateways/MailApi.js'
-import { MailRepo } from '../../../common/gateways/MailRepo.js'
 import { HttpError } from '../../../common/decorators/Error.js'
+import { jsonToCSV, jsonToText } from '../../../common/utils/convert-json.js'
+import { Mail } from '../../../common/entities/Mail.js'
+import { SendMailerApi } from '../../../common/gateways/SendMailerApi.js'
+import { MailRepo } from '../../../common/gateways/MailRepo.js'
+import { toFilenameWithDate } from '../../../common/utils/slugify.js'
 
 export class FormMailService {
   public static async send(
     recipientId: Array<number | string>,
     subject: string,
-    body: Record<string, string | number>
+    body: Record<string, string | number>,
+    config: { attachBodyAsCSV?: boolean } = {}
   ) {
     const recipients = await MailRepo.readMailAddresses(recipientId)
-    const mail = new FormMail()
+    const mail = new Mail()
 
     if (!recipients.length) {
       throw HttpError.BAD_REQUEST('Recipient not found.')
@@ -25,8 +28,12 @@ export class FormMailService {
     })
 
     mail.subject = subject.trim()
-    mail.jsonBody = body
+    mail.body = jsonToText(body)
 
-    return await MailApi.send(mail)
+    if (config.attachBodyAsCSV) {
+      mail.attach(toFilenameWithDate(subject, 'csv'), jsonToCSV(body), 'text/csv')
+    }
+
+    return await SendMailerApi.send(mail)
   }
 }

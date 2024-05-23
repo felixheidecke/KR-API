@@ -1,7 +1,7 @@
 import type { Mail } from '../entities/Mail.js'
 import useMailer from '../../modules/nodemailer.js'
 
-export class MailApi {
+export class SendMailerApi {
   static async send(mail: Mail) {
     const mailer = useMailer()
 
@@ -12,7 +12,8 @@ export class MailApi {
       bcc: mail.bcc,
       to: mail.to,
       subject: mail.subject,
-      text: mail.body
+      text: mail.body,
+      attachments: mail.attachments
     })
   }
 }
