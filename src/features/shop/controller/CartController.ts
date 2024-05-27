@@ -12,18 +12,26 @@ import type { UpdateCartRequestSchema } from '../schemas/updateCartRequestSchema
 export default async function (App: FastifyInstance) {
   App.addHook('onSend', cacheHeadersNoStoreHook)
 
+  App.addHook(
+    'onRequest',
+    async function ({ session, params }: InferFastifyRequest<UpdateCartRequestSchema>) {
+      session.cart ??= new Cart(params.module)
+    }
+  )
+
   App.put('/:module/cart', {
     preValidation: async function (request: InferFastifyRequest<UpdateCartRequestSchema>) {
       updateCartRequestSchema.parse(request)
     },
-    handler: async function ({ session, params, body }, reply) {
-      session.cart ??= new Cart(params.module)
+    handler: async function ({ session, body }, reply) {
+      const cartService = new CartService(session.cart)
 
       await Promise.all([
-        CartService.initialise(session.cart, { shouldThrow: true }),
-        CartService.updateProductQuantityById(session.cart, body)
+        cartService.initialise({ shouldThrow: true }),
+        cartService.updateProductQuantityById(body)
       ])
-      reply.send(session.cart.display())
+
+      reply.send(cartService.cart.display())
     }
   })
 
@@ -31,11 +39,12 @@ export default async function (App: FastifyInstance) {
     preValidation: async function (request: InferFastifyRequest<GetCartRequestSchema>) {
       getCartRequestSchema.parse(request)
     },
-    handler: async function ({ session, params }, reply) {
-      session.cart ??= new Cart(params.module)
+    handler: async function ({ session }, reply) {
+      const cartService = new CartService(session.cart)
 
-      await CartService.initialise(session.cart, { shouldThrow: true })
-      reply.send(session.cart.display())
+      await cartService.initialise({ shouldThrow: true })
+
+      reply.send(cartService.cart.display())
     }
   })
 

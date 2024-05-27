@@ -18,7 +18,7 @@ export const MIME_TYPE = {
   TEXT: 'text/plain',
   CSV: 'text/csv',
 }
-export const MEDIA_BASE_PATH = 'https://www.rheingau.de/data'
+export const MEDIA_BASE_PATH = 'https://media.klickrhein.de'
 export const LOCALE = 'de-DE'
 export const TIME_ZONE = 'Europe/Berlin'
 export const CURRENCY = 'EUR'

@@ -13,6 +13,8 @@ type BaseConfig = {
 }
 
 export class CartService {
+  constructor(public cart: Cart = new Cart(0)) {}
+
   /**
    * Adds a product to the cart by its ID, incrementing the quantity if it already exists.
    *
@@ -20,10 +22,12 @@ export class CartService {
    * @param {number} productId - The ID of the product to add.
    */
 
-  public static async addProductById(cart: Cart, productId: number) {
-    let quantity = (cart.getProduct(productId)?.quantity || 0) + 1 || 1
+  public async addProductById(productId: number) {
+    this.hasCartCheck()
 
-    await CartService.updateProductQuantityById(cart, [{ productId, quantity }])
+    let quantity = (this.cart.getProduct(productId)?.quantity || 0) + 1 || 1
+
+    await this.updateProductQuantityById([{ productId, quantity }])
   }
 
   /**
@@ -34,15 +38,14 @@ export class CartService {
    * @throws {HttpError} If one or more products are not found.
    */
 
-  public static async updateProductQuantityById(
-    cart: Cart,
-    products: { productId: number; quantity: number }[]
-  ) {
+  public async updateProductQuantityById(products: { productId: number; quantity: number }[]) {
+    this.hasCartCheck()
+
     // Remove products with quantity <= 0
     products
       .filter(({ quantity }) => quantity <= 0)
       .forEach(({ productId }) => {
-        cart.removeProduct(productId)
+        this.cart.removeProduct(productId)
       })
 
     // Update products with quantity > 0
@@ -50,7 +53,7 @@ export class CartService {
       products
         .filter(({ quantity }) => quantity > 0)
         .map(async ({ productId, quantity }) => {
-          const product = await ProductService.getProduct(cart.module, productId, {
+          const product = await ProductService.getProduct(this.cart.module, productId, {
             shouldThrow: true,
             skipModuleCheck: true
           })
@@ -63,10 +66,10 @@ export class CartService {
     )
 
     productsToUpdate.forEach(({ product, quantity }) => {
-      cart.addProduct(product, quantity)
+      this.cart.addProduct(product, quantity)
     })
 
-    cart.calculate()
+    this.cart.calculate()
   }
 
   /**
@@ -75,13 +78,13 @@ export class CartService {
    * @param {Cart} cart - The cart to initialise.
    */
 
-  public static async initialise(cart: Cart, config: BaseConfig = {}) {
+  public async initialise(config: BaseConfig = {}) {
     const [moduleExists, supplementalCost, shippingCost] = await Promise.all([
       config.skipModuleCheck
-        ? ModuleRepo.moduleExists(cart.module, 'shop3')
+        ? ModuleRepo.moduleExists(this.cart.module, 'shop3')
         : Promise.resolve(true),
-      SupplementalCostService.getSupplementalCost(cart.module, { skipModuleCheck: true }),
-      ShippingCostService.getShippingCost(cart.module, { skipModuleCheck: true })
+      SupplementalCostService.getSupplementalCost(this.cart.module, { skipModuleCheck: true }),
+      ShippingCostService.getShippingCost(this.cart.module, { skipModuleCheck: true })
     ])
 
     if (!moduleExists && config.shouldThrow) {
@@ -89,13 +92,19 @@ export class CartService {
     }
 
     if (supplementalCost) {
-      cart.supplementalCost = supplementalCost
+      this.cart.supplementalCost = supplementalCost
     }
 
     if (shippingCost) {
-      cart.shippingCost = shippingCost
+      this.cart.shippingCost = shippingCost
     }
 
-    cart.calculate()
+    this.cart.calculate()
+  }
+
+  private hasCartCheck() {
+    if (!this.cart.module) {
+      throw new Error('Instance does not have a cart.')
+    }
   }
 }
