@@ -3,7 +3,6 @@ import { EventRepo } from '../gateways/EventRepo.js'
 import { Event } from '../entities/Event.js'
 import { Image } from '../../../common/entities/Image.js'
 import { PDF } from '../../shop/entities/PDF.js'
-import { ModuleService } from '../../../common/services/ModuleService.js'
 import { HttpError } from '../../../common/decorators/Error.js'
 import { omit } from 'lodash-es'
 import { Flags } from '../entities/Flags.js'
@@ -95,7 +94,7 @@ export class EventService {
     event.website = repoEvent.url || undefined
     event.address = repoEvent.address
     event.organizer = repoEvent.presenter
-    event.coordinates = repoEvent.lat && repoEvent.lng ? [repoEvent.lat, repoEvent.lng] : [0, 0]
+    event.coordinates = [repoEvent.lat, repoEvent.lng]
 
     if (repoEvent.image) {
       event.image = new Image(repoEvent.image, repoEvent.imageDescription || repoEvent.title)
@@ -114,7 +113,7 @@ export class EventService {
     return new Image(repoImage.image, repoImage.description)
   }
 
-  private static createFlagsFromRepo(repoFlags: EventRepo.EventFlag[]): Flags {
+  private static createFlagsFromRepo(repoFlags: EventRepo.EventFlags): Flags {
     return new Flags(repoFlags)
   }
 }

@@ -10,21 +10,20 @@ export namespace EventRepo {
     title: string
     startDate: number
     endDate: number
-    description?: string
-    details?: string
-    image?: string
-    thumb?: string
-    imageDescription?: string
-    flagset: number | null
-    pdf?: string
-    pdfName?: string
-    pdfTitle?: string
-    address?: string
-    detailsURL?: string
-    url?: string
-    presenter?: string
-    lat?: number | null
-    lng?: number | null
+    description: string
+    details: string
+    image: string
+    thumb: string
+    imageDescription: string
+    pdf: string
+    pdfName: string
+    pdfTitle: string
+    address: string
+    detailsURL: string
+    url: string
+    presenter: string
+    lat: string
+    lng: string
   }
 
   export type EventImage = {
@@ -32,7 +31,7 @@ export namespace EventRepo {
     description: string
   }
 
-  export type EventFlag = string
+  export type EventFlags = string[]
 }
 export class EventRepo {
   /**
@@ -94,7 +93,7 @@ export class EventRepo {
    * @returns {Promise<string[]>} A promise that resolves to an array of flag titles.
    */
 
-  public static async readEventFlags(module: number, id: number): Promise<EventRepo.EventFlag[]> {
+  public static async readEventFlags(module: number, id: number): Promise<EventRepo.EventFlags> {
     return knex
       .select('Flag.title')
       .from('Event')
@@ -115,16 +114,16 @@ class EventQueryBuilder {
         'description',
         'details',
         knex.raw(
-          `IF(image IS NULL OR image = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', image)) AS image`
+          `IF(image IS NULL OR image = '', '', CONCAT('${MEDIA_BASE_PATH}/', image)) AS image`
         ),
         knex.raw(
-          `IF(thumb IS NULL OR thumb = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', thumb)) AS thumb`
+          `IF(thumb IS NULL OR thumb = '', '', CONCAT('${MEDIA_BASE_PATH}/', thumb)) AS thumb`
         ),
         knex.raw('CAST(imageDescription AS CHAR) as imageDescription'),
-        knex.raw(`IF(pdf IS NULL OR pdf = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', pdf)) AS pdf`),
+        knex.raw(`IF(pdf IS NULL OR pdf = '', '', CONCAT('${MEDIA_BASE_PATH}/', pdf)) AS pdf`),
         knex.raw('CAST(pdfName AS CHAR) as pdfName'),
         knex.raw('CAST(pdfTitle AS CHAR) as pdfTitle'),
-        knex.raw('CAST(commune AS CHAR) as commune'),
+        knex.raw(`IF(commune IS NULL OR commune = '' OR commune = '-', '', commune) as commune`),
         'module',
         'address',
         'detailsURL',

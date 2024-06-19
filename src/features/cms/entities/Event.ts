@@ -16,6 +16,7 @@ export class Event {
   protected _slug: string = ''
   protected _startDate?: Date
   protected _title: string = ''
+
   public address?: string
   public description?: string
   public details?: string
@@ -63,7 +64,7 @@ export class Event {
     this._endDate = isNumber(date) ? fromUnixTime(date) : new Date(date)
   }
 
-  set coordinates([lat, lng]: [number, number]) {
+  set coordinates([lat, lng]: [number | string, number | string]) {
     this._coordinates = [+lat, +lng]
   }
 
@@ -75,6 +76,8 @@ export class Event {
     }
 
     this.images.push(image)
+
+    return this
   }
 
   display() {
@@ -86,8 +89,8 @@ export class Event {
       description: this.description ? textile.parse(this.description) : undefined,
       details: this.details ? textile.parse(this.details) : undefined,
       address: this.address,
-      starts: this._startDate?.toString(),
-      ends: this._endDate?.toString(),
+      starts: this._startDate?.toISOString(),
+      ends: this._endDate?.toISOString(),
       image: this.image?.display(),
       pdf: this.pdf?.display(),
       website: this.website,
