@@ -7,7 +7,7 @@ export const patchOrderRequestSchema = z.object({
     module: z.coerce.number().gt(0)
   }),
   body: z.object({
-    address: addressSchema,
+    address: addressSchema.nullish(),
     deliveryAddress: deliveryAddressSchema.nullish(),
     message: z.string().nullish()
   })

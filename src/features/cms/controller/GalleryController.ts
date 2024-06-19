@@ -21,12 +21,11 @@ export default async function (App: FastifyInstance) {
 
   App.get('/gallery/:module', {
     preValidation: async (request: InferFastifyRequest<GetGalleryRequestSchema>) => {
-      const { params, query } = getGalleryRequestSchema.parse(request)
+      const { params } = getGalleryRequestSchema.parse(request)
       request.params = params
-      request.query = query
     },
     handler: async (request, reply) => {
-      const { params, query } = request
+      const { params } = request
 
       const gallery = await GalleryService.getGallery(params.module, {
         shouldThrow: true

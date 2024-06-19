@@ -11,9 +11,8 @@ import type { InferFastifyRequest } from '../../../common/types/InferFastifyRequ
 export default async function (App: FastifyInstance) {
   App.get('/events/:module/:id', {
     preValidation: async function (request: InferFastifyRequest<GetEventRequestSchema>) {
-      const { params, query } = getEventRequestSchema.parse(request)
+      const { params } = getEventRequestSchema.parse(request)
       request.params = params
-      request.query = query
     },
     handler: async function (request, reply) {
       const { module, id } = request.params

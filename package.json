@@ -1,6 +1,6 @@
 {
   "name": "kr-api",
-  "version": "5.9.3",
+  "version": "5.9.4",
   "private": true,
   "description": "Klickrhein Feature API (Freepy Sapling)",
   "main": "dist/index.js",
