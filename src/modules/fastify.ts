@@ -23,7 +23,8 @@ export function useFasitfy(config = {}) {
         return {
           method: request.method,
           origin: request.headers.origin || 'unknown',
-          url: request.url
+          url: request.url,
+          params: request.params
         }
       }
     }

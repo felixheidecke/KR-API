@@ -125,7 +125,7 @@ export class ArticleService {
 
     if (repoArticle.pdf) {
       article.pdf = new PDF(repoArticle.pdf)
-      article.pdf.title = repoArticle.pdfTitle
+      article.pdf.title = repoArticle.pdfTitle || 'Weitere Informationen'
     }
 
     return article

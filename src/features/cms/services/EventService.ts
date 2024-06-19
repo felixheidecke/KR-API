@@ -104,7 +104,7 @@ export class EventService {
 
     if (repoEvent.pdf) {
       event.pdf = new PDF(repoEvent.pdf)
-      event.pdf.title = repoEvent.pdfTitle as string
+      event.pdf.title = repoEvent.pdfTitle || 'Weitere Informationen'
     }
 
     return event

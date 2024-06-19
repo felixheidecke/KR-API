@@ -54,8 +54,6 @@ export class ArticleRepo {
       limit?: number
     } = {}
   ): Promise<ArticleRepo.Article[]> {
-    console.log({ query })
-
     return new RepoArticleBuilder(module)
       .created('<', query.createdBefore)
       .created('>', query.createdAfter)
