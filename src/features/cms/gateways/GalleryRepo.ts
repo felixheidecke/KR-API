@@ -28,7 +28,7 @@ export class GalleryRepo {
           `CONCAT('${MEDIA_BASE_PATH}/', Photo.image, '/#', LOWER(Photo.filename)) AS image`
         ),
         knex.raw(`CONCAT('${MEDIA_BASE_PATH}/', Photo.image, '_thumb/') AS thumb`),
-        knex.raw(`IF(ISNULL(Photo.description), '', Photo.description) AS description`)
+        knex.raw('COALESCE(NULLIF(Photo.description, ""), NULL) AS description')
       ])
       .from('PhotoAlbum as Album')
       .leftJoin('Photo', 'Album._id', 'Photo.album')

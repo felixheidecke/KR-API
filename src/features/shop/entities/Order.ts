@@ -1,9 +1,12 @@
+import { Address } from './Address.js'
 import { fromUnixTime } from 'date-fns'
-import { isEmpty, isNumber, omitBy } from 'lodash-es'
-import expandPrice, { type ExpandedPrice } from '../../../common/utils/expand-price.js'
+import { isEmpty, isNumber, pick } from 'lodash-es'
+import { toUrlSlug } from '../../../common/utils/slugify.js'
+import expandPrice from '../../../common/utils/expand-price.js'
 import randomId from '../../../common/utils/random-id.js'
 
 import type { Product } from './Product.js'
+import type { ExpandedPrice } from '../../../common/utils/expand-price.js'
 
 type CartProduct = {
   id: number
@@ -15,27 +18,6 @@ type CartProduct = {
   total: number
 }
 
-type Address = {
-  company?: string
-  salutation?: 'Herr' | 'Frau'
-  firstname?: string
-  name?: string
-  address?: string
-  zip?: string
-  city?: string
-  email?: string
-  phone?: string
-}
-
-type DeliveryAddress = {
-  name?: string
-  address?: string
-  zip?: string
-  city?: string
-  company?: string
-  phone?: string
-}
-
 export class Order {
   constructor(readonly module: number) {}
 
@@ -43,10 +25,10 @@ export class Order {
   public shippingCost = 0
   public discount = 0
   public paymentType: 'paypal' | 'prepayment' = 'prepayment'
-  public message: string | undefined
-  private _address: Address = {}
-  private _deliveryAddress: DeliveryAddress = {}
-  private _transactionId: string = ''
+  private _message: string | null = null
+  private _address = new Address()
+  private _deliveryAddress: Address | null = null
+  private _transactionId: string | null = null
   private _date: Date | null = null
   private _cart: CartProduct[] = []
 
@@ -65,12 +47,21 @@ export class Order {
   }
 
   /**
+   * Sets the message.
+   * @param {string} message - The message to set.
+   * @returns The current instance for chaining.
+   */
+  public set message(message: string | null | undefined) {
+    this._message = message?.trim() || null
+  }
+
+  /**
    * Sets the transaction ID.
    * @param {string | number} id - The transaction ID to set.
    * @returns The current instance for chaining.
    */
   public set transactionId(id: string | number | null) {
-    this._transactionId = id ? id.toString().toLowerCase() : ''
+    this._transactionId = id ? id.toString().toLowerCase() : null
   }
 
   /**
@@ -78,13 +69,20 @@ export class Order {
    * @param {Address} address - The address to set.
    * @returns The current instance for chaining.
    */
-  public set address(address: Address) {
-    const newAddress = {
-      ...address,
-      email: address?.email?.toLowerCase()
+  public set address(address: Partial<Address> | null | undefined) {
+    if (!address) {
+      this._address = new Address()
+    } else {
+      this._address.company = address.company
+      this._address.salutation = address.salutation
+      this._address.firstname = address.firstname
+      this._address.name = address.name
+      this._address.address = address.address
+      this._address.zip = address.zip
+      this._address.city = address.city
+      this._address.email = address.email
+      this._address.phone = address.phone
     }
-
-    this._address = address ? (omitBy(newAddress, isEmpty) as Address) : {}
   }
 
   /**
@@ -92,8 +90,17 @@ export class Order {
    * @param {DeliveryAddress | null} address - The delivery address to set.
    * @returns The current instance for chaining.
    */
-  public set deliveryAddress(address: DeliveryAddress | null) {
-    this._deliveryAddress = address ? (omitBy(address, isEmpty) as DeliveryAddress) : {}
+  public set deliveryAddress(address: Partial<Address> | null | undefined) {
+    if (!address) {
+      this._deliveryAddress = null
+    } else {
+      this._deliveryAddress = new Address()
+      this._deliveryAddress.company = address.company
+      this._deliveryAddress.name = address.name
+      this._deliveryAddress.address = address.address
+      this._deliveryAddress.zip = address.zip
+      this._deliveryAddress.city = address.city
+    }
   }
 
   /**
@@ -107,15 +114,19 @@ export class Order {
 
   // --- [ Getter ] --------------------------------------------------------------------------------
 
+  public get message() {
+    return this._message
+  }
+
   public get address(): Address {
     return this._address
   }
 
-  public get deliveryAddress(): DeliveryAddress {
+  public get deliveryAddress(): Address | null {
     return this._deliveryAddress
   }
 
-  public get transactionId(): string {
+  public get transactionId(): string | null {
     return this._transactionId
   }
 
@@ -166,7 +177,20 @@ export class Order {
    * @returns The current instance for chaining.
    */
   public generateTransactionId(): this {
-    this._transactionId = randomId()
+    const address = this._address.display()
+
+    if (address.name && address.firstname) {
+      const parts = [
+        address.name.substring(0, 3),
+        address.firstname.substring(0, 1),
+        randomId('long')
+      ]
+
+      this._transactionId = toUrlSlug(parts.join(''))
+    } else {
+      this._transactionId = randomId('long')
+    }
+
     return this
   }
 
@@ -183,12 +207,14 @@ export class Order {
 
 class OrderDisplay {
   constructor(order: Order) {
-    this.date = order.date ? order.date.toString() : null
+    this.date = order.date ? order.date.toISOString() : null
     this.transactionId = order.transactionId
     this.paymentType = order.paymentType
-    this.address = !isEmpty(order.address) ? order.address : undefined
-    this.deliveryAddress = !isEmpty(order.deliveryAddress) ? order.deliveryAddress : undefined
-    this.message = order.message
+    this.address = order.address.display()
+    this.deliveryAddress = order.deliveryAddress
+      ? pick(order.deliveryAddress?.display(), ['company', 'name', 'address', 'zip', 'city'])
+      : undefined
+    this.message = order.message || undefined
     this.total = expandPrice(order.total)
     this.shippingCost = expandPrice(order.shippingCost)
     this.cart = order.cart.map(product => ({
@@ -199,10 +225,10 @@ class OrderDisplay {
   }
 
   readonly date: string | null
-  readonly transactionId: string
+  readonly transactionId: string | null
   readonly paymentType: Order['paymentType']
-  readonly address: Address | undefined
-  readonly deliveryAddress: DeliveryAddress | undefined
+  readonly address: { [k: string]: string | null }
+  readonly deliveryAddress: { [k: string]: string | null } | undefined
   readonly message: string | undefined
   readonly total: ExpandedPrice
   readonly shippingCost: ExpandedPrice

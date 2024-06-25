@@ -13,7 +13,7 @@ type BaseConfig = {
 }
 
 export class CartService {
-  constructor(public cart: Cart = new Cart(0)) {}
+  constructor(public cart: Cart) {}
 
   /**
    * Adds a product to the cart by its ID, incrementing the quantity if it already exists.
@@ -27,7 +27,7 @@ export class CartService {
 
     let quantity = (this.cart.getProduct(productId)?.quantity || 0) + 1 || 1
 
-    await this.updateProductQuantityById([{ productId, quantity }])
+    await this.updateProductQuantity([{ productId, quantity }])
   }
 
   /**
@@ -38,7 +38,7 @@ export class CartService {
    * @throws {HttpError} If one or more products are not found.
    */
 
-  public async updateProductQuantityById(products: { productId: number; quantity: number }[]) {
+  public async updateProductQuantity(products: { productId: number; quantity: number }[]) {
     this.hasCartCheck()
 
     // Remove products with quantity <= 0
@@ -54,9 +54,12 @@ export class CartService {
         .filter(({ quantity }) => quantity > 0)
         .map(async ({ productId, quantity }) => {
           const product = await ProductService.getProduct(this.cart.module, productId, {
-            shouldThrow: true,
             skipModuleCheck: true
           })
+
+          if (!product) {
+            throw HttpError.BAD_REQUEST('Unknown product ID.')
+          }
 
           return {
             product: product as Product,

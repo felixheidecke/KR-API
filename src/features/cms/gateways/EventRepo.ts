@@ -108,29 +108,25 @@ class EventQueryBuilder {
     this._query = knex('Event')
       .select(
         '_id',
+        'module',
         'title',
         'startDate',
         'endDate',
-        'description',
-        'details',
-        knex.raw(
-          `IF(image IS NULL OR image = '', '', CONCAT('${MEDIA_BASE_PATH}/', image)) AS image`
-        ),
-        knex.raw(
-          `IF(thumb IS NULL OR thumb = '', '', CONCAT('${MEDIA_BASE_PATH}/', thumb)) AS thumb`
-        ),
-        knex.raw('CAST(imageDescription AS CHAR) as imageDescription'),
-        knex.raw(`IF(pdf IS NULL OR pdf = '', '', CONCAT('${MEDIA_BASE_PATH}/', pdf)) AS pdf`),
-        knex.raw('CAST(pdfName AS CHAR) as pdfName'),
-        knex.raw('CAST(pdfTitle AS CHAR) as pdfTitle'),
-        knex.raw(`IF(commune IS NULL OR commune = '' OR commune = '-', '', commune) as commune`),
-        'module',
-        'address',
-        'detailsURL',
-        'url',
-        'presenter',
-        'lat',
-        'lng'
+        knex.raw('IF(description = "", NULL, description) AS description'),
+        knex.raw('IF(details = "", NULL, details) AS details'),
+        knex.raw(`IF(image = "", NULL, CONCAT('${MEDIA_BASE_PATH}/', image)) AS image`),
+        knex.raw(`IF(thumb = "", NULL, CONCAT('${MEDIA_BASE_PATH}/', thumb)) AS thumb`),
+        knex.raw(`IF(imageDescription = '', NULL, imageDescription) AS imageDescription`),
+        knex.raw(`IF(pdf = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', pdf)) AS pdf`),
+        knex.raw(`IF(pdfName = '', NULL, pdfName) AS pdfName`),
+        knex.raw(`IF(pdfTitle = '', NULL, pdfTitle) AS pdfTitle`),
+        knex.raw(`IF(commune = '' OR commune = '-', NULL, commune) AS commune`),
+        knex.raw(`IF(address = '', NULL, address) AS address`),
+        knex.raw(`IF(url = '', NULL, url) AS url`),
+        knex.raw(`IF(detailsURL = '', NULL, detailsURL) AS detailsURL`),
+        knex.raw(`IF(presenter = '', NULL, presenter) AS presenter`),
+        knex.raw(`IF(lat = '0.000000', NULL, lat) AS lat`),
+        knex.raw(`IF(lng = '0.000000', NULL, lng) AS lng`)
       )
       .where({ 'Event.module': module })
   }

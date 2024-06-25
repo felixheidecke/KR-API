@@ -5,9 +5,6 @@ import { ModuleServiceUtils } from './ModuleService.js'
 import { ModuleRepo } from '../gateways/ModuleRepo.js'
 import { HttpError } from '../decorators/Error.js'
 
-import type { RepoClient } from '../gateways/ClientRepo.js'
-import type { RepoModule } from '../gateways/ModuleRepo.js'
-
 export class ClientService {
   /**
    * Retrieves a client by its ID.
@@ -69,7 +66,10 @@ export class ClientServiceUtils {
    * @param {RepoModule} repoModule - The repository module to map.
    * @returns {Module} - The mapped Module entity.
    */
-  public static createClientFromRepo(repoClient: RepoClient, repoModules?: RepoModule[]): Client {
+  public static createClientFromRepo(
+    repoClient: ClientRepo.Client,
+    repoModules?: ModuleRepo.Module[]
+  ): Client {
     const client = new Client(repoClient.id)
 
     client.login = repoClient.login

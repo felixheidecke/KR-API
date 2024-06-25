@@ -1,8 +1,9 @@
-import { isBoolean } from 'lodash-es'
-import knex from '../../../modules/knex.js'
-import type { Knex } from 'knex'
 import { getUnixTime } from 'date-fns'
+import { isBoolean } from 'lodash-es'
 import { MEDIA_BASE_PATH } from '../../../constants.js'
+import knex from '../../../modules/knex.js'
+
+import type { Knex } from 'knex'
 
 export namespace ArticleRepo {
   export type Article = {
@@ -73,20 +74,16 @@ class RepoArticleBuilder {
         'title',
         'date',
         'text',
+        knex.raw(`IF(image = "", NULL, CONCAT('${MEDIA_BASE_PATH}/', image)) AS image`),
         knex.raw(
-          `IF(ISNULL(image) OR image = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', image)) AS image`
+          `IF(imageSmall = "", NULL, CONCAT('${MEDIA_BASE_PATH}/', imageSmall)) AS imageSmall`
         ),
-        knex.raw(
-          `IF(ISNULL(imageSmall) OR imageSmall = '', '', CONCAT('${MEDIA_BASE_PATH}/', imageSmall)) AS imageSmall`
-        ),
-        knex.raw('IF(ISNULL(imageDescription), "", imageDescription) as imageDescription'),
-        knex.raw(`IF(ISNULL(pdf) OR pdf = '', NULL, CONCAT('${MEDIA_BASE_PATH}/', pdf)) AS pdf`),
-        knex.raw('CAST(pdfName AS CHAR) as pdfName'),
-        knex.raw(
-          `IF(ISNULL(pdfTitle) OR pdfTitle = '', 'Weitere Informationen', pdfTitle) AS pdfTitle`
-        ),
-        'web',
-        'author'
+        knex.raw('COALESCE(NULLIF(imageDescription, ""), NULL) AS imageDescription'),
+        knex.raw(`IF(pdf = "", NULL, CONCAT('${MEDIA_BASE_PATH}/', pdf)) AS pdf`),
+        knex.raw('COALESCE(NULLIF(pdfName, ""), NULL) AS pdfName'),
+        knex.raw('COALESCE(NULLIF(pdfTitle, ""), NULL, "Weitere Informationen") AS pdfTitle'),
+        knex.raw('COALESCE(NULLIF(web, ""), NULL) AS web'),
+        knex.raw('COALESCE(NULLIF(author, ""), NULL) AS author')
       )
       .where({ module, active: 1 })
   }

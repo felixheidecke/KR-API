@@ -1,5 +1,5 @@
 import { HttpError } from '../decorators/Error.js'
-import { ModuleRepo, type RepoModule } from '../gateways/ModuleRepo.js'
+import { ModuleRepo } from '../gateways/ModuleRepo.js'
 import Module from '../entities/Module.js'
 
 export class ModuleService {
@@ -66,7 +66,7 @@ export class ModuleServiceUtils {
    * @param {RepoModule} repoModule - The repository module to map.
    * @returns {Module} - The mapped Module entity.
    */
-  public static createModuleFromRepo(repoModule: RepoModule) {
+  public static createModuleFromRepo(repoModule: ModuleRepo.Module) {
     const module = new Module(repoModule.id)
 
     module.customer = repoModule.customer

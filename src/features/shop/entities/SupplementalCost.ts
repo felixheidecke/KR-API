@@ -1,6 +1,5 @@
-// @ts-ignore
-import textile from 'textile-js'
 import expandPrice from '../../../common/utils/expand-price.js'
+import { handleText } from '../../cms/utils/handleText.js'
 
 export class SupplementalCost {
   constructor(readonly module: number) {}
@@ -23,12 +22,12 @@ class SupplementalCostDisplay {
     this.formatted = formatted
     this.title = supplementalCost.title
     this.description = supplementalCost.description
-      ? textile.parse(supplementalCost.description)
-      : ''
+      ? handleText(supplementalCost.description)
+      : null
   }
 
   readonly value: number
   readonly formatted: string
   readonly title: string
-  readonly description: string
+  readonly description: string | null
 }

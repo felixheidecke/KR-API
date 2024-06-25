@@ -5,28 +5,10 @@ export class PayPal {
   public secret = ''
   public orderId = ''
   public paymentId = ''
-  private _accessToken = ''
-  private _accessTokenExpiresIn = 0
-
-  // --- [ Setter ] --------------------------------------------------------------------------------
-
-  public set accessToken(token: string) {
-    this._accessToken = token
-  }
-
-  public set accessTokenExpiresIn(expiresIn: number) {
-    this._accessTokenExpiresIn = expiresIn
-  }
+  public accessToken = ''
+  public accessTokenExpiresIn = 0
 
   // --- [ Getter ] --------------------------------------------------------------------------------
-
-  public get accessToken() {
-    return this._accessToken
-  }
-
-  public get accessTokenExpiresIn() {
-    return this._accessTokenExpiresIn
-  }
 
   public get isOrderCreated() {
     return !!this.orderId
@@ -34,5 +16,15 @@ export class PayPal {
 
   public get isPaymentCompleted() {
     return !!this.paymentId
+  }
+
+  // --- [ Methods ] ------------------------------------------------------------------------------
+
+  display() {
+    return Object.freeze({
+      clientId: this.clientId,
+      orderId: this.orderId,
+      paymentId: this.paymentId
+    })
   }
 }

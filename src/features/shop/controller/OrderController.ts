@@ -32,17 +32,18 @@ export default async function (App: FastifyInstance) {
     handler: async function ({ session, params, body }, reply) {
       session.order ??= new Order(params.module)
 
-      if (body.address) {
-        session.order.address = body.address as PatchOrderRequestSchema['body']['address']
+      if ('address' in body) {
+        session.order.address = body.address as PatchOrderRequestSchema['body']['address'] | null
       }
 
-      if (body.deliveryAddress !== undefined) {
-        session.order.deliveryAddress =
-          body.deliveryAddress as PatchOrderRequestSchema['body']['deliveryAddress']
+      if ('deliveryAddress' in body) {
+        session.order.deliveryAddress = body.deliveryAddress as
+          | PatchOrderRequestSchema['body']['deliveryAddress']
+          | null
       }
 
-      if (body.message !== undefined) {
-        session.order.message = body.message as string
+      if ('message' in body) {
+        session.order.message = body.message?.trim() || ''
       }
 
       reply.send(session.order.display())
@@ -60,7 +61,9 @@ export default async function (App: FastifyInstance) {
       OrderService.importCart(session.order, session.cart)
       await OrderService.saveOrder(session.order)
       await OrderService.sendOrderConfirmationMail(session.order, headers.origin as string)
-      reply.send({ transactionId: session.order.transactionId })
+      reply.send({
+        transactionId: session.order.transactionId
+      })
       session.destroy()
     }
   })

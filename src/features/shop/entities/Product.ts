@@ -1,5 +1,3 @@
-// @ts-ignore: Missing declaration
-import textile from 'textile-js'
 import { formatCurrency, formatNumber } from '../../../common/utils/number-format.js'
 import { GroupPath } from './GroupPath.js'
 import { isNumber } from 'lodash-es'
@@ -10,6 +8,7 @@ import round from '../../../common/utils/round.js'
 
 import type { PDF } from './PDF.js'
 import type { Image } from '../../../common/entities/Image.js'
+import { handleText } from '../../cms/utils/handleText.js'
 
 type Quantity = { value: number; unit: string } | undefined
 type Weight = { value: number; unit: string } | undefined
@@ -20,18 +19,18 @@ export class Product {
   // --- [ Member ] --------------------------------------------------------------------------------
 
   public id: number = 0
-  public group?: number
-  public ean?: string
-  public price?: number
-  public vat?: number
-  public frontpage?: boolean
-  public image?: Image
-  public pdf?: PDF
+  public group?: number | null
+  public ean?: string | null
+  public price?: number | null
+  public vat?: number | null
+  public frontpage?: boolean | null
+  public image?: Image | null
+  public pdf?: PDF | null
   public path = new GroupPath()
-  public name?: string
-  public description?: string
-  public teaser?: string
-  public legal?: string
+  public name?: string | null
+  public description?: string | null
+  public teaser?: string | null
+  public legal?: string | null
 
   protected _code?: string
   protected _quantity?: Quantity
@@ -92,42 +91,42 @@ export class Product {
     return Object.freeze({
       id: this.id,
       name: this.name,
-      group: this.group,
+      group: this.group || null,
       slug: this.slug,
-      code: this.code,
-      ean: this.ean,
-      description: this.description ? textile.parse(this.description) : undefined,
-      teaser: this.teaser ? textile.parse(this.teaser) : undefined,
-      legal: this.legal ? textile.parse(this.legal) : undefined,
+      code: this.code || null,
+      ean: this.ean || null,
+      description: this.description ? handleText(this.description) : null,
+      teaser: this.teaser ? handleText(this.teaser) : null,
+      legal: this.legal ? handleText(this.legal) : null,
       path: this.path?.display(),
       quantity: this.quantity
         ? {
             value: this.quantity.value,
             formatted: formatNumber.format(this.quantity.value) + ' ' + this.quantity.unit
           }
-        : undefined,
+        : null,
       weight: this.weight
         ? {
             value: this.weight.value,
             formatted: formatNumber.format(this.weight.value) + ' ' + this.weight.unit
           }
-        : undefined,
-      price: isNumber(this.price) ? expandPrice(this.price) : undefined,
+        : null,
+      price: isNumber(this.price) ? expandPrice(this.price) : null,
       pricePerUnit:
         this.pricePerUnit && this.quantity
           ? {
               value: this.pricePerUnit,
               formatted: formatCurrency.format(this.pricePerUnit) + ' pro ' + this.quantity.unit
             }
-          : undefined,
+          : null,
       vat: this.vat
         ? {
             value: this.vat,
             formatted: this.vat + '%'
           }
-        : undefined,
-      image: this.image?.display(),
-      pdf: this.pdf?.display(),
+        : null,
+      image: this.image?.display() || null,
+      pdf: this.pdf?.display() || null,
       frontpage: this.frontpage
     })
   }

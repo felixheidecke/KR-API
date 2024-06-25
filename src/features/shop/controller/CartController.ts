@@ -21,14 +21,16 @@ export default async function (App: FastifyInstance) {
 
   App.put('/:module/cart', {
     preValidation: async function (request: InferFastifyRequest<UpdateCartRequestSchema>) {
-      updateCartRequestSchema.parse(request)
+      const { params, body } = updateCartRequestSchema.parse(request)
+      request.params = params
+      request.body = body
     },
     handler: async function ({ session, body }, reply) {
       const cartService = new CartService(session.cart)
 
       await Promise.all([
         cartService.initialise({ shouldThrow: true }),
-        cartService.updateProductQuantityById(body)
+        cartService.updateProductQuantity(body)
       ])
 
       reply.send(cartService.cart.display())

@@ -53,7 +53,9 @@ export class OrderService {
   }
 
   /**
-   * Saves an order to the repo.
+   * Generate and set transaction ID on the order.
+   * Generate and set date on the order.
+   * Saves order to the repo.
    *
    * @param {Order} order - The order object to be saved.
    * @throws {HttpError} If the order has invalid properties or cannot be saved.
@@ -93,7 +95,7 @@ export class OrderService {
    * @param {Cart} cart - The cart to be imported.
    */
 
-  public static async importCart(order: Order, cart: Cart) {
+  public static importCart(order: Order, cart: Cart) {
     order.cart = []
     order.total = cart.total
     order.shippingCost = cart.shipping
@@ -147,7 +149,7 @@ export class OrderService {
     ])
 
     mail.from = `${client.name} <${client.email}>`
-    mail.subject = `Ihre Bestellung bei ${new URL(origin).hostname} (${order.transactionId?.toUpperCase()})`
+    mail.subject = `Ihre Bestellung bei ${new URL(origin).hostname} (${(order.transactionId as string)?.toUpperCase()})`
     mail.body = mailTemplate({
       ...order.display(),
       date: (order.date as Date).toLocaleString('de-DE'),
@@ -161,7 +163,7 @@ export class OrderService {
     mail.addTo(order.address.email as string, order.address.firstname + ' ' + order.address.name)
     mail.addTo(client.email as string, client.name as string, 'bcc')
 
-    await SendMailerApi.send(mail)
+    return await SendMailerApi.send(mail)
   }
 
   /**
@@ -188,15 +190,15 @@ export class OrderService {
     return {
       module: order.module,
       date: getUnixTime(order.date as Date),
-      transactionId: order.transactionId,
+      transactionId: order.transactionId as string,
       payment: order.paymentType,
       amount: order.total,
-      shipmentName: order.deliveryAddress.name || '',
-      shipmentAddress: order.deliveryAddress.address || '',
-      shipmentZip: order.deliveryAddress.zip || '',
-      shipmentCity: order.deliveryAddress.city || '',
-      shipmentCompany: order.deliveryAddress.company || '',
-      shipmentPhone: order.deliveryAddress.phone || '',
+      shipmentName: order.deliveryAddress?.name || '',
+      shipmentAddress: order.deliveryAddress?.address || '',
+      shipmentZip: order.deliveryAddress?.zip || '',
+      shipmentCity: order.deliveryAddress?.city || '',
+      shipmentCompany: order.deliveryAddress?.company || '',
+      shipmentPhone: order.deliveryAddress?.phone || '',
       name: order.address.name || '',
       address: order.address.address || '',
       zip: order.address.zip || '',

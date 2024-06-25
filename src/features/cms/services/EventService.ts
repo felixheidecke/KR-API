@@ -89,8 +89,8 @@ export class EventService {
     event.title = repoEvent.title
     event.startDate = fromUnixTime(repoEvent.startDate)
     event.endDate = fromUnixTime(repoEvent.endDate)
-    event.description = repoEvent.description
-    event.details = repoEvent.details
+    event.teaser = repoEvent.description
+    event.description = repoEvent.details
     event.website = repoEvent.url || undefined
     event.address = repoEvent.address
     event.organizer = repoEvent.presenter

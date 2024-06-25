@@ -16,11 +16,11 @@ export default async (App: FastifyInstance) => {
       const { query } = request
       const recipients = config.to.split(',')
 
-      await FormMailService.send(recipients, config.subject, body, {
+      const { messageId } = await FormMailService.send(recipients, config.subject, body, {
         attachBodyAsCSV: query.attachBodyAsCSV
       })
 
-      reply.code(201).send({ done: true })
+      reply.code(201).send({ messageId })
     }
   })
 }

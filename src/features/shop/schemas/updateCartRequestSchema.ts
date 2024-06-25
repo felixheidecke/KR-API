@@ -6,8 +6,12 @@ export const updateCartRequestSchema = z.object({
   }),
   body: z.array(
     z.object({
-      productId: z.number().gt(0),
-      quantity: z.number().gte(0)
+      productId: z
+        .number({ required_error: 'Product ID is required.' })
+        .gt(0, { message: 'Product ID must be greater than 0.' }),
+      quantity: z
+        .number({ required_error: 'Product quantity is required.' })
+        .gte(0, { message: 'Quantity must be greater than or equal to 0.' })
     })
   )
 })

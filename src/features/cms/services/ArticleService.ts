@@ -108,7 +108,7 @@ export class ArticleService {
     article.id = repoArticle._id
     article.title = repoArticle.title
     article.date = repoArticle.date
-    article.text = repoArticle.text
+    article.teaser = repoArticle.text
     article.web = repoArticle.web
     article.author = repoArticle.author
 

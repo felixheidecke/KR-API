@@ -12,17 +12,12 @@ export const toFilenameWithDate = (name: string, appendix = '') => {
 }
 
 export const toUrlSlug = (string: string, maxlength?: number): string => {
-  if (maxlength && string.length > maxlength) {
-    string = string.substring(0, maxlength)
-    string = string.substring(0, string.lastIndexOf(' '))
-  }
-
   // @ts-ignore
   return slugify(string, {
     lower: true,
     locale: 'de',
     remove: /[*+~.,/()\[\]'"!?:@]/g
-  })
+  }).substring(0, maxlength || 100)
 }
 
 export default { slugify }

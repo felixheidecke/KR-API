@@ -1,14 +1,15 @@
 import knex from '../../modules/knex.js'
 
-export type RepoClient = {
-  id: number
-  login: string
-  superuser: 1 | 0
-  lastLogin: number
+export namespace ClientRepo {
+  export type Client = {
+    id: number
+    login: string
+    superuser: 1 | 0
+    lastLogin: number
+  }
 }
-
 export class ClientRepo {
-  static async readClient(id: number): Promise<RepoClient | null> {
+  static async readClient(id: number): Promise<ClientRepo.Client | null> {
     const client = await knex('Customer')
       .select('_id as id', 'login', 'superuser', 'lastLogin')
       .where({ _id: id })
@@ -22,7 +23,7 @@ export class ClientRepo {
    * @param module - The module number.
    * @returns A Promise that resolves to the client object if found, or null if not found.
    */
-  static async readClientByModule(module: number): Promise<RepoClient | null> {
+  static async readClientByModule(module: number): Promise<ClientRepo.Client | null> {
     const client = await knex
       .select('Customer._id as id', 'login', 'superuser', 'lastLogin')
       .from('Customer')
@@ -38,7 +39,7 @@ export class ClientRepo {
    * @param hashedApiKey - The API key sha512/256 hash of the customer.
    * @returns A promise that resolves to the customer object if found, or null if not found.
    */
-  public static async readClientByApiKey(hashedApiKey: string): Promise<RepoClient | null> {
+  public static async readClientByApiKey(hashedApiKey: string): Promise<ClientRepo.Client | null> {
     const client = await knex('ApiKey as ak')
       .select('c._id as id', 'c.login', 'c.superuser', 'c.lastLogin', 'ak.owner as client')
       .join('Customer as c', 'ak.owner', '=', 'c._id')

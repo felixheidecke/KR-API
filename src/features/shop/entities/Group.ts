@@ -1,6 +1,5 @@
-// @ts-ignore: Missing declaration
-import textile from 'textile-js'
 import { toUrlSlug } from '../../../common/utils/slugify.js'
+import { handleText } from '../../cms/utils/handleText.js'
 import { GroupPath } from './GroupPath.js'
 
 export class Group {
@@ -29,7 +28,7 @@ export class Group {
       path: this.path?.display(),
       name: this.name?.trim(),
       slug: this.slug,
-      description: this.description ? (textile.parse(this.description) as string) : undefined,
+      description: this.description ? handleText(this.description) : undefined,
       subgroups: this.subgroups?.map(subgroup => subgroup.display())
     })
   }

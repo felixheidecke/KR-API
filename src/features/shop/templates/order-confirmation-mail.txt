@@ -1,23 +1,18 @@
 + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 +                                                                 +
 +                  T E S T   B E S T E L L U N G                  +
-+                                                                 +
-+    Diese Bestellung greift auf das standard Template zurück.    +
-+    Original nur über Webserver verfügbar, oder mit fixed        +
-+    "Origin" Request-Header != localhost oder 127.0.0.1          + 
-+                                                                 +
-+    Dies ist KEINE gültige Bestellung!                           +
++                Dies ist KEINE gültige Bestellung                +
 +                                                                 +
 + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 
 Hallo <%= address.salutation + ' ' + address.name %>,
 
 Ihre Bestellung ist bei uns eingegangen:
-<%= new URL('/shop/order-confirmation/' + transactionId, origin) %>
+<%= new URL('/shop/order/' + transactionId, 'https://example.com') %>
 
-------------------------------------------------------------
+-------------------------------------------------------------------
 ${ cart.join('\n') }
-------------------------------------------------------------
+-------------------------------------------------------------------
 
 Transaktion:  <%= transactionId.toUpperCase() %>
 Datum:        <%= date.toLocaleString('de-DE') %>
@@ -39,7 +34,7 @@ Versand an:   <%= deliveryAddress.company %>
   print(message)
 } %>
 
-------------------------------------------------------------
+-------------------------------------------------------------------
 Lieferung gegen Zahlung via PayPal oder Banküberweisung an folgendes Konto:
 
 Name des Kontoinhaber
@@ -79,7 +74,7 @@ Um Ihr Widerrufsrecht auszuüben, müssen Sie uns
   Mail: <%= owner.email %>
 
 mittels einer eindeutigen Erklärung (Bspw. postalisch oder per E-Mail) über Ihren Entschluss, diesen Vertrag zu widerrufen, informieren. Sie können dafür das beigefügte Muster-Widerrufsformular verwenden.
-<%= new URL('widerrufsformular.pdf', origin) %>
+<%= new URL('widerrufs.pdf', 'https://example.com') %>
 
 Machen Sie von dieser Möglichkeit Gebrauch, so werden wir Ihnen unverzüglich eine Bestätigung über den Eingang eines solchen Widerrufs übermitteln.
 

@@ -1,27 +1,26 @@
-// @ts-ignore
-import textile from 'textile-js'
 import { fromUnixTime } from 'date-fns'
-import { isNumber } from 'lodash-es'
+import { isNumber, isUndefined } from 'lodash-es'
 import { toUrlSlug } from '../../../common/utils/slugify.js'
 
 import type { Image } from '../../../common/entities/Image.js'
 import type { PDF } from '../../shop/entities/PDF.js'
 import type { Flags } from './Flags.js'
+import { handleText } from '../utils/handleText.js'
 
 export class Event {
   constructor(readonly module: number) {}
 
   protected _coordinates: [number, number] = [0, 0]
   protected _endDate?: Date
-  protected _slug: string = ''
   protected _startDate?: Date
+  protected _slug: string = ''
   protected _title: string = ''
 
-  public address?: string
-  public description?: string
-  public details?: string
-  public flags?: Flags
   public id: number = 0
+  public address?: string | null
+  public teaser?: string | null
+  public description?: string | null
+  public flags?: Flags
   public image?: Image
   public images?: Image[]
   public organizer?: string
@@ -43,7 +42,7 @@ export class Event {
     const [lat, lng] = this._coordinates
 
     if (lat + lng === 0) {
-      return undefined
+      return null
     } else {
       return this._coordinates
     }
@@ -86,13 +85,13 @@ export class Event {
       module: +this.module,
       slug: this.slug,
       title: this.title,
-      description: this.description ? textile.parse(this.description) : undefined,
-      details: this.details ? textile.parse(this.details) : undefined,
+      teaser: this.teaser,
+      description: this.description ? handleText(this.description) : null,
       address: this.address,
-      starts: this._startDate?.toISOString(),
-      ends: this._endDate?.toISOString(),
-      image: this.image?.display(),
-      pdf: this.pdf?.display(),
+      starts: this._startDate?.toISOString() || null,
+      ends: this._endDate?.toISOString() || null,
+      image: this.image?.display() || null,
+      pdf: this.pdf?.display() || null,
       website: this.website,
       ticketshop: this.ticketshop,
       organizer: this.organizer,

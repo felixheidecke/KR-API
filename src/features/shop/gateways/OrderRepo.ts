@@ -9,7 +9,7 @@ export type RepoOrder = {
   transactionId: string
   message: string
   company: string
-  salutation: 'Herr' | 'Frau'
+  salutation: string
   name: string
   firstname: string
   address: string

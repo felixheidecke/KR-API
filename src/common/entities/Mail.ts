@@ -1,8 +1,11 @@
-type MailMap = Map<string, string | null>
-type MailAttachment = {
-  filename: string
-  content: string
-  contentType: string
+export namespace Mail {
+  export type Address = string
+  export type AddressMap = Map<Address, string | null>
+  export type Attachment = {
+    filename: string
+    content: string
+    contentType: string
+  }
 }
 
 export class Mail {
@@ -12,10 +15,10 @@ export class Mail {
   public subject: string = ''
   public replyTo?: string
   public body: string = ''
-  public attachments: Array<MailAttachment> = []
-  protected _to: MailMap = new Map()
-  protected _cc: MailMap = new Map()
-  protected _bcc: MailMap = new Map()
+  public attachments: Array<Mail.Attachment> = []
+  protected _to: Mail.AddressMap = new Map()
+  protected _cc: Mail.AddressMap = new Map()
+  protected _bcc: Mail.AddressMap = new Map()
 
   // --- [ Getter ] --------------------------------------------------------------------------------
 
@@ -48,14 +51,14 @@ export class Mail {
   }
 
   public attach(
-    filename: MailAttachment['filename'],
-    content: MailAttachment['content'],
-    contentType: MailAttachment['contentType'] = 'text/plain'
+    filename: Mail.Attachment['filename'],
+    content: Mail.Attachment['content'],
+    contentType: Mail.Attachment['contentType'] = 'text/plain'
   ) {
     this.attachments.push({ filename, content, contentType })
   }
 
-  private static addressAdapter(map: MailMap) {
+  private static addressAdapter(map: Mail.AddressMap) {
     return Array.from(map).map(([address, name]) => {
       if (!name) {
         return address

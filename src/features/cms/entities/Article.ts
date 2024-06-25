@@ -1,5 +1,4 @@
 // @ts-ignore
-import textile from 'textile-js'
 import { fromUnixTime } from 'date-fns'
 import { toUrlSlug } from '../../../common/utils/slugify.js'
 import { isNumber } from 'lodash-es'
@@ -7,6 +6,7 @@ import { isNumber } from 'lodash-es'
 import type { ArticleContent } from './ArticleContent.js'
 import type { Image } from '../../../common/entities/Image.js'
 import type { PDF } from '../../shop/entities/PDF.js'
+import { handleText } from '../utils/handleText.js'
 
 export class Article {
   constructor(readonly module: number) {}
@@ -15,12 +15,12 @@ export class Article {
   protected _title = ''
   protected _slug = ''
   protected _date = new Date()
-  public text?: string
-  public image?: Image
-  public pdf?: PDF
-  public web?: string
-  public author?: string
-  public content?: ArticleContent[]
+  public teaser = ''
+  public image?: Image | null
+  public pdf?: PDF | null
+  public web?: string | null
+  public author?: string | null
+  public content?: ArticleContent[] | null
 
   // --- [ Getter ] --------------------------------------------------------------------------------
 
@@ -64,10 +64,10 @@ export class Article {
       slug: this._slug,
       title: this._title,
       date: this._date.toISOString(),
-      text: this.text ? (textile.parse(this.text) as string) : undefined,
-      image: this.image?.display(),
+      teaser: handleText(this.teaser),
+      image: this.image?.display() || null,
       content: this.content?.map(item => item.display()),
-      pdf: this.pdf?.display(),
+      pdf: this.pdf?.display() || null,
       website: this.web,
       author: this.author
     })

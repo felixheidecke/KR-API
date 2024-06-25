@@ -6,7 +6,6 @@ import { MenuCardRepo } from '../gateways/MenuCardRepo.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 
 import type { RepoMenuCard } from '../gateways/MenuCardRepo.js'
-import exp from 'constants'
 
 export class MenuCardService {
   public static async getMenuCard(

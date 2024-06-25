@@ -1,11 +1,13 @@
 import knex from '../../modules/knex.js'
 
-export type RepoModule = {
-  id: number
-  name: string
-  type: string
-  url: string | null
-  customer: number
+export namespace ModuleRepo {
+  export type Module = {
+    id: number
+    name: string
+    type: string
+    url: string | null
+    customer: number
+  }
 }
 
 export class ModuleRepo {
@@ -36,7 +38,7 @@ export class ModuleRepo {
    * @param type - Optional type of the module.
    * @returns The module entity if found, otherwise null.
    */
-  static async readModule(id: number, type?: string): Promise<RepoModule | null> {
+  static async readModule(id: number, type?: string): Promise<ModuleRepo.Module | null> {
     const moduleQuery = knex
       .select('_id as id', 'title as name', 'type', 'url', 'owner as customer')
       .from('Module')
@@ -55,7 +57,7 @@ export class ModuleRepo {
    * Retrieves the list of modules from the database.
    * @returns A promise that resolves to an array of modules, or null if no modules are found.
    */
-  static async readModules(): Promise<RepoModule[] | null> {
+  static async readModules(): Promise<ModuleRepo.Module[]> {
     return await knex
       .select('_id as id', 'title as name', 'type', 'url', 'owner as customer')
       .from('Module')
@@ -66,7 +68,7 @@ export class ModuleRepo {
    * @param customer - The customer ID.
    * @returns A promise that resolves to an array of modules or null.
    */
-  static async readModulesByClient(clientId: number): Promise<RepoModule[] | null> {
+  static async readModulesByClient(clientId: number): Promise<ModuleRepo.Module[]> {
     return await knex
       .select('_id as id', 'title as name', 'type', 'url', 'owner as customer')
       .from('Module')

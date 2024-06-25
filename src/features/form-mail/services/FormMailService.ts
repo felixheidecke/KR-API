@@ -2,7 +2,7 @@ import { HttpError } from '../../../common/decorators/Error.js'
 import { jsonToCSV, jsonToText } from '../../../common/utils/convert-json.js'
 import { Mail } from '../../../common/entities/Mail.js'
 import { SendMailerApi } from '../../../common/gateways/SendMailerApi.js'
-import { MailRepo } from '../../../common/gateways/MailRepo.js'
+import { FormmailRepo } from '../../../common/gateways/FormmailRepo.js'
 import { toFilenameWithDate } from '../../../common/utils/slugify.js'
 import { MIME_TYPE } from '../../../constants.js'
 
@@ -13,7 +13,7 @@ export class FormMailService {
     body: Record<string, string | number>,
     config: { attachBodyAsCSV?: boolean } = {}
   ) {
-    const recipients = await MailRepo.readMailAddresses(recipientId)
+    const recipients = await FormmailRepo.readMailAddresses(recipientId)
     const mail = new Mail()
 
     if (!recipients.length) {

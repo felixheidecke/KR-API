@@ -38,7 +38,7 @@ export class Album {
       module: +this.module,
       title: this.title.trim(),
       slug: toUrlSlug(this.title, 75),
-      images: this.images?.map(image => image.display())
+      images: this.images?.map(image => image.display()) || null
     })
   }
 }

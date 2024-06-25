@@ -1,17 +1,21 @@
 import knex from '../../modules/knex.js'
 
-export type MailAddress = {
-  email: string
-  name: string
+export namespace FormmailRepo {
+  export type MailAddress = {
+    email: string
+    name: string
+  }
 }
 
-export class MailRepo {
+export class FormmailRepo {
   /**
    * Retrieves a mail address from the database based on the provided ID.
    * @param id - The ID of the mail address to retrieve.
    * @returns A Promise that resolves to the retrieved MailAddress object, or null if not found.
    */
-  public static async readMailAddress(id: string | number): Promise<MailAddress | null> {
+  public static async readMailAddress(
+    id: string | number
+  ): Promise<FormmailRepo.MailAddress | null> {
     return await knex('Formmail').select('email', 'name').where({ id }).first()
   }
 
@@ -22,7 +26,7 @@ export class MailRepo {
    */
   public static async readMailAddresses(
     ids: Array<string | number>
-  ): Promise<MailAddress[] | never[]> {
+  ): Promise<FormmailRepo.MailAddress[] | never[]> {
     return await knex('Formmail').select('email', 'name').whereIn('id', ids)
   }
 }
