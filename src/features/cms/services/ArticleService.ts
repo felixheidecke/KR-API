@@ -72,7 +72,7 @@ export class ArticleService {
     { skipModuleCheck, shouldThrow }: BaseConfig = {}
   ): Promise<Article[] | null> {
     const [moduleExists, repoArticles] = await Promise.all([
-      skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      !skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
       ArticleRepo.readArticles(module, omit(query, 'parts'))
     ])
 

@@ -12,8 +12,8 @@ const redis = await useRedis()
 export default plugin(function (
   App: FastifyInstance,
   options: {
-    redisTTL?: number
-    browserTTL?: number
+    redisTTL?: number // default 5 minutes
+    browserTTL?: number // default 15 minutes
     salt?: string
   },
   done: Function

@@ -1,5 +1,5 @@
 import { fromUnixTime } from 'date-fns'
-import { isNumber, isUndefined } from 'lodash-es'
+import { isNumber } from 'lodash-es'
 import { toUrlSlug } from '../../../common/utils/slugify.js'
 
 import type { Image } from '../../../common/entities/Image.js'
@@ -85,7 +85,7 @@ export class Event {
       module: +this.module,
       slug: this.slug,
       title: this.title,
-      teaser: this.teaser,
+      teaser: this.teaser ? handleText(this.teaser) : null,
       description: this.description ? handleText(this.description) : null,
       address: this.address,
       starts: this._startDate?.toISOString() || null,

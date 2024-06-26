@@ -12,7 +12,7 @@ export default plugin(function (App: FastifyInstance, _: never, done: Function) 
       throw HttpError.UNAUTHORIZED('Unauthorized', 'Missing API key.')
     }
 
-    const client = await new ClientService().getClientByApiKey(headers.apikey as string)
+    const client = await ClientService.getClientByApiKey(headers.apikey as string)
 
     if (!client) {
       throw HttpError.FORBIDDEN('Forbidden', 'Unknown API key.')

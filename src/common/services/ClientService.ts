@@ -12,7 +12,7 @@ export class ClientService {
    * @returns {Client} A Promise that resolves to the client object, or null if the client is not found.
    * @throws {HttpError} If the client is not found and the `shouldThrow` flag is set to true.
    */
-  public async getClient(
+  public static async getClient(
     id: number,
     config: {
       shouldThrow?: boolean
@@ -38,7 +38,7 @@ export class ClientService {
    * @returns {Client} The client object if found, or null if not found.
    * @throws {HttpError} if the client is not found and `shouldThrow` is true.
    */
-  public async getClientByApiKey(
+  public static async getClientByApiKey(
     apiKey: string,
     config: {
       shouldThrow?: boolean
