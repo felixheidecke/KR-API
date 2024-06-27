@@ -23,7 +23,7 @@ export default plugin(function (App: FastifyInstance, _: never, done: Function) 
     if (keyUserStorage.has(apiKey)) {
       request.user = keyUserStorage.get(apiKey) as User
 
-      request.log.info('Serving User from cache')
+      request.log.info(`Serving User ${request.user.clientId} from cache`)
     } else {
       const client = await ClientService.getClientByApiKey(apiKey)
 
@@ -34,7 +34,7 @@ export default plugin(function (App: FastifyInstance, _: never, done: Function) 
       request.user = new User(client.id, client.authorizedModuleIds, client.isSuperuser)
 
       keyUserStorage.set(apiKey, request.user)
-      request.log.info('Serving User from database')
+      request.log.info(`Serving User ${request.user.clientId} from database`)
     }
   })
 
