@@ -2,28 +2,16 @@ import './env.js'
 
 import { defaultHeadersHook } from './common/hooks/headerHooks.js'
 import { HttpError } from './common/decorators/Error.js'
-import { randomUUID } from 'crypto'
-import { toMilliseconds } from './common/utils/convert-time.js'
 import { ZodError } from 'zod'
 import fastify from './modules/fastify.js'
 import knex from './modules/knex.js'
 import sentry from './modules/sentry.js'
 
-// --- [ Plugins ] --------------------------------------------------------------------------
+// --- [ Plugins ] ---------------------------------------------------------------------------------
 
 fastify.register(import('@fastify/cors'), {
   credentials: true,
   origin: true
-})
-
-fastify.register(import('@fastify/cookie'))
-
-fastify.register(import('@fastify/session'), {
-  secret: randomUUID(),
-  cookie: {
-    sameSite: 'none',
-    maxAge: toMilliseconds({ minutes: 5 })
-  }
 })
 
 fastify.register(import('./common/plugins/authentication.js'))

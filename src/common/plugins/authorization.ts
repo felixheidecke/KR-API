@@ -27,17 +27,12 @@ export default plugin(function (
   if (isArray(config.authorize) && config.authorize.includes('module-match')) {
     App.addHook(
       'onRequest',
-      async ({ params, session }: InferFastifyRequest<{ params: { module: string | number } }>) => {
+      async ({ params, user }: InferFastifyRequest<{ params: { module: string | number } }>) => {
         if (!params.module) {
           throw new Error('Module ID is required')
         }
 
-        if (
-          !(
-            session.client?.authorizedModuleIds.includes(+params.module) ||
-            session.client?.isSuperuser
-          )
-        ) {
+        if (!(user.moduleIds.includes(+params.module) || user.isSuperuser)) {
           throw HttpError.FORBIDDEN()
         }
       }
@@ -45,8 +40,8 @@ export default plugin(function (
   }
 
   if (isArray(config.authorize) && config.authorize.includes('superuser')) {
-    App.addHook('onRequest', async ({ session }: FastifyRequest) => {
-      if (!session.client?.isSuperuser) {
+    App.addHook('onRequest', async ({ user }: FastifyRequest) => {
+      if (!user.isSuperuser) {
         throw HttpError.FORBIDDEN()
       }
     })

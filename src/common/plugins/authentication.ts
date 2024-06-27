@@ -1,24 +1,38 @@
 import { ClientService } from '../services/ClientService.js'
 import { HttpError } from '../decorators/Error.js'
+import { toMilliseconds } from '../utils/convert-time.js'
 import plugin from 'fastify-plugin'
+import User from '../entities/User.js'
 
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 
-export default plugin(function (App: FastifyInstance, _: never, done: Function) {
-  App.addHook('onRequest', async ({ headers, session }: FastifyRequest, _) => {
-    if (session.client) return
+const keyUserStorage: Map<string, User> = new Map()
 
-    if (!headers.apikey) {
+setInterval(() => keyUserStorage.clear(), toMilliseconds({ hours: 1 }))
+
+export default plugin(function (App: FastifyInstance, _: never, done: Function) {
+  App.decorateRequest('user', new User())
+
+  App.addHook('onRequest', async (request: FastifyRequest) => {
+    const apiKey = request.headers.apikey as string | undefined
+
+    if (!apiKey) {
       throw HttpError.UNAUTHORIZED('Unauthorized', 'Missing API key.')
     }
 
-    const client = await ClientService.getClientByApiKey(headers.apikey as string)
+    if (keyUserStorage.has(apiKey)) {
+      request.user = keyUserStorage.get(apiKey) as User
+    } else {
+      const client = await ClientService.getClientByApiKey(apiKey)
 
-    if (!client) {
-      throw HttpError.FORBIDDEN('Forbidden', 'Unknown API key.')
+      if (!client) {
+        throw HttpError.FORBIDDEN('Forbidden', 'Unknown API key.')
+      }
+
+      request.user = new User(client.id, client.authorizedModuleIds, client.isSuperuser)
+
+      keyUserStorage.set(apiKey, request.user)
     }
-
-    session.set('client', client)
   })
 
   done()
