@@ -42,7 +42,7 @@ export default plugin(function (
 
       if (data) {
         response.send(data)
-        request.log.info(`Serving from Cache`)
+        request.log.info('Serving from Cache')
       }
     } catch (error) {
       request.log.error(error)
@@ -61,7 +61,7 @@ export default plugin(function (
     // Skip if data came from cache or data (should not be cached)
     if (!data || data === null) return
 
-    log.info(`Serving from Datasource`)
+    log.info('Serving from database')
 
     try {
       await redis.setEx(
