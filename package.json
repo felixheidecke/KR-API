@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "reset-dist": "node .develop/reset-dist.js",
-    "develop": "npm run reset-dist && NODE_ENV=development concurrently -n 'TSC,API' -c 'auto' 'tsc -w' 'nodemon dist/index.js --delay 250ms'",
+    "dev": "npm run reset-dist && NODE_ENV=development concurrently -n 'TSC,API' -c 'auto' 'tsc -w' 'nodemon dist/index.js --delay 250ms'",
     "build": "npm run reset-dist && tsc",
     "start": "NODE_ENV=production node dist/index.js",
     "format": "prettier --ignore-path .gitignore --write .",

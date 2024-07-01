@@ -14,7 +14,7 @@ export default plugin(function (App: FastifyInstance, _: never, done: Function) 
   App.decorateRequest('user', new User())
 
   App.addHook('onRequest', async (request: FastifyRequest) => {
-    const apiKey = request.headers.apikey as string | undefined
+    const apiKey = (request.headers['api-key'] || request.headers.apikey) as string | undefined
 
     if (!apiKey) {
       throw HttpError.UNAUTHORIZED('Unauthorized', 'Missing API key.')
