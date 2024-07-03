@@ -4,8 +4,8 @@ import type { Image } from '../../../common/entities/Image.js'
 export class Album {
   constructor(readonly module: number) {}
 
-  protected _slug: string = ''
-  protected _title: string = ''
+  protected _slug: string | null = null
+  protected _title: string | null = null
   public id: number = 0
   public images?: Image[]
 
@@ -25,9 +25,14 @@ export class Album {
 
   // --- [ Setter ] --------------------------------------------------------------------------------
 
-  public set title(value: string) {
-    this._title = value.trim()
-    this._slug = toUrlSlug(value, 75)
+  public set title(value: string | null | undefined) {
+    if (value) {
+      this._title = value.trim()
+      this._slug = toUrlSlug(value, 75)
+    } else {
+      this._title = null
+      this._slug = null
+    }
   }
 
   // --- [ Methods ] -------------------------------------------------------------------------------
@@ -36,8 +41,8 @@ export class Album {
     return Object.freeze({
       id: +this.id,
       module: +this.module,
-      title: this.title.trim(),
-      slug: toUrlSlug(this.title, 75),
+      title: this.title,
+      slug: this.slug,
       images: this.images?.map(image => image.display()) || null
     })
   }

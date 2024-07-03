@@ -34,6 +34,10 @@ export class GalleryService {
 
     const repoAlbum = await GalleryRepo.readAlbum(module, id)
 
+    if (config.shouldThrow && !repoAlbum.length) {
+      throw HttpError.NOT_FOUND('Album not found.')
+    }
+
     return GalleryService.createAlbumFromRepo(repoAlbum)
   }
 

@@ -19,7 +19,7 @@ export class GalleryRepo {
    */
 
   public static async readGallery(module: number): Promise<RepoAlbum[]> {
-    const query = knex('PhotoAlbum')
+    const query = await knex('PhotoAlbum')
       .select([
         'Album._id AS _id',
         'Album.module AS module',
@@ -35,7 +35,7 @@ export class GalleryRepo {
       .where(knex.raw('Album.module = ' + +module))
       .orderBy('Album.priority')
 
-    return await query
+    return query
   }
 
   /**
@@ -47,7 +47,7 @@ export class GalleryRepo {
    */
 
   public static async readAlbum(module: number, id: number): Promise<RepoAlbum[]> {
-    return await knex('PhotoAlbum')
+    const query = await knex('PhotoAlbum')
       .select([
         'Album._id AS _id',
         'Album.module AS module',
@@ -62,5 +62,7 @@ export class GalleryRepo {
       .leftJoin('Photo', 'Album._id', 'Photo.album')
       .where(knex.raw('Album.module = ' + +module + ' AND Album._id = ' + +id))
       .orderBy('Photo.priority')
+
+    return query
   }
 }
