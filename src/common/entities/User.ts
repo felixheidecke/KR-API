@@ -18,4 +18,20 @@ export default class User {
 
     return this
   }
+
+  clone() {
+    return new User(this.clientId, this.moduleIds, this.isSuperuser)
+  }
+
+  serialize() {
+    return {
+      clientId: this.clientId,
+      isSuperuser: this.isSuperuser,
+      moduleIds: this.moduleIds
+    }
+  }
+
+  static deserialize(data: any) {
+    return new User(data.clientId, data.moduleIds, data.isSuperuser)
+  }
 }

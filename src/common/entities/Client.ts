@@ -38,6 +38,16 @@ export default class Client {
 
   // --- [ Methods ] -------------------------------------------------------------------------------
 
+  public serialize() {
+    return {
+      id: this.id,
+      login: this.login,
+      isSuperuser: this.isSuperuser,
+      authorizedModuleIds: this.authorizedModuleIds,
+      lastLogin: this.lastLogin?.toISOString()
+    }
+  }
+
   public display() {
     return Object.freeze({
       login: this.login,

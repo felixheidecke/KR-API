@@ -1,4 +1,4 @@
-import { cacheHeadersNoStoreHook } from '../../../common/hooks/headerHooks.js'
+import { setNoStoreHeaders } from '../../../common/hooks/headerHooks.js'
 import { Cart } from '../entities/Cart.js'
 import { CartService } from '../services/CartService.js'
 import { getCartRequestSchema } from '../schemas/getCartRequestSchema.js'
@@ -10,7 +10,7 @@ import type { InferFastifyRequest } from '../../../common/types/InferFastifyRequ
 import type { UpdateCartRequestSchema } from '../schemas/updateCartRequestSchema.js'
 
 export default async function (App: FastifyInstance) {
-  App.addHook('onSend', cacheHeadersNoStoreHook)
+  App.addHook('onSend', setNoStoreHeaders)
 
   App.addHook(
     'onRequest',

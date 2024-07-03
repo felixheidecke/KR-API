@@ -1,4 +1,4 @@
-import { cacheHeadersNoStoreHook } from '../../../common/hooks/headerHooks.js'
+import { setNoStoreHeaders } from '../../../common/hooks/headerHooks.js'
 import { getOrderRequestSchema } from '../schemas/getOrderRequestSchema.js'
 import { HttpError } from '../../../common/decorators/Error.js'
 import { Order } from '../entities/Order.js'
@@ -13,7 +13,7 @@ import type { PatchOrderRequestSchema } from '../schemas/patchOrderRequestSchema
 import type { PostOrderRequestSchema } from '../schemas/postOrderRequestSchema.js'
 
 export default async function (App: FastifyInstance) {
-  App.addHook('onSend', cacheHeadersNoStoreHook)
+  App.addHook('onSend', setNoStoreHeaders)
 
   App.get('/:module/order', {
     handler: async ({ session }: FastifyRequest, reply: FastifyReply) => {

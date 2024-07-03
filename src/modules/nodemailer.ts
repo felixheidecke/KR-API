@@ -1,7 +1,7 @@
 // @ts-ignore
 import nodemailer from 'nodemailer'
 
-export default function useMailer(config = {}) {
+export function useMailer(config = {}) {
   return nodemailer.createTransport({
     host: process.env.MAILER_HOST || 'localhost',
     port: process.env.MAILER_PORT || 25,
@@ -13,3 +13,5 @@ export default function useMailer(config = {}) {
     ...config
   })
 }
+
+export default useMailer()

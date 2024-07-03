@@ -1,11 +1,14 @@
 import './env.js'
 
-import { defaultHeadersHook } from './common/hooks/headerHooks.js'
+import { HEADER, MIME_TYPE } from './constants.js'
 import { HttpError } from './common/decorators/Error.js'
 import { ZodError } from 'zod'
 import fastify from './modules/fastify.js'
 import knex from './modules/knex.js'
+import pkg from '../package.json' assert { type: 'json' }
 import sentry from './modules/sentry.js'
+
+import type { FastifyReply } from 'fastify'
 
 // --- [ Plugins ] ---------------------------------------------------------------------------------
 
@@ -14,7 +17,7 @@ fastify.register(import('@fastify/cors'), {
   origin: true
 })
 
-fastify.register(import('./common/plugins/authentication.js'))
+fastify.register(import('./common/plugins/authentication/index.js'))
 
 fastify.addHook('onClose', async () => {
   await knex.destroy()
@@ -23,12 +26,18 @@ fastify.addHook('onClose', async () => {
 
 // --- [ Headers ] ---------------------------------------------------------------------------------
 
-fastify.addHook('onRequest', defaultHeadersHook)
+// fastify.addHook('onSend', async (_: any, response: FastifyReply) => {
+//   response.headers({
+//     [HEADER.MESSAGE]: 'Klickrhein.de | Ihre Webagentur im Rheingau',
+//     [HEADER.VERSION]: pkg.version,
+//     [HEADER.CONTENT_TYPE]: MIME_TYPE.JSON
+//   })
+// })
 
 // --- [ Features ] --------------------------------------------------------------------------------
 
-fastify.register(import('./features/admin/index.js'), { prefix: 'admin' })
-fastify.register(import('./features/cms/index.js'), { prefix: 'cms' })
+fastify.register(import('./features/admin/index.js'))
+fastify.register(import('./features/cms/index.js'))
 fastify.register(import('./features/form-mail/index.js'), { prefix: 'form-mail' })
 fastify.register(import('./features/shop/index.js'), { prefix: 'shop' })
 

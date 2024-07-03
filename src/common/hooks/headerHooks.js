@@ -1,15 +1,6 @@
-import { HEADER, MIME_TYPE } from '../../constants.js'
-import pkg from '../../../package.json' assert { type: 'json' }
+import { HEADER } from '../../constants.js'
 
-export async function defaultHeadersHook(_, response) {
-  response.headers({
-    [HEADER.MESSAGE]: 'Klickrhein.de | Ihre Webagentur im Rheingau',
-    [HEADER.VERSION]: pkg.version,
-    [HEADER.CONTENT_TYPE]: MIME_TYPE.JSON
-  })
-}
-
-export async function cacheHeadersNoStoreHook(_, response) {
+export async function setNoStoreHeaders(_, response) {
   response.headers({
     [HEADER.CACHE_CONTROL]: [HEADER.PRIVATE, HEADER.NO_STORE].join(', ')
   })

@@ -100,6 +100,11 @@ export class Order {
       this._deliveryAddress.address = address.address
       this._deliveryAddress.zip = address.zip
       this._deliveryAddress.city = address.city
+
+      // Reset the delivery address if all fields are empty.
+      if (!this._deliveryAddress.size) {
+        this._deliveryAddress = null
+      }
     }
   }
 
@@ -179,14 +184,8 @@ export class Order {
   public generateTransactionId(): this {
     const address = this._address.display()
 
-    if (address.name && address.firstname) {
-      const parts = [
-        address.name.substring(0, 3),
-        address.firstname.substring(0, 1),
-        randomId('long')
-      ]
-
-      this._transactionId = toUrlSlug(parts.join(''))
+    if (address.name) {
+      this._transactionId = toUrlSlug(address.name).substring(0, 4) + randomId()
     } else {
       this._transactionId = randomId('long')
     }
@@ -199,7 +198,6 @@ export class Order {
 
     return this
   }
-
   public display() {
     return Object.freeze(new OrderDisplay(this))
   }

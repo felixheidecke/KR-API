@@ -2,8 +2,8 @@ import { randomUUID } from 'crypto'
 import { toMilliseconds } from '../../common/utils/convert-time.js'
 
 export default function shop(App, _, done) {
-  App.register(import('../../common/plugins/authorization.js'), {
-    authorize: ['module-match']
+  App.register(import('../../common/plugins/authorization/index.js'), {
+    authorize: 'module-match'
   })
 
   App.register(import('@fastify/cookie'))

@@ -1,5 +1,5 @@
 import type { Mail } from '../entities/Mail.js'
-import useMailer from '../../modules/nodemailer.js'
+import mailer from '../../modules/nodemailer.js'
 
 type SendReply = {
   accepted: Mail.Address[]
@@ -20,8 +20,6 @@ export namespace SendMailerApi {}
 
 export class SendMailerApi {
   static async send(mail: Mail): Promise<SendReply> {
-    const mailer = useMailer()
-
     return await mailer.sendMail({
       from: mail.from || process.env.MAILER_FROM,
       replyTo: mail.replyTo,

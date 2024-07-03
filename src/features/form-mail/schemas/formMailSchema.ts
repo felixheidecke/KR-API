@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const formMailSchema = z.object({
+export const formMailRequestSchema = z.object({
   body: z
     .object({
       config: z
@@ -32,4 +32,4 @@ export const formMailSchema = z.object({
   })
 })
 
-export type FormMailSchema = z.infer<typeof formMailSchema>
+export type FormMailRequestSchema = z.infer<typeof formMailRequestSchema>
