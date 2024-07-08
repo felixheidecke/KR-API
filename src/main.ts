@@ -17,8 +17,6 @@ fastify.register(import('@fastify/cors'), {
   origin: true
 })
 
-fastify.register(import('./common/plugins/authentication/index.js'))
-
 fastify.addHook('onClose', async () => {
   await knex.destroy()
   fastify.log.info(`Server shutting down. Database connection destroyed. Bye! 👋🏼`)
@@ -26,18 +24,19 @@ fastify.addHook('onClose', async () => {
 
 // --- [ Headers ] ---------------------------------------------------------------------------------
 
-// fastify.addHook('onSend', async (_: any, response: FastifyReply) => {
-//   response.headers({
-//     [HEADER.MESSAGE]: 'Klickrhein.de | Ihre Webagentur im Rheingau',
-//     [HEADER.VERSION]: pkg.version,
-//     [HEADER.CONTENT_TYPE]: MIME_TYPE.JSON
-//   })
-// })
+fastify.addHook('preHandler', async (_: any, response: FastifyReply) => {
+  response.headers({
+    [HEADER.MESSAGE]: 'Klickrhein.de | Ihre Webagentur im Rheingau',
+    [HEADER.VERSION]: pkg.version,
+    [HEADER.CONTENT_TYPE]: MIME_TYPE.JSON
+  })
+})
 
 // --- [ Features ] --------------------------------------------------------------------------------
 
-fastify.register(import('./features/admin/index.js'))
-fastify.register(import('./features/cms/index.js'))
+fastify.register(import('./features/info/index.js'), { prefix: 'info' })
+fastify.register(import('./features/admin/index.js'), { prefix: 'admin' })
+fastify.register(import('./features/cms/index.js'), { prefix: 'cms' })
 fastify.register(import('./features/form-mail/index.js'), { prefix: 'form-mail' })
 fastify.register(import('./features/shop/index.js'), { prefix: 'shop' })
 

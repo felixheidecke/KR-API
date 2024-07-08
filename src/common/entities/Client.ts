@@ -38,6 +38,14 @@ export default class Client {
 
   // --- [ Methods ] -------------------------------------------------------------------------------
 
+  public ownsModule(moduleId: number) {
+    return this.authorizedModuleIds.includes(moduleId)
+  }
+
+  public hasModuleAccess(moduleId: number) {
+    return this.authorizedModuleIds.includes(moduleId) || this.isSuperuser
+  }
+
   public serialize() {
     return {
       id: this.id,

@@ -26,14 +26,12 @@ export default async function (App: FastifyInstance) {
       request.body = body
     },
     handler: async function ({ session, body }, reply) {
-      const cartService = new CartService(session.cart)
-
       await Promise.all([
-        cartService.initialise({ shouldThrow: true }),
-        cartService.updateProductQuantity(body)
+        CartService.initialise(session.cart, { shouldThrow: true }),
+        CartService.updateProductQuantity(session.cart, body)
       ])
 
-      reply.send(cartService.cart.display())
+      reply.send(session.cart.display())
     }
   })
 
@@ -42,11 +40,9 @@ export default async function (App: FastifyInstance) {
       getCartRequestSchema.parse(request)
     },
     handler: async function ({ session }, reply) {
-      const cartService = new CartService(session.cart)
+      await CartService.initialise(session.cart, { shouldThrow: true })
 
-      await cartService.initialise({ shouldThrow: true })
-
-      reply.send(cartService.cart.display())
+      reply.send(session.cart.display())
     }
   })
 

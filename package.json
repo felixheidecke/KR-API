@@ -1,6 +1,6 @@
 {
   "name": "kr-api",
-  "version": "5.10.4",
+  "version": "5.11.0",
   "private": true,
   "description": "Klickrhein Feature API (Freepy Sapling)",
   "main": "dist/index.js",
@@ -21,7 +21,7 @@
     "@fastify/session": "^10.9.0",
     "@fastify/swagger": "^8.14.0",
     "@noble/hashes": "^1.4.0",
-    "@sentry/node": "^8.13.0",
+    "@sentry/node": "^8.15.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "fastify": "^4.28.1",
@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
-    "@types/node": "^20.14.9",
+    "@types/node": "^20.14.10",
     "concurrently": "^8.2.2",
     "eslint": "^9.6.0",
     "node-fetch": "^3.3.2",

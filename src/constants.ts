@@ -16,6 +16,7 @@ export const HEADER = {
 
 export const MIME_TYPE = {
   JSON: 'application/json',
+  HTML: 'text/html',
   TEXT: 'text/plain',
   CSV: 'text/csv'
 } as const

@@ -2,6 +2,18 @@ import { HttpError } from '../decorators/Error.js'
 import { ModuleRepo } from '../gateways/ModuleRepo.js'
 import Module from '../entities/Module.js'
 
+// --- [ Namespace ] -------------------------------------------------------------------------------
+
+export namespace ModuleService {
+  type Config = { shouldThrow?: boolean }
+
+  export type GetModule = (id: number, type?: string, config?: Config) => Promise<Module | null>
+  export type GetModules = (config?: Config) => Promise<Module[] | null>
+  export type GetModulesByClientId = (id: number, config?: Config) => Promise<Module[] | null>
+}
+
+// --- [ Class ] -----------------------------------------------------------------------------------
+
 export class ModuleService {
   /**
    * Retrieves a module by ID and type.
@@ -9,13 +21,7 @@ export class ModuleService {
    * @param {string} [type] - The type of the module.
    * @returns {Promise<Module|null>} - The retrieved module, or null if not found.
    */
-  public static async getModule(
-    id: number,
-    type?: string,
-    config: {
-      shouldThrow?: boolean
-    } = {}
-  ) {
+  public static getModule: ModuleService.GetModule = async (id, type, config = {}) => {
     const repoModule = await ModuleRepo.readModule(id, type)
 
     if (!repoModule && config.shouldThrow) {
@@ -29,7 +35,7 @@ export class ModuleService {
    * Retrieves all modules.
    * @returns {Promise<Module[]>} - Array of modules.
    */
-  public static async getModules(config: { shouldThrow?: boolean } = {}) {
+  public static getModules: ModuleService.GetModules = async (config = {}) => {
     const repoModules = await ModuleRepo.readModules()
 
     if (!repoModules && config.shouldThrow) {
@@ -44,12 +50,10 @@ export class ModuleService {
    * @param {number} id - The ID of the client.
    * @returns {Promise<Module[]>} - Array of modules belonging to the client.
    */
-  public static async getModulesByClientId(
-    id: number,
-    config: {
-      shouldThrow?: boolean
-    } = {}
-  ) {
+  public static getModulesByClientId: ModuleService.GetModulesByClientId = async (
+    id,
+    config = {}
+  ) => {
     const repoModules = await ModuleRepo.readModulesByClient(id)
 
     if (!repoModules && config.shouldThrow) {

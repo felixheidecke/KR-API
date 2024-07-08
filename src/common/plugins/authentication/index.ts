@@ -1,16 +1,36 @@
+import apiKeyValidationHandler from './handler/apiKeyValidationHandler.js'
+import Client from '../../entities/Client.js'
 import plugin from 'fastify-plugin'
-import User from '../../entities/User.js'
-import validateApiKey from './src/validateApiKey.js'
-import authenticateUser from './src/authenticateUser.js'
+import userAuthenticationHandler from './handler/userAuthenticationHandler.js'
 
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 
-export default plugin(
-  function (App: FastifyInstance, _: never, done: Function) {
-    App.decorateRequest('user', new User())
-    App.addHook('onRequest', validateApiKey)
-    App.addHook('onRequest', authenticateUser)
-    done()
+type AuthorizeFunction = (request: FastifyRequest) => boolean
+
+const setupAuthentication = (
+  appInstance: FastifyInstance,
+  config: {
+    authorize: boolean | AuthorizeFunction
   },
-  { name: 'authentication' }
-)
+  done: Function
+) => {
+  appInstance.decorateRequest('client', new Client(0))
+
+  appInstance.addHook('onRequest', apiKeyValidationHandler)
+  appInstance.addHook('onRequest', userAuthenticationHandler)
+  appInstance.addHook('onRequest', async request => {
+    const { authorize } = config
+
+    if (authorize === false || (typeof authorize === 'function' && !authorize(request))) {
+      throw new Error('Unauthorized')
+    }
+
+    return
+  })
+
+  done()
+}
+
+export default plugin(setupAuthentication, {
+  name: 'authentication'
+})

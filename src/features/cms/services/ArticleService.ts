@@ -42,7 +42,7 @@ export class ArticleService {
       return null
     }
 
-    const article = this.createArticleFromRepo(repoArticle)
+    const article = ArticleService.createArticleFromRepo(repoArticle)
 
     await this.addArticleContent(article)
 
@@ -80,7 +80,7 @@ export class ArticleService {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    const articles = repoArticles.map(this.createArticleFromRepo)
+    const articles = repoArticles.map(ArticleService.createArticleFromRepo)
 
     if (query.parts?.includes('content')) {
       await Promise.all(articles.map(this.addArticleContent))

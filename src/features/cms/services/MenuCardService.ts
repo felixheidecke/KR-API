@@ -32,36 +32,34 @@ export class MenuCardService {
         return null
       }
 
-      return createMenuCardFromRepo(repoMenuCard)
+      return this.createMenuCardFromRepo(repoMenuCard)
+    })
+  }
+
+  /**
+   * Adapter function to group menu items by groups and convert them into MenuCard format.
+   *
+   * @param {number} module - The module identifier.
+   * @param {RepoMenuCard[]} group - Array of menu items from the repo.
+   * @returns {MenuCard[]} An array of MenuCard objects.
+   */
+
+  private static createMenuCardFromRepo(repoMenuCard: RepoMenuCard[]) {
+    return Object.values(groupBy(repoMenuCard, 'category_id')).map(card => {
+      const menuCard = new MenuCard(head(card)?.module as number)
+
+      menuCard.name = head(card)?.category as string
+      menuCard.description = head(card)?.category_description as string
+      menuCard.items = card.map(item => {
+        return {
+          title: item.title,
+          description: item.description,
+          price: item.price,
+          image: item.image ? new Image(item.image, item.title) : undefined
+        }
+      })
+
+      return menuCard
     })
   }
 }
-
-/**
- * Adapter function to group menu items by groups and convert them into MenuCard format.
- *
- * @param {number} module - The module identifier.
- * @param {RepoMenuCard[]} group - Array of menu items from the repo.
- * @returns {MenuCard[]} An array of MenuCard objects.
- */
-
-function createMenuCardFromRepo(repoMenuCard: RepoMenuCard[]) {
-  return Object.values(groupBy(repoMenuCard, 'category_id')).map(card => {
-    const menuCard = new MenuCard(head(card)?.module as number)
-
-    menuCard.name = head(card)?.category as string
-    menuCard.description = head(card)?.category_description as string
-    menuCard.items = card.map(item => {
-      return {
-        title: item.title,
-        description: item.description,
-        price: item.price,
-        image: item.image ? new Image(item.image, item.title) : undefined
-      }
-    })
-
-    return menuCard
-  })
-}
-
-export const utils = { createMenuCardFromRepo }
