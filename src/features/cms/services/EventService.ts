@@ -8,9 +8,41 @@ import { omit } from 'lodash-es'
 import { Flags } from '../entities/Flags.js'
 import { ModuleRepo } from '../../../common/gateways/ModuleRepo.js'
 
+export namespace EventService {
+  type Config = {
+    shouldThrow?: boolean
+  }
+
+  type Query = {
+    startsBefore?: Date | number
+    startsAfter?: Date | number
+    endsBefore?: Date | number
+    endsAfter?: Date | number
+    limit?: number
+    parts?: string[]
+  }
+
+  export type GetEventsByModule = (
+    module: number,
+    query?: Query,
+    config?: Config
+  ) => Promise<Event[]>
+
+  export type GetEventsWhereIn = (
+    whereIn: { modules?: number[]; communes?: string[] },
+    query?: Query
+  ) => Promise<Event[]>
+}
+
+// --- [ Class ] -----------------------------------------------------------------------------------
+
 export class EventService {
-  public static async getEvent(module: number, id: number, config: { shouldThrow?: boolean } = {}) {
-    const repoEvent = await EventRepo.readEvent(module, id)
+  public static async getEventById(
+    module: number,
+    id: number,
+    config: { shouldThrow?: boolean } = {}
+  ) {
+    const repoEvent = await EventRepo.readEventById(module, id)
 
     if (!repoEvent && config.shouldThrow) {
       throw HttpError.NOT_FOUND('Event not found.')
@@ -29,25 +61,31 @@ export class EventService {
     return event
   }
 
-  public static async getEvents(
-    module: number,
-    query: {
-      startsBefore?: Date | number
-      startsAfter?: Date | number
-      endsBefore?: Date | number
-      endsAfter?: Date | number
-      limit?: number
-      parts?: string[]
-    } = {},
-    config: {
-      shouldThrow?: boolean
-    } = {}
-  ) {
+  public static getEventsByModule: EventService.GetEventsByModule = async (
+    module,
+    query = {},
+    config = {}
+  ) => {
     if (config.shouldThrow && !(await ModuleRepo.moduleExists(module))) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    const repoEvents = await EventRepo.readEvents(module, omit(query, 'parts'))
+    const repoEvents = await EventRepo.readEventsByModule(module, omit(query, 'parts'))
+    const events = repoEvents.map(EventService.createEventFromRepo)
+
+    if (query.parts?.includes('images')) {
+      await Promise.all(events.map(EventService.addImages))
+    }
+
+    if (query.parts?.includes('flags')) {
+      await Promise.all(events.map(EventService.addFlags))
+    }
+
+    return events
+  }
+
+  public static getEventsWhereIn: EventService.GetEventsWhereIn = async (whereIn, query = {}) => {
+    const repoEvents = await EventRepo.readEventsWhereIn(whereIn, omit(query, 'parts'))
     const events = repoEvents.map(EventService.createEventFromRepo)
 
     if (query.parts?.includes('images')) {

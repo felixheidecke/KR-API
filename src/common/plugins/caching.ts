@@ -6,7 +6,9 @@ import randomId from '../utils/random-id.js'
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
-const salt = randomId('short')
+const SALT = randomId('short')
+const DEFAULT_BROWSER_TTL = toSeconds({ minutes: 15 })
+const DEFAULT_REDIS_TTL = toSeconds({ minutes: 5 })
 
 export default plugin(
   function (
@@ -29,10 +31,10 @@ export default plugin(
      * @returns {Promise<void>}
      */
     App.addHook('onRequest', async (request: FastifyRequest, response: FastifyReply) => {
-      const browserTTL = options.browserTTL || toSeconds({ minutes: 15 })
+      const browserTTL = options.browserTTL || DEFAULT_BROWSER_TTL
 
       try {
-        const data = await redis.get(salt + ':' + request.url)
+        const data = await redis.get(SALT + ':' + request.url)
 
         response.headers({
           [HEADER.CONTENT_TYPE]: MIME_TYPE.JSON,
@@ -65,8 +67,8 @@ export default plugin(
 
       try {
         await redis.setEx(
-          options.salt || salt + ':' + url,
-          options.redisTTL || toSeconds({ minutes: 5 }),
+          options.salt || SALT + ':' + url,
+          options.redisTTL || DEFAULT_REDIS_TTL,
           JSON.stringify(data)
         )
       } catch (error) {

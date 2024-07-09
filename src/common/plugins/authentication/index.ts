@@ -4,6 +4,8 @@ import plugin from 'fastify-plugin'
 import userAuthenticationHandler from './handler/userAuthenticationHandler.js'
 
 import type { FastifyInstance, FastifyRequest } from 'fastify'
+import { HttpError } from '../../decorators/Error.js'
+import { isBoolean, isFunction } from 'lodash-es'
 
 type AuthorizeFunction = (request: FastifyRequest) => boolean
 
@@ -21,8 +23,8 @@ const setupAuthentication = (
   appInstance.addHook('onRequest', async request => {
     const { authorize } = config
 
-    if (authorize === false || (typeof authorize === 'function' && !authorize(request))) {
-      throw new Error('Unauthorized')
+    if ((isBoolean(authorize) && !authorize) || (isFunction(authorize) && !authorize(request))) {
+      throw HttpError.UNAUTHORIZED()
     }
 
     return
