@@ -96,7 +96,7 @@ export class GroupService {
       throw HttpError.NOT_FOUND('Categories not found.')
     }
 
-    return repoGroups ? repoGroups.map(this.createGroupFromRepo) : null
+    return repoGroups ? repoGroups.map(GroupService.createGroupFromRepo) : null
   }
 
   /**
@@ -115,11 +115,11 @@ export class GroupService {
     group.group = repoGroup.group || undefined
 
     if (repoGroup.path) {
-      group.path = this.createGroupPathFromRepo(repoGroup.path)
+      group.path = GroupService.createGroupPathFromRepo(repoGroup.path)
     }
 
     if (repoGroup.subgroups) {
-      group.subgroups = repoGroup.subgroups.map(this.createGroupFromRepo)
+      group.subgroups = repoGroup.subgroups.map(GroupService.createGroupFromRepo)
     }
 
     return group

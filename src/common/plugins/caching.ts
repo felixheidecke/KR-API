@@ -16,7 +16,6 @@ export default plugin(
     options: {
       redisTTL?: number // default 5 minutes
       browserTTL?: number // default 15 minutes
-      salt?: string
     },
     done: Function
   ) {
@@ -31,15 +30,13 @@ export default plugin(
      * @returns {Promise<void>}
      */
     App.addHook('onRequest', async (request: FastifyRequest, response: FastifyReply) => {
-      const browserTTL = options.browserTTL || DEFAULT_BROWSER_TTL
-
       try {
         const data = await redis.get(SALT + ':' + request.url)
 
         response.headers({
           [HEADER.CONTENT_TYPE]: MIME_TYPE.JSON,
           [HEADER.CACHE]: data ? HEADER.CACHE_HIT : HEADER.CACHE_MISS,
-          [HEADER.CACHE_CONTROL]: `public, max-age=${browserTTL}`
+          [HEADER.CACHE_CONTROL]: `public, max-age=${options.browserTTL || DEFAULT_BROWSER_TTL}`
         })
 
         if (data) {
@@ -67,7 +64,7 @@ export default plugin(
 
       try {
         await redis.setEx(
-          options.salt || SALT + ':' + url,
+          SALT + ':' + url,
           options.redisTTL || DEFAULT_REDIS_TTL,
           JSON.stringify(data)
         )

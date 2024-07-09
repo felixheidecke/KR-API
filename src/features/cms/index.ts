@@ -12,11 +12,11 @@ export default function cms(App: FastifyInstance, _: { prefix: string }, done: F
     // Authenitcation
     .register(import('../../common/plugins/authentication/index.js'), {
       authorize: ({ client, params }) => {
-        const { module } = params as { module?: number }
+        const { module } = params as { module?: string }
 
         // ! IMPORTANT !
         // If no module is provided, access needs to be handlered by the route
-        return !module ? true : client.hasModuleAccess(module)
+        return !module ? true : client.hasModuleAccess(+module)
       }
     })
 

@@ -14,7 +14,11 @@ export default function shop(App: FastifyInstance, _: { prefix: string }, done: 
       }
     })
     .register(import('../../common/plugins/authentication/index.js'), {
-      authorize: ({ client, params }) => client.hasModuleAccess((params as any).module)
+      authorize: ({ client, params }) => {
+        const { module } = params as { module?: string }
+
+        return !module ? false : client.hasModuleAccess(+module)
+      }
     })
 
     // Routes
