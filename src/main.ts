@@ -5,8 +5,8 @@ import { HttpError } from './common/decorators/Error.js'
 import { ZodError } from 'zod'
 import fastify from './modules/fastify.js'
 import knex from './modules/knex.js'
-import pkg from '../package.json' assert { type: 'json' }
 import sentry from './modules/sentry.js'
+import packageJson from './common/utils/package.json.js'
 
 import type { FastifyReply } from 'fastify'
 
@@ -24,10 +24,10 @@ fastify.addHook('onClose', async () => {
 
 // --- [ Headers ] ---------------------------------------------------------------------------------
 
-fastify.addHook('preHandler', async (_: any, response: FastifyReply) => {
+fastify.addHook('onRequest', async (_: any, response: FastifyReply) => {
   response.headers({
-    [HEADER.MESSAGE]: 'Klickrhein.de | Ihre Webagentur im Rheingau',
-    [HEADER.VERSION]: pkg.version,
+    [HEADER.POWERED_BY]: 'Klickrhein.de | Ihre Webagentur im Rheingau',
+    [HEADER.VERSION]: packageJson.version,
     [HEADER.CONTENT_TYPE]: MIME_TYPE.JSON
   })
 })

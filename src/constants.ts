@@ -7,7 +7,7 @@ export const HEADER = {
   CACHE_MISS: 'MISS',
   CACHE: 'X-Cache',
   CONTENT_TYPE: 'Content-Type',
-  MESSAGE: 'X-Message',
+  POWERED_BY: 'X-Powered-By',
   PUBLIC: 'public',
   PRIVATE: 'private',
   NO_STORE: 'no-store',

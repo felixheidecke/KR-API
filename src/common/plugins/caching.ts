@@ -29,15 +29,18 @@ export default plugin(
      * @param {import('fastify').FastifyReply} response Fasify response object
      * @returns {Promise<void>}
      */
-    App.addHook('onRequest', async (request: FastifyRequest, response: FastifyReply) => {
+    App.addHook('preHandler', async (request: FastifyRequest, response: FastifyReply) => {
       try {
         const data = await redis.get(SALT + ':' + request.url)
 
-        response.headers({
-          [HEADER.CONTENT_TYPE]: MIME_TYPE.JSON,
-          [HEADER.CACHE]: data ? HEADER.CACHE_HIT : HEADER.CACHE_MISS,
-          [HEADER.CACHE_CONTROL]: `public, max-age=${options.browserTTL || DEFAULT_BROWSER_TTL}`
-        })
+        response
+
+          .header(HEADER.CONTENT_TYPE, MIME_TYPE.JSON)
+          .header(HEADER.CACHE, data ? HEADER.CACHE_HIT : HEADER.CACHE_MISS)
+          .header(
+            HEADER.CACHE_CONTROL,
+            `public, max-age=${options.browserTTL || DEFAULT_BROWSER_TTL}`
+          )
 
         if (data) {
           response.send(data)
