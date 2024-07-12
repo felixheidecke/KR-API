@@ -3,6 +3,7 @@ import { GroupPath } from './group-path.js'
 import { handleText } from '#features/cms/utils/handle-text.js'
 import { isNumber, round } from 'lodash-es'
 import { toUrlSlug } from '#utils/slugify.js'
+import { UNIT } from '../utils/constants.js'
 import expandPrice from '#utils/expand-price.js'
 
 import type { Image } from '#common/entities/image.js'
