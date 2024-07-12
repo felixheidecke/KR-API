@@ -1,16 +1,16 @@
-import { toSeconds } from '../../common/utils/convert-time.js'
+import { toSeconds } from '#utils/convert-time.js'
 import type { FastifyInstance } from 'fastify'
 
 export default function cms(App: FastifyInstance, _: { prefix: string }, done: Function) {
   App
 
     // Caching
-    .register(import('../../common/plugins/caching.js'), {
+    .register(import('#plugins/caching/index.js'), {
       browserTTL: toSeconds({ minutes: 30 })
     })
 
     // Authenitcation
-    .register(import('../../common/plugins/authentication/index.js'), {
+    .register(import('#plugins/authentication/index.js'), {
       authorize: ({ client, params }) => {
         const { module } = params as { module?: string }
 
@@ -21,10 +21,10 @@ export default function cms(App: FastifyInstance, _: { prefix: string }, done: F
     })
 
     // Routes
-    .register(import('./controller/ArticleController.js'))
-    .register(import('./controller/EventController.js'))
-    .register(import('./controller/GalleryController.js'))
-    .register(import('./controller/MenuCardController.js'))
+    .register(import('./controller/article-controller.js'))
+    .register(import('./controller/event-controller.js'))
+    .register(import('./controller/gallery-controller.js'))
+    .register(import('./controller/menu-card-controller.js'))
 
   done()
 }

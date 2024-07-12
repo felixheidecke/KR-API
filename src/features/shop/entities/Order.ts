@@ -1,12 +1,12 @@
-import { Address } from './Address.js'
+import { Address } from './address.js'
 import { fromUnixTime } from 'date-fns'
 import { isEmpty, isNumber, pick } from 'lodash-es'
-import { toUrlSlug } from '../../../common/utils/slugify.js'
-import expandPrice from '../../../common/utils/expand-price.js'
-import randomId from '../../../common/utils/random-id.js'
+import { toUrlSlug } from '#utils/slugify.js'
+import expandPrice from '#utils/expand-price.js'
+import randomId from '#utils/random-id.js'
 
-import type { Product } from './Product.js'
-import type { ExpandedPrice } from '../../../common/utils/expand-price.js'
+import type { ExpandedPrice } from '#utils/expand-price.js'
+import type { Product } from './product.js'
 
 type CartProduct = {
   id: number

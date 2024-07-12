@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto'
-import { toMilliseconds } from '../../common/utils/convert-time.js'
+import { toMilliseconds } from '#utils/convert-time.js'
 import type { FastifyInstance } from 'fastify'
 
 export default function shop(App: FastifyInstance, _: { prefix: string }, done: Function) {
@@ -13,7 +13,7 @@ export default function shop(App: FastifyInstance, _: { prefix: string }, done: 
         maxAge: toMilliseconds({ minutes: 5 })
       }
     })
-    .register(import('../../common/plugins/authentication/index.js'), {
+    .register(import('#plugins/authentication/index.js'), {
       authorize: ({ client, params }) => {
         const { module } = params as { module?: string }
 
@@ -22,11 +22,11 @@ export default function shop(App: FastifyInstance, _: { prefix: string }, done: 
     })
 
     // Routes
-    .register(import('./controller/CartController.js'))
-    .register(import('./controller/GroupController.js'))
-    .register(import('./controller/OrderController.js'))
-    .register(import('./controller/ProductsController.js'))
-    .register(import('./controller/PaymentController.js'))
+    .register(import('./controller/cart-controller.js'))
+    .register(import('./controller/group-controller.js'))
+    .register(import('./controller/order-controller.js'))
+    .register(import('./controller/products-controller.js'))
+    .register(import('./controller/payment-controller.js'))
 
   done()
 }

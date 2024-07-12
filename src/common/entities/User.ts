@@ -1,4 +1,4 @@
-import type Client from './Client.js'
+import type Client from './client.js'
 
 export default class User {
   constructor(clientId?: number, moduleIds?: number[], isSuperuser?: boolean) {

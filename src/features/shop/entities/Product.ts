@@ -1,14 +1,12 @@
-import { formatCurrency, formatNumber } from '../../../common/utils/number-format.js'
-import { GroupPath } from './GroupPath.js'
-import { isNumber } from 'lodash-es'
-import { toUrlSlug } from '../../../common/utils/slugify.js'
-import { UNIT } from '../utils/constants.js'
-import expandPrice from '../../../common/utils/expand-price.js'
-import round from '../../../common/utils/round.js'
+import { formatCurrency, formatNumber } from '#utils/number-format.js'
+import { GroupPath } from './group-path.js'
+import { handleText } from '#features/cms/utils/handle-text.js'
+import { isNumber, round } from 'lodash-es'
+import { toUrlSlug } from '#utils/slugify.js'
+import expandPrice from '#utils/expand-price.js'
 
-import type { PDF } from './PDF.js'
-import type { Image } from '../../../common/entities/Image.js'
-import { handleText } from '../../cms/utils/handleText.js'
+import type { Image } from '#common/entities/image.js'
+import type { PDF } from '#common/entities/pdf.js'
 
 type Quantity = { value: number; unit: string } | undefined
 type Weight = { value: number; unit: string } | undefined

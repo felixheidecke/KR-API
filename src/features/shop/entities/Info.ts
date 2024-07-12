@@ -1,6 +1,6 @@
-import { Customer } from './Customer.js'
-import { ShippingCost } from './ShippingCost.js'
-import { SupplementalCost } from './SupplementalCost.js'
+import { Customer } from './customer.js'
+import { ShippingCost } from './shipping-cost.js'
+import { SupplementalCost } from './supplemental-cost.js'
 
 export class Info {
   constructor(readonly module: number) {

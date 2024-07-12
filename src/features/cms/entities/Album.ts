@@ -1,5 +1,5 @@
-import { toUrlSlug } from '../../../common/utils/slugify.js'
-import type { Image } from '../../../common/entities/Image.js'
+import { toUrlSlug } from '#utils/slugify.js'
+import type { Image } from '#common/entities/image.js'
 
 export class Album {
   constructor(readonly module: number) {}

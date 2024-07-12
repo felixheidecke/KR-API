@@ -1,14 +1,14 @@
 import './env.js'
 
-import { HEADER, MIME_TYPE } from './constants.js'
-import { HttpError } from './common/decorators/Error.js'
+import { HEADER, MIME_TYPE } from '#utils/constants.js'
 import { ZodError } from 'zod'
-import fastify from './modules/fastify.js'
-import knex from './modules/knex.js'
-import sentry from './modules/sentry.js'
-import packageJson from './common/utils/package.json.js'
+import fastify from '#libs/fastify.js'
+import knex from '#libs/knex.js'
+import sentry from '#libs/sentry.js'
+import packageJson from '#utils/package-json.js'
 
 import type { FastifyReply } from 'fastify'
+import { HttpError } from '#utils/http-error.js'
 
 // --- [ Plugins ] ---------------------------------------------------------------------------------
 
@@ -21,6 +21,10 @@ fastify.addHook('onClose', async () => {
   await knex.destroy()
   fastify.log.info(`Server shutting down. Database connection destroyed. Bye! 👋🏼`)
 })
+
+// --- [ Decorators ] ------------------------------------------------------------------------------
+
+fastify.decorateRequest('httpError', HttpError)
 
 // --- [ Headers ] ---------------------------------------------------------------------------------
 

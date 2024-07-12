@@ -1,6 +1,6 @@
-import { toUrlSlug } from '../../../common/utils/slugify.js'
-import { handleText } from '../../cms/utils/handleText.js'
-import { GroupPath } from './GroupPath.js'
+import { toUrlSlug } from '#utils/slugify.js'
+import { handleText } from '../../cms/utils/handle-text.js'
+import { GroupPath } from './group-path.js'
 
 export class Group {
   constructor(readonly module: number) {}

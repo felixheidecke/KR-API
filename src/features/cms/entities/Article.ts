@@ -1,12 +1,12 @@
 // @ts-ignore
 import { fromUnixTime } from 'date-fns'
-import { toUrlSlug } from '../../../common/utils/slugify.js'
+import { toUrlSlug } from '#utils/slugify.js'
 import { isNumber } from 'lodash-es'
+import { handleText } from '../utils/handle-text.js'
 
-import type { ArticleContent } from './ArticleContent.js'
-import type { Image } from '../../../common/entities/Image.js'
-import type { PDF } from '../../shop/entities/PDF.js'
-import { handleText } from '../utils/handleText.js'
+import type { ArticleContent } from './article-content.js'
+import type { Image } from '#common/entities/image.js'
+import type { PDF } from '#common/entities/pdf.js'
 
 export class Article {
   constructor(readonly module: number) {}

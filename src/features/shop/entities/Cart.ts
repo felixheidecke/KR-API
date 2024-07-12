@@ -1,8 +1,8 @@
-import { Product } from './Product.js'
-import { ShippingCost } from './ShippingCost.js'
-import { SupplementalCost } from './SupplementalCost.js'
-import expandPrice from '../../../common/utils/expand-price.js'
-import round from '../../../common/utils/round.js'
+import { ShippingCost } from './shipping-cost.js'
+import { SupplementalCost } from './supplemental-cost.js'
+import expandPrice from '#utils/expand-price.js'
+import round from '#utils/round.js'
+import type { Product } from './product.js'
 
 type CartProducts = Map<
   number,

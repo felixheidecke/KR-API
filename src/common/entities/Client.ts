@@ -1,6 +1,6 @@
 import { isNumber } from 'lodash-es'
 import { fromUnixTime } from 'date-fns'
-import type Module from './Module.js'
+import type Module from './module.js'
 
 export default class Client {
   constructor(readonly id: number) {}
