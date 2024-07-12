@@ -12,13 +12,13 @@ import {
   getOrderRequestSchema,
   type GetOrderRequestSchema
 } from '../schemas/get-order-request-schema.js'
-import { setNoStoreHeaders } from '#utils/header-hooks.js'
+import { cacheControlNoStoreHandler } from '#utils/header-hooks.js'
 import type { InferFastifyRequest } from '#libs/fastify.js'
 import { HttpError } from '#utils/http-error.js'
 import { Order } from '../entities/order.js'
 
 export default async function (App: FastifyInstance) {
-  App.addHook('onSend', setNoStoreHeaders)
+  App.addHook('onSend', cacheControlNoStoreHandler)
 
   App.get('/:module/order', {
     handler: async ({ session }: FastifyRequest, reply: FastifyReply) => {

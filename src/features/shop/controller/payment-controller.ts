@@ -1,4 +1,4 @@
-import { setNoStoreHeaders } from '#utils/header-hooks.js'
+import { cacheControlNoStoreHandler } from '#utils/header-hooks.js'
 
 import type { FastifyInstance } from 'fastify'
 import type { InferFastifyRequest } from '#libs/fastify.js'
@@ -16,7 +16,7 @@ import {
 } from '../schemas/capture-paypal-request-schema.js'
 
 export default async function (App: FastifyInstance) {
-  App.addHook('onSend', setNoStoreHeaders)
+  App.addHook('onSend', cacheControlNoStoreHandler)
 
   App.post('/:module/payment/paypal/create', {
     preValidation: async (request: InferFastifyRequest<CreatePayPalRequestSchema>) => {

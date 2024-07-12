@@ -1,7 +1,7 @@
 import { Cart } from '../entities/cart.js'
 import { CartService } from '../services/cart-service.js'
 import { getCartRequestSchema } from '../schemas/get-cart-request-schema.js'
-import { setNoStoreHeaders } from '#utils/header-hooks.js'
+import { cacheControlNoStoreHandler } from '#utils/header-hooks.js'
 import { updateCartRequestSchema } from '../schemas/update-cart-request-schema.js'
 
 import type { FastifyInstance } from 'fastify'
@@ -10,7 +10,7 @@ import type { GetCartRequestSchema } from '../schemas/get-cart-request-schema.js
 import type { UpdateCartRequestSchema } from '../schemas/update-cart-request-schema.js'
 
 export default async function (App: FastifyInstance) {
-  App.addHook('onSend', setNoStoreHeaders)
+  App.addHook('onSend', cacheControlNoStoreHandler)
 
   App.addHook(
     'onRequest',
