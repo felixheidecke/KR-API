@@ -1,15 +1,17 @@
 import knex from '#libs/knex.js'
 
-export type RepoMenuCard = {
-  id: number
-  module: number
-  title: string
-  description: string
-  price: number
-  image: string | null
-  category: string
-  category_description: string
-  category_id: number
+export namespace MenuCardRepo {
+  export type MenuCard = {
+    id: number
+    module: number
+    title: string
+    description: string
+    price: number
+    image: string | null
+    category: string
+    category_description: string
+    category_id: number
+  }
 }
 
 export class MenuCardRepo {
@@ -20,7 +22,7 @@ export class MenuCardRepo {
    * @returns {Promise<MenuCard[] | null>} A promise that resolves to an array of MenuCard objects or null if the module doesn't exist.
    */
 
-  public static async readMenuCard(module: number): Promise<RepoMenuCard[] | null> {
+  public static async readMenuCard(module: number): Promise<MenuCardRepo.MenuCard[] | null> {
     const repoMenuCard = await knex
       .select({
         id: 'Item._id',

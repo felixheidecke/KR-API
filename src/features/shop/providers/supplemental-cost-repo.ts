@@ -1,5 +1,4 @@
 import knex from '#libs/knex.js'
-import { SupplementalCost } from '../entities/supplemental-cost.js'
 
 export namespace SupplementalCostRepo {
   export type SupplementalCost = {
@@ -14,15 +13,15 @@ export class SupplementalCostRepo {
   static async readSupplementalCost(
     module: number
   ): Promise<SupplementalCostRepo.SupplementalCost | null> {
-    const supplementalCost = await knex('Shop3ShippingCharges AS s')
+    const supplementalCost = await knex('Shop3ShippingCharges AS charges')
       .select({
-        module: 's.module',
-        price: 's.extracostAmount',
-        title: 's.extracostTitle',
-        description: 's.text'
+        module: 'charges.module',
+        price: 'charges.extracostAmount',
+        title: 'charges.extracostTitle',
+        description: 'charges.text'
       })
-      .join('Shop3ShippingChargesWeight AS w', 's._id', '=', 'w.charges')
-      .where('s.module', module)
+      .join('Shop3ShippingChargesWeight AS weight', 'charges._id', '=', 'weight.charges')
+      .where('charges.module', module)
       .first()
 
     return supplementalCost || null

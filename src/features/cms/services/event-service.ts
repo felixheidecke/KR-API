@@ -8,25 +8,24 @@ import { omit } from 'lodash-es'
 import { Flags } from '../entities/flags.js'
 import { ModuleRepo } from '#common/providers/module-repo.js'
 
+type Config = {
+  skipModuleCheck?: boolean
+}
+
+type Query = {
+  startsBefore?: Date | number
+  startsAfter?: Date | number
+  endsBefore?: Date | number
+  endsAfter?: Date | number
+  limit?: number
+  offset?: number
+  parts?: string[]
+}
+
 export namespace EventService {
-  type Config = {
-    shouldThrow?: boolean
-  }
+  export type GetEventById = (module: number, id: number, config?: Config) => Promise<Event>
 
-  type Query = {
-    startsBefore?: Date | number
-    startsAfter?: Date | number
-    endsBefore?: Date | number
-    endsAfter?: Date | number
-    limit?: number
-    parts?: string[]
-  }
-
-  export type GetEventsByModule = (
-    module: number,
-    query?: Query,
-    config?: Config
-  ) => Promise<Event[]>
+  export type GetEventsByModule = (module: number, query?: Query) => Promise<Event[]>
 
   export type GetEventsWhereIn = (
     whereIn: { modules?: number[]; communes?: string[] },
@@ -37,17 +36,18 @@ export namespace EventService {
 // --- [ Class ] -----------------------------------------------------------------------------------
 
 export class EventService {
-  public static async getEventById(
-    module: number,
-    id: number,
-    config: { shouldThrow?: boolean } = {}
-  ) {
-    const repoEvent = await EventRepo.readEventById(module, id)
+  public static getEventById: EventService.GetEventById = async (module, id, config = {}) => {
+    const [moduleExists, repoEvent] = await Promise.all([
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      EventRepo.readEventById(module, id)
+    ])
 
-    if (!repoEvent && config.shouldThrow) {
+    if (!moduleExists) {
+      throw HttpError.NOT_FOUND('Module not found.')
+    }
+
+    if (!repoEvent) {
       throw HttpError.NOT_FOUND('Event not found.')
-    } else if (!repoEvent) {
-      return null
     }
 
     const event = this.createEventFromRepo(repoEvent)
@@ -61,12 +61,8 @@ export class EventService {
     return event
   }
 
-  public static getEventsByModule: EventService.GetEventsByModule = async (
-    module,
-    query = {},
-    config = {}
-  ) => {
-    if (config.shouldThrow && !(await ModuleRepo.moduleExists(module))) {
+  public static getEventsByModule: EventService.GetEventsByModule = async (module, query = {}) => {
+    if (!(await ModuleRepo.moduleExists(module))) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 

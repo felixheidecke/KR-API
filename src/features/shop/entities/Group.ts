@@ -1,5 +1,5 @@
 import { toUrlSlug } from '#utils/slugify.js'
-import { handleText } from '../../cms/utils/handle-text.js'
+import { handleText } from '#utils/handle-text.js'
 import { GroupPath } from './group-path.js'
 
 export class Group {

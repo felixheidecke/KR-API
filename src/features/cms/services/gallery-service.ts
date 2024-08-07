@@ -1,40 +1,44 @@
 import { Album } from '../entities/album.js'
 import { first, uniqBy } from 'lodash-es'
-import { GalleryRepo, type RepoAlbum } from '../providers/gallery-repo.js'
+import { GalleryRepo } from '../providers/gallery-repo.js'
 import { HttpError } from '#utils/http-error.js'
 import { ModuleRepo } from '#common/providers/module-repo.js'
 import { Image } from '#common/entities/image.js'
 
+type Config = {
+  skipModuleCheck?: boolean
+}
+
+export namespace GalleryService {
+  export type GetGallery = (module: number, config?: Config) => Promise<Album[]>
+  export type GetAlbum = (module: number, id: number, config?: Config) => Promise<Album>
+}
+
 export class GalleryService {
-  public static async getGallery(
-    module: number,
-    config: {
-      shouldThrow?: boolean
-    } = {}
-  ) {
-    if (config.shouldThrow && !(await ModuleRepo.moduleExists(module))) {
+  public static getGallery: GalleryService.GetGallery = async (module, config = {}) => {
+    const [moduleExists, repoGallery] = await Promise.all([
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      GalleryRepo.readGallery(module)
+    ])
+
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    const gallery = await GalleryRepo.readGallery(module)
-
-    return GalleryService.createGalleryFromRepo(gallery)
+    return repoGallery.length ? GalleryService.createGalleryFromRepo(repoGallery) : []
   }
 
-  public static async getAlbum(
-    module: number,
-    id: number,
-    config: {
-      shouldThrow?: boolean
-    } = {}
-  ) {
-    if (config.shouldThrow && !(await ModuleRepo.moduleExists(module))) {
+  public static getAlbum: GalleryService.GetAlbum = async (module, id, config = {}) => {
+    const [moduleExists, repoAlbum] = await Promise.all([
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      GalleryRepo.readAlbum(module, id)
+    ])
+
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    const repoAlbum = await GalleryRepo.readAlbum(module, id)
-
-    if (config.shouldThrow && !repoAlbum.length) {
+    if (!repoAlbum.length) {
       throw HttpError.NOT_FOUND('Album not found.')
     }
 
@@ -49,9 +53,10 @@ export class GalleryService {
    * @returns {Album[]} An array of Album objects.
    */
 
-  private static createGalleryFromRepo(repoGallery: RepoAlbum[]) {
+  private static createGalleryFromRepo(repoGallery: GalleryRepo.Album[]) {
     return uniqBy(repoGallery, 'id').map(repoAlbum => {
       const album = new Album(repoAlbum.module)
+
       album.id = repoAlbum._id
       album.title = repoAlbum.title
 
@@ -79,8 +84,9 @@ export class GalleryService {
    * @returns {Album} The converted Album object.
    */
 
-  private static createAlbumFromRepo(repoAlbum: RepoAlbum[]) {
+  private static createAlbumFromRepo(repoAlbum: GalleryRepo.Album[]) {
     const album = new Album(first(repoAlbum)?.module as number)
+
     album.id = first(repoAlbum)?._id as number
     album.title = first(repoAlbum)?.title as string
     album.images = repoAlbum.map(photo => {

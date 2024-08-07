@@ -1,12 +1,17 @@
 import { GalleryService } from '../services/gallery-service.js'
-import { getAlbumRequestSchema } from '../schemas/get-album-request-schema.js'
-import { getGalleryRequestSchema } from '../schemas/get-gallery-request-schema.js'
+import { getAlbumRequestSchema } from '../schemas/album-schema.js'
+import { getGalleryRequestSchema } from '../schemas/gallery-schema.js'
+
+// --- [ Types ] -----------------------------------------------------------------------------------
 
 import type { FastifyInstance } from 'fastify'
-import type { GetAlbumRequestSchema } from '../schemas/get-album-request-schema.js'
-import type { GetGalleryRequestSchema } from '../schemas/get-gallery-request-schema.js'
 import type { InferFastifyRequest } from '#libs/fastify.js'
-import type { Album } from '../entities/album.js'
+import type { z } from 'zod'
+
+type GetGalleryRequestSchema = InferFastifyRequest<z.infer<typeof getGalleryRequestSchema>>
+type GetAlbumRequestSchema = InferFastifyRequest<z.infer<typeof getAlbumRequestSchema>>
+
+// --- [ Controller ] ------------------------------------------------------------------------------
 
 export default async function (App: FastifyInstance) {
   /**
@@ -20,18 +25,16 @@ export default async function (App: FastifyInstance) {
    */
 
   App.get('/gallery/:module', {
-    preValidation: async (request: InferFastifyRequest<GetGalleryRequestSchema>) => {
+    preValidation: async (request: GetGalleryRequestSchema) => {
       const { params } = getGalleryRequestSchema.parse(request)
+
       request.params = params
     },
     handler: async (request, reply) => {
       const { params } = request
+      const gallery = await GalleryService.getGallery(params.module)
 
-      const gallery = await GalleryService.getGallery(params.module, {
-        shouldThrow: true
-      })
-
-      request.data = (gallery as Album[]).map(album => album.display())
+      request.data = gallery.map(album => album.display())
 
       reply.send(request.data)
     }
@@ -48,15 +51,16 @@ export default async function (App: FastifyInstance) {
    */
 
   App.get('/gallery/:module/:id', {
-    preValidation: async (request: InferFastifyRequest<GetAlbumRequestSchema>) => {
+    preValidation: async (request: GetAlbumRequestSchema) => {
       const { params } = getAlbumRequestSchema.parse(request)
+
       request.params = params
     },
     handler: async (request, reply) => {
       const { module, id } = request.params
-      const album = await GalleryService.getAlbum(module, id, { shouldThrow: true })
+      const album = await GalleryService.getAlbum(module, id)
 
-      request.data = (album as Album).display()
+      request.data = album.display()
 
       reply.send(request.data)
     }

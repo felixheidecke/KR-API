@@ -36,4 +36,11 @@ export const capturePayPalRequestSchema = z
     }
   )
 
-export type CapturePayPalRequestSchema = z.infer<typeof capturePayPalRequestSchema>
+export const createPayPalRequestSchema = z.object({
+  params: z.object({
+    module: z.coerce.number().gt(0)
+  }),
+  body: z.object({
+    transactionId: z.string().length(8)
+  })
+})

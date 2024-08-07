@@ -5,11 +5,9 @@ import Module from '../entities/module.js'
 // --- [ Namespace ] -------------------------------------------------------------------------------
 
 export namespace ModuleService {
-  type Config = { shouldThrow?: boolean }
-
-  export type GetModule = (id: number, type?: string, config?: Config) => Promise<Module | null>
-  export type GetModules = (config?: Config) => Promise<Module[] | null>
-  export type GetModulesByClientId = (id: number, config?: Config) => Promise<Module[] | null>
+  export type GetModule = (id: number, type?: string) => Promise<Module>
+  export type GetModules = () => Promise<Module[]>
+  export type GetModulesByClientId = (id: number) => Promise<Module[]>
 }
 
 // --- [ Class ] -----------------------------------------------------------------------------------
@@ -19,30 +17,30 @@ export class ModuleService {
    * Retrieves a module by ID and type.
    * @param {number} id - The ID of the module.
    * @param {string} [type] - The type of the module.
-   * @returns {Promise<Module|null>} - The retrieved module, or null if not found.
+   * @returns {Promise<Module>} - The retrieved module, or null if not found.
    */
-  public static getModule: ModuleService.GetModule = async (id, type, config = {}) => {
+  public static getModule: ModuleService.GetModule = async (id, type) => {
     const repoModule = await ModuleRepo.readModule(id, type)
 
-    if (!repoModule && config.shouldThrow) {
+    if (!repoModule) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    return repoModule ? ModuleServiceUtils.createModuleFromRepo(repoModule) : null
+    return ModuleServiceUtils.createModuleFromRepo(repoModule)
   }
 
   /**
    * Retrieves all modules.
    * @returns {Promise<Module[]>} - Array of modules.
    */
-  public static getModules: ModuleService.GetModules = async (config = {}) => {
+  public static getModules: ModuleService.GetModules = async () => {
     const repoModules = await ModuleRepo.readModules()
 
-    if (!repoModules && config.shouldThrow) {
+    if (!repoModules) {
       throw HttpError.NOT_FOUND('Modules not found.')
     }
 
-    return repoModules ? repoModules.map(ModuleServiceUtils.createModuleFromRepo) : null
+    return repoModules.map(ModuleServiceUtils.createModuleFromRepo)
   }
 
   /**
@@ -56,11 +54,11 @@ export class ModuleService {
   ) => {
     const repoModules = await ModuleRepo.readModulesByClient(id)
 
-    if (!repoModules && config.shouldThrow) {
+    if (!repoModules) {
       throw HttpError.NOT_FOUND('Modules not found.')
     }
 
-    return repoModules ? repoModules.map(ModuleServiceUtils.createModuleFromRepo) : null
+    return repoModules.map(ModuleServiceUtils.createModuleFromRepo)
   }
 }
 

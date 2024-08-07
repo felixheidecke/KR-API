@@ -15,7 +15,7 @@ export default function cms(App: FastifyInstance, _: { prefix: string }, done: F
         const { module } = params as { module?: string }
 
         // ! IMPORTANT !
-        // If no module is provided, access needs to be handlered by the route
+        // If no module is provided, access needs to be handeled by the route
         return !module ? true : client.hasModuleAccess(+module)
       }
     })

@@ -1,29 +1,43 @@
+import { CustomerService } from './customer-service.js'
 import { getUnixTime } from 'date-fns'
 import { HttpError } from '#utils/http-error.js'
+import { LOCALE } from '#utils/constants.js'
 import { Mail } from '#common/entities/mail.js'
 import { ModuleRepo } from '#common/providers/module-repo.js'
 import { Order } from '../entities/order.js'
-import { SendMailerApi } from '#common/providers/send-mailer-api.js'
 import { OrderRepo } from '../providers/order-repo.js'
-import { CustomerService } from './customer-service.js'
+import { SendMailerApi } from '#common/providers/send-mailer-api.js'
 import { TemplateRepo } from '../providers/template-repo.js'
 
 import type { Cart } from '../entities/cart.js'
 import type { Customer } from '../entities/customer.js'
-import type { RepoOrder } from '../providers/order-repo.js'
+
+// --- [ Types ] -----------------------------------------------------------------------------------
 
 type BaseConfig = {
   skipModuleCheck?: boolean
-  shouldThrow?: boolean
 }
 
-export interface OrderService {
-  getOrder(module: number, transactionId: string, config?: BaseConfig): Promise<Order | null>
-  saveOrder(order: Order): Promise<void>
-  importCart(order: Order, cart: Cart): Promise<void>
-  updatePaymentStatus(order: Order, paymentType: Order['paymentType']): Promise<void>
-  sendOrderConfirmationMail(order: Order, origin: string): Promise<any>
+export namespace OrderService {
+  export type GetOrderByTransaction = (
+    module: number,
+    transactionId: string,
+    config?: BaseConfig
+  ) => Promise<Order>
+
+  export type SaveOrder = (order: Order) => Promise<void>
+
+  export type ImportCart = (order: Order, cart: Cart) => void
+
+  export type UpdatePaymentStatus = (
+    order: Order,
+    paymentType: Order['paymentType']
+  ) => Promise<void>
+
+  export type SendOrderConfirmationMail = (order: Order, origin: string) => Promise<any>
 }
+
+// --- [ Class ] -----------------------------------------------------------------------------------
 
 export class OrderService {
   /**
@@ -35,21 +49,25 @@ export class OrderService {
    * @throws {Error} If the module or transaction ID is missing, or if the order is not found.
    */
 
-  public static async getOrder(module: number, transactionId: string, config: BaseConfig = {}) {
+  public static getOrderByTransaction: OrderService.GetOrderByTransaction = async (
+    module,
+    transactionId,
+    { skipModuleCheck } = {}
+  ) => {
     const [moduleExists, repoOrder] = await Promise.all([
-      config.skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
       OrderRepo.getOrder(module, transactionId)
     ])
 
-    if (!moduleExists && config.shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
-    if (!repoOrder && config.shouldThrow) {
+    if (!repoOrder) {
       throw HttpError.NOT_FOUND('Order not found')
     }
 
-    return repoOrder ? this.createOrderFromRepo(repoOrder) : null
+    return this.createOrderFromRepo(repoOrder)
   }
 
   /**
@@ -61,7 +79,7 @@ export class OrderService {
    * @throws {HttpError} If the order has invalid properties or cannot be saved.
    */
 
-  public static async saveOrder(order: Order) {
+  public static saveOrder: OrderService.SaveOrder = async order => {
     const { date, transactionId, isEmpty, address } = order
 
     if (date) {
@@ -95,7 +113,7 @@ export class OrderService {
    * @param {Cart} cart - The cart to be imported.
    */
 
-  public static importCart(order: Order, cart: Cart) {
+  public static importCart: OrderService.ImportCart = (order, cart) => {
     order.cart = []
     order.total = cart.total
     order.shippingCost = cart.shipping
@@ -120,7 +138,10 @@ export class OrderService {
    * @param {Order['paymentType']} paymentType - The type of payment.
    */
 
-  public static async updatePaymentStatus(order: Order, paymentType: Order['paymentType']) {
+  public static updatePaymentStatus: OrderService.UpdatePaymentStatus = async (
+    order,
+    paymentType
+  ) => {
     await OrderRepo.updateOrder(order, paymentType)
 
     order.paymentType = paymentType
@@ -144,7 +165,7 @@ export class OrderService {
 
     const mail = new Mail()
     const [client, mailTemplate] = await Promise.all([
-      CustomerService.getCustomerByModule(module, { shouldThrow: true }) as Promise<Customer>,
+      CustomerService.getCustomerByModule(module),
       this.getMailTemplate(origin)
     ])
 
@@ -152,7 +173,7 @@ export class OrderService {
     mail.subject = `Ihre Bestellung bei ${new URL(origin).hostname} (${(order.transactionId as string)?.toUpperCase()})`
     mail.body = mailTemplate({
       ...order.display(),
-      date: (order.date as Date).toLocaleString('de-DE'),
+      date: (order.date as Date).toLocaleString(LOCALE),
       origin,
       owner: client,
       cart: order
@@ -186,7 +207,7 @@ export class OrderService {
     return mailTemplate || null
   }
 
-  private static createRepoOrderFromOrder(order: Order): Omit<RepoOrder, '_id'> {
+  private static createRepoOrderFromOrder(order: Order): Omit<OrderRepo.Order, '_id'> {
     return {
       module: order.module,
       date: getUnixTime(order.date as Date),
@@ -226,7 +247,7 @@ export class OrderService {
     }
   }
 
-  private static createOrderFromRepo(repoOrder: RepoOrder): Order {
+  private static createOrderFromRepo(repoOrder: OrderRepo.Order): Order {
     const order = new Order(repoOrder.module)
 
     order.total = repoOrder.amount

@@ -72,7 +72,7 @@ export default plugin(
           JSON.stringify(data)
         )
       } catch (error) {
-        console.error({ error })
+        console.error(error)
       }
     })
 

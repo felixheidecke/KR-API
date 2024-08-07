@@ -1,26 +1,27 @@
 import { Cart } from '../entities/cart.js'
 import { CartService } from '../services/cart-service.js'
-import { getCartRequestSchema } from '../schemas/get-cart-request-schema.js'
 import { cacheControlNoStoreHandler } from '#utils/header-hooks.js'
-import { updateCartRequestSchema } from '../schemas/update-cart-request-schema.js'
+import { getCartRequestSchema, updateCartRequestSchema } from '../schemas/cart-schema.js'
 
 import type { FastifyInstance } from 'fastify'
 import type { InferFastifyRequest } from '#libs/fastify.js'
-import type { GetCartRequestSchema } from '../schemas/get-cart-request-schema.js'
-import type { UpdateCartRequestSchema } from '../schemas/update-cart-request-schema.js'
+import type { z } from 'zod'
 
-export default async function (App: FastifyInstance) {
+type UpdateCartRequestSchema = InferFastifyRequest<z.infer<typeof updateCartRequestSchema>>
+type GetCartRequestSchema = InferFastifyRequest<z.infer<typeof getCartRequestSchema>>
+
+export default async function CartController(App: FastifyInstance) {
   App.addHook('onSend', cacheControlNoStoreHandler)
 
   App.addHook(
     'onRequest',
-    async function ({ session, params }: InferFastifyRequest<UpdateCartRequestSchema>) {
+    async function ({ session, params }: UpdateCartRequestSchema | GetCartRequestSchema) {
       session.cart ??= new Cart(params.module)
     }
   )
 
   App.put('/:module/cart', {
-    preValidation: async function (request: InferFastifyRequest<UpdateCartRequestSchema>) {
+    preValidation: async function (request: UpdateCartRequestSchema) {
       const { params, body } = updateCartRequestSchema.parse(request)
 
       request.params = params
@@ -28,7 +29,7 @@ export default async function (App: FastifyInstance) {
     },
     handler: async function ({ session, body }, reply) {
       await Promise.all([
-        CartService.initialise(session.cart, { shouldThrow: true }),
+        CartService.initialise(session.cart),
         CartService.updateProductQuantity(session.cart, body)
       ])
 
@@ -37,13 +38,13 @@ export default async function (App: FastifyInstance) {
   })
 
   App.get('/:module/cart', {
-    preValidation: async function (request: InferFastifyRequest<GetCartRequestSchema>) {
+    preValidation: async function (request: GetCartRequestSchema) {
       const { params } = getCartRequestSchema.parse(request)
 
       request.params = params
     },
     handler: async function ({ session }, reply) {
-      await CartService.initialise(session.cart, { shouldThrow: true })
+      await CartService.initialise(session.cart)
 
       reply.send(session.cart.display())
     }

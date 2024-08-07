@@ -2,6 +2,7 @@ import { ShippingCost } from './shipping-cost.js'
 import { SupplementalCost } from './supplemental-cost.js'
 import expandPrice from '#utils/expand-price.js'
 import round from '#utils/round.js'
+
 import type { Product } from './product.js'
 
 type CartProducts = Map<
@@ -27,11 +28,25 @@ export class Cart {
 
   public supplementalCost: SupplementalCost
   public shippingCost: ShippingCost
-  public gross = 0
-  public total = 0
+  private _gross = 0
+  private _total = 0
   public shipping = 0
   public shippingUnit = ''
-  public weight = 0
+  private _weight = 0
+
+  // --- [ Setter ] --------------------------------------------------------------------------------
+
+  public setSupplementalCost(supplementalCost: SupplementalCost) {
+    this.supplementalCost = supplementalCost
+
+    return this
+  }
+
+  public setShippingCost(shippingCost: ShippingCost) {
+    this.shippingCost = shippingCost
+
+    return this
+  }
 
   // --- [ Getter ] --------------------------------------------------------------------------------
 
@@ -43,7 +58,19 @@ export class Cart {
     return Array.from(this._products.values())
   }
 
-  get isEmpty() {
+  get gross() {
+    return this._gross
+  }
+
+  get total() {
+    return this._total
+  }
+
+  get weight() {
+    return this._weight
+  }
+
+  get size() {
     return !this._products.size
   }
 
@@ -95,9 +122,9 @@ export class Cart {
     shipping = this.shippingCost.getRateByWeight(weight) ?? 0
     total += shipping
 
-    this.gross = round(gross)
-    this.total = round(total)
-    this.weight = weight
+    this._gross = round(gross)
+    this._total = round(total)
+    this._weight = weight
 
     this.shipping = shipping
     this.shippingUnit = this.shippingCost.unit

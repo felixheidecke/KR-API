@@ -5,7 +5,7 @@ import { toUrlSlug } from '#utils/slugify.js'
 import type { Image } from '#common/entities/image.js'
 import type { PDF } from '#common/entities/pdf.js'
 import type { Flags } from './flags.js'
-import { handleText } from '../utils/handle-text.js'
+import { handleText } from '#utils/handle-text.js'
 
 export class Event {
   constructor(readonly module: number) {}

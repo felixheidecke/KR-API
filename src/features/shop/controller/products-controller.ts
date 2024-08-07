@@ -1,38 +1,34 @@
-import type { InferFastifyRequest } from '#libs/fastify.js'
-import caching from '#plugins/caching/index.js'
-import { toSeconds } from '#utils/convert-time.js'
-import type { FastifyInstance } from 'fastify'
-import {
-  getProductsRequestSchema,
-  type GetProductsRequestSchema
-} from '../schemas/products-request-schema.js'
-import { ProductService } from '../services/product-service.js'
-import {
-  getProductRequestSchema,
-  type GetProductRequestSchema
-} from '../schemas/product-request-schema.js'
-import type { Product } from '../entities/product.js'
+import { getProductRequestSchema, getProductsRequestSchema } from '../schemas/product-schema.js'
 import { GroupService } from '../services/group-service.js'
-import type { Group } from '../entities/group.js'
+import { ProductService } from '../services/product-service.js'
+import { toSeconds } from '#utils/convert-time.js'
+import caching from '#plugins/caching/index.js'
 
-export default async function (App: FastifyInstance) {
+import type { FastifyInstance } from 'fastify'
+import type { Group } from '../entities/group.js'
+import type { InferFastifyRequest } from '#libs/fastify.js'
+import type { Product } from '../entities/product.js'
+import type { z } from 'zod'
+
+type GetProductsRequestSchema = InferFastifyRequest<z.infer<typeof getProductsRequestSchema>>
+type GetProductRequestSchema = InferFastifyRequest<z.infer<typeof getProductRequestSchema>>
+
+export default async function ProductsController(App: FastifyInstance) {
   App.register(caching, {
     redisTTL: toSeconds({ minutes: 5 }),
     browserTTL: toSeconds({ minutes: 15 })
   })
 
   App.get('/:module/products', {
-    preValidation: async function (request: InferFastifyRequest<GetProductsRequestSchema>) {
+    preValidation: async function (request: GetProductsRequestSchema) {
       const { params, query } = getProductsRequestSchema.parse(request)
 
       request.params = params
       request.query = query
     },
-    handler: async function (request: InferFastifyRequest<GetProductsRequestSchema>, reply) {
+    handler: async function (request, reply) {
       const { params, query } = request
-      const products = await ProductService.getProducts(params.module, query, {
-        shouldThrow: true
-      })
+      const products = await ProductService.getProductsByModule(params.module, query)
 
       request.data = products.map(product => product.display())
 
@@ -41,31 +37,32 @@ export default async function (App: FastifyInstance) {
   })
 
   App.get('/:module/products/:id', {
-    preValidation: async function (request: InferFastifyRequest<GetProductRequestSchema>) {
+    preValidation: async function (request: GetProductRequestSchema) {
       const { params } = getProductRequestSchema.parse(request)
 
       request.params = params
     },
-    handler: async function (request: InferFastifyRequest<GetProductRequestSchema>, reply) {
+    handler: async function (request, reply) {
       const { module, id } = request.params
-      const product = await ProductService.getProduct(module, id, { shouldThrow: true })
-      request.data = (product as Product).display()
+      const product = await ProductService.getProductById(module, id)
+
+      request.data = product.display()
 
       reply.send(request.data)
     }
   })
 
   App.get('/:module/products/:id/group', {
-    preValidation: async function (request: InferFastifyRequest<GetProductRequestSchema>) {
+    preValidation: async function (request: GetProductRequestSchema) {
       const { params } = getProductRequestSchema.parse(request)
 
       request.params = params
     },
-    handler: async function (request: InferFastifyRequest<GetProductRequestSchema>, reply) {
+    handler: async function (request, reply) {
       const { module, id } = request.params
-      const group = await GroupService.getGroupByProductId(module, id, { shouldThrow: true })
+      const group = await GroupService.getGroupByProductId(module, id)
 
-      request.data = (group as Group).display()
+      request.data = group.display()
 
       reply.send(request.data)
     }

@@ -6,34 +6,33 @@ import { HttpError } from '#utils/http-error.js'
 
 type BaseConfig = {
   skipModuleCheck?: boolean
-  shouldThrow?: boolean
 }
 
-export interface ShippingCostService {
-  getShippingCost(module: number, config?: BaseConfig): Promise<ShippingCost | null>
+export namespace ShippingCostService {
+  export type GetShippingCost = (module: number, config?: BaseConfig) => Promise<ShippingCost>
 }
 
 export class ShippingCostService {
-  static async getShippingCost(module: number, { skipModuleCheck, shouldThrow }: BaseConfig = {}) {
+  static getShippingCost: ShippingCostService.GetShippingCost = async (
+    moduleId,
+    { skipModuleCheck } = {}
+  ) => {
     const [moduleExists, repoShippingCost] = await Promise.all([
-      skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
-      ShippingRatesRepo.readShippingRates(module)
+      skipModuleCheck ? ModuleRepo.moduleExists(moduleId) : Promise.resolve(true),
+      ShippingRatesRepo.readShippingRates(moduleId)
     ])
 
-    if (!moduleExists && shouldThrow) {
-      throw HttpError.NOT_FOUND('Module not found.')
-    }
-
-    if (shouldThrow && !moduleExists) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
-    return repoShippingCost ? createShippingCostFromRepo(repoShippingCost) : null
+    return createShippingCostFromRepo(repoShippingCost)
   }
 }
 
 function createShippingCostFromRepo(repoShippingCost: ShippingRatesRepo.ShippingRate[]) {
   const shippingCost = new ShippingCost(head(repoShippingCost)?.module as number)
+
   shippingCost.freeShippingThreshold = head(repoShippingCost)?.freeShippingThreshold as number
 
   if (repoShippingCost[0]?.unit) {

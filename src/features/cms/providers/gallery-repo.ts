@@ -1,13 +1,15 @@
 import { MEDIA_BASE_PATH } from '#utils/constants.js'
 import knex from '#libs/knex.js'
 
-export type RepoAlbum = {
-  _id: number
-  module: number
-  title: string
-  image: string
-  thumb: string
-  description: string
+export namespace GalleryRepo {
+  export type Album = {
+    _id: number
+    module: number
+    title: string
+    image: string
+    thumb: string
+    description: string
+  }
 }
 
 export class GalleryRepo {
@@ -18,7 +20,7 @@ export class GalleryRepo {
    * @returns {Promise<Album[] | null>} A promise that resolves to an array of Album objects or null if the module doesn't exist.
    */
 
-  public static async readGallery(module: number): Promise<RepoAlbum[]> {
+  public static async readGallery(module: number): Promise<GalleryRepo.Album[]> {
     const query = await knex('PhotoAlbum')
       .select([
         'Album._id AS _id',
@@ -46,7 +48,7 @@ export class GalleryRepo {
    * @returns {Promise<Album | null>} A promise that resolves to an Album object or null if not found.
    */
 
-  public static async readAlbum(module: number, id: number): Promise<RepoAlbum[]> {
+  public static async readAlbum(module: number, id: number): Promise<GalleryRepo.Album[]> {
     const query = await knex('PhotoAlbum')
       .select([
         'Album._id AS _id',

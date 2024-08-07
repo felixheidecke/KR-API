@@ -2,29 +2,33 @@ import { HttpError } from '#utils/http-error.js'
 import { Customer } from '../entities/customer.js'
 import { CustomerRepo } from '../providers/customer-repo.js'
 
-type BaseConfig = {
-  shouldThrow?: boolean
-}
+// --- [ Types ] -----------------------------------------------------------------------------------
+
+type GetCustomerById = (id: number) => Promise<Customer>
+
+type GetCustomerByModule = (module: number) => Promise<Customer>
+
+// --- [ Class ] -----------------------------------------------------------------------------------
 
 export class CustomerService {
-  public static async getCustomer(id: number, config: BaseConfig = {}) {
+  public static getCustomerById: GetCustomerById = async id => {
     const repoCustomer = await CustomerRepo.readCustomer(id)
 
-    if (!repoCustomer && config.shouldThrow) {
+    if (!repoCustomer) {
       throw HttpError.NOT_FOUND('Customer not found.')
     }
 
-    return repoCustomer ? this.createCustomerFromRepo(repoCustomer) : null
+    return this.createCustomerFromRepo(repoCustomer)
   }
 
-  public static async getCustomerByModule(module: number, config: BaseConfig = {}) {
-    const repoCustomer = await await CustomerRepo.readCustomerByModule(module)
+  public static getCustomerByModule: GetCustomerByModule = async (module: number) => {
+    const repoCustomer = await CustomerRepo.readCustomerByModule(module)
 
-    if (!repoCustomer && config.shouldThrow) {
+    if (!repoCustomer) {
       throw HttpError.NOT_FOUND('Customer not found.')
     }
 
-    return repoCustomer ? this.createCustomerFromRepo(repoCustomer) : null
+    return this.createCustomerFromRepo(repoCustomer)
   }
 
   private static createCustomerFromRepo(repoCustomer: CustomerRepo.Customer) {

@@ -32,8 +32,11 @@ export class ArticleRepo {
    * @returns {Promise<ArticleRepo.Article | null>} A promise that resolves to an Article object or null if not found.
    */
 
-  public static async readArticle(module: number, id: number): Promise<ArticleRepo.Article | null> {
-    return new RepoArticleBuilder(module).readOne(id)
+  public static async readArticleById(
+    module: number,
+    id: number
+  ): Promise<ArticleRepo.Article | null> {
+    return new RepoArticleBuilder(module).select().readOne(id)
   }
 
   /**
@@ -46,20 +49,40 @@ export class ArticleRepo {
    * @returns {Promise<Article[] | null>} A promise that resolves to an array of Article objects or null if the module doesn't exist.
    */
 
-  public static async readArticles(
+  public static async readArticlesByModule(
     module: number,
     query: {
       createdAfter?: Date
       createdBefore?: Date
       archived?: boolean
+      offset?: number
       limit?: number
     } = {}
   ): Promise<ArticleRepo.Article[]> {
     return new RepoArticleBuilder(module)
+      .select()
+      .offset(query.offset)
       .created('<', query.createdBefore)
       .created('>', query.createdAfter)
       .isArchived(query.archived)
       .readMany(query.limit)
+  }
+
+  public static async countArticlesByModule(
+    module: number,
+    query: {
+      createdAfter?: Date
+      createdBefore?: Date
+      archived?: boolean
+    } = {}
+  ): Promise<number> {
+    const q = new RepoArticleBuilder(module)
+      .count()
+      .created('<', query.createdBefore)
+      .created('>', query.createdAfter)
+      .isArchived(query.archived)
+
+    return (await q.query.first()).count
   }
 }
 
@@ -68,6 +91,14 @@ class RepoArticleBuilder {
 
   constructor(readonly module: number) {
     this._query = knex('Article')
+  }
+
+  get query() {
+    return this._query
+  }
+
+  public select() {
+    this._query
       .select(
         '_id',
         'module',
@@ -85,11 +116,15 @@ class RepoArticleBuilder {
         knex.raw('COALESCE(NULLIF(web, ""), NULL) AS web'),
         knex.raw('COALESCE(NULLIF(author, ""), NULL) AS author')
       )
-      .where({ module, active: 1 })
+      .where({ module: this.module, active: 1 })
+
+    return this
   }
 
-  get query() {
-    return this._query
+  public count() {
+    this._query.count({ count: '_id' }).where({ module: this.module, active: 1 })
+
+    return this
   }
 
   public isArchived(archived?: boolean) {
@@ -114,6 +149,12 @@ class RepoArticleBuilder {
     if (date) {
       this.query.andWhere('date', operator, getUnixTime(date))
     }
+
+    return this
+  }
+
+  public offset(offset?: number) {
+    this._query.offset(offset || 0)
 
     return this
   }

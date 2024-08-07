@@ -5,32 +5,34 @@ import { SupplementalCostRepo } from '../providers/supplemental-cost-repo.js'
 
 type BaseConfig = {
   skipModuleCheck?: boolean
-  shouldThrow?: boolean
 }
 
-export interface SupplementalCostService {
-  getSupplementalCost(module: number, config?: BaseConfig): Promise<SupplementalCost | null>
+export namespace SupplementalCostService {
+  export type GetSupplementalCost = (
+    module: number,
+    config?: BaseConfig
+  ) => Promise<SupplementalCost>
 }
 
 export class SupplementalCostService {
-  static async getSupplementalCost(
-    module: number,
-    { skipModuleCheck, shouldThrow }: BaseConfig = {}
-  ) {
+  static getSupplementalCost: SupplementalCostService.GetSupplementalCost = async (
+    moduleId,
+    { skipModuleCheck } = {}
+  ) => {
     const [moduleExists, supplementalCost] = await Promise.all([
-      skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
-      SupplementalCostRepo.readSupplementalCost(module)
+      skipModuleCheck ? ModuleRepo.moduleExists(moduleId) : Promise.resolve(true),
+      SupplementalCostRepo.readSupplementalCost(moduleId)
     ])
 
-    if (!moduleExists && shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (!supplementalCost && shouldThrow) {
+    if (!supplementalCost) {
       throw HttpError.NOT_FOUND('Supplemental cost not found.')
     }
 
-    return supplementalCost ? this.createSupplementalCostFromRepo(supplementalCost) : null
+    return this.createSupplementalCostFromRepo(supplementalCost)
   }
 
   private static createSupplementalCostFromRepo(

@@ -7,18 +7,16 @@ import { HttpError } from '#utils/http-error.js'
 
 // --- [ Namespace ] -------------------------------------------------------------------------------
 
-export namespace ClientService {
-  type Config = { shouldThrow?: boolean }
-
-  export type GetClient = {
-    (id: number, config?: Config): Promise<Client | null>
-  }
-  export type GetClientByApiKey = (apiKey: string, config?: Config) => Promise<Client | null>
-  export type CreateClientFromRepo = (
-    repoClient: ClientRepo.Client,
-    repoModules?: ModuleRepo.Module[]
-  ) => Client
+export type GetClient = {
+  (id: number): Promise<Client>
 }
+
+export type GetClientByApiKey = (apiKey: string) => Promise<Client>
+
+export type CreateClientFromRepo = (
+  repoClient: ClientRepo.Client,
+  repoModules?: ModuleRepo.Module[]
+) => Client
 
 // --- [ Class ] -----------------------------------------------------------------------------------
 
@@ -27,39 +25,32 @@ export class ClientService {
    * Retrieves a client by its ID.
    * @param id - The ID of the client to retrieve.
    * @returns {Client} A Promise that resolves to the client object, or null if the client is not found.
-   * @throws {HttpError} If the client is not found and the `shouldThrow` flag is set to true.
+   * @throws {HttpError} If the client is not found.
    */
-  public static getClient: ClientService.GetClient = async (id, config = {}) => {
-    const [repoClient, clientModules] = await Promise.all([
+  public static getClient: GetClient = async id => {
+    const [repoClient, repoClientModules] = await Promise.all([
       ClientRepo.readClient(id),
       ModuleRepo.readModulesByClient(id)
     ])
 
-    if (!repoClient && config.shouldThrow) {
+    if (!repoClient) {
       throw HttpError.NOT_FOUND('Client not found.')
     }
 
-    return repoClient ? this.createClientFromRepo(repoClient, clientModules || undefined) : null
+    return this.createClientFromRepo(repoClient, repoClientModules || undefined)
   }
 
   /**
    * Retrieves a client by their API key.
    * @param apiKey - The API key of the client.
    * @returns {Client} The client object if found, or null if not found.
-   * @throws {HttpError} if the client is not found and `shouldThrow` is true.
+   * @throws {HttpError} if the client is not found.
    */
-  public static getClientByApiKey: ClientService.GetClientByApiKey = async (
-    apiKey,
-    config = {}
-  ): Promise<Client | null> => {
+  public static getClientByApiKey: GetClientByApiKey = async apiKey => {
     const repoClient = await ClientRepo.readClientByApiKey(createSha512_256Hash(apiKey))
 
-    if (!repoClient && config.shouldThrow) {
-      throw HttpError.NOT_FOUND('Client not found.')
-    }
-
     if (!repoClient) {
-      return null
+      throw HttpError.NOT_FOUND('Client not found.')
     }
 
     const clientModules = (await ModuleRepo.readModulesByClient(repoClient.id)) || undefined
@@ -72,10 +63,7 @@ export class ClientService {
    * @param {RepoModule} repoModule - The repository module to map.
    * @returns {Module} - The mapped Module entity.
    */
-  public static createClientFromRepo: ClientService.CreateClientFromRepo = (
-    repoClient,
-    repoModules
-  ) => {
+  public static createClientFromRepo: CreateClientFromRepo = (repoClient, repoModules) => {
     const client = new Client(repoClient.id)
 
     client.login = repoClient.login

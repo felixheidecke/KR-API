@@ -3,9 +3,10 @@ import type { PayPal } from '../entities/paypal.js'
 import { CredentialsRepo } from '../providers/credentials-repo.js'
 import { PayPalApi } from '../providers/paypal-api.js'
 
-export interface PayPalService {
-  createOrder(paypal: PayPal, total: number): Promise<void>
-  captureOrder(paypal: PayPal): Promise<void>
+export namespace PayPalService {
+  export type CreateOrder = (paypal: PayPal, total: number) => Promise<void>
+
+  export type CaptureOrder = (paypal: PayPal) => Promise<void>
 }
 
 export class PayPalService {
@@ -16,7 +17,7 @@ export class PayPalService {
    * @param {number} total - The total amount for the order.
    * @throws {HttpError} If the order cannot be created.
    */
-  public static async createOrder(paypal: PayPal, total: number) {
+  public static createOrder: PayPalService.CreateOrder = async (paypal, total) => {
     if (!paypal.accessToken) {
       await PayPalService.loadCredentials(paypal)
       await PayPalService.loadAccesToken(paypal)
@@ -37,7 +38,7 @@ export class PayPalService {
    * @param {PayPal} paypal - The PayPal object containing relevant details.
    * @throws {HttpError} If the order cannot be captured.
    */
-  public static async captureOrder(paypal: PayPal) {
+  public static captureOrder: PayPalService.CaptureOrder = async paypal => {
     if (!paypal.accessToken) {
       await PayPalService.loadCredentials(paypal)
       await PayPalService.loadAccesToken(paypal)

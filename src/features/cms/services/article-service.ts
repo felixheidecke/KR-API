@@ -8,9 +8,34 @@ import { ModuleRepo } from '#common/providers/module-repo.js'
 import { PDF } from '#common/entities/pdf.js'
 import { omit } from 'lodash-es'
 
-type BaseConfig = {
+type Config = {
   skipModuleCheck?: boolean
-  shouldThrow?: boolean
+}
+
+type CountArticlesByModule = (
+  module: number,
+  query?: {
+    createdAfter?: Date
+    createdBefore?: Date
+    archived?: boolean
+  }
+) => Promise<number>
+
+export namespace ArticleService {
+  export type GetArticle = (module: number, id: number, config?: Config) => Promise<Article>
+
+  export type GetArticles = (
+    module: number,
+    query?: {
+      createdAfter?: Date
+      createdBefore?: Date
+      archived?: boolean
+      offset?: number
+      limit?: number
+      parts?: string[]
+    },
+    config?: Config
+  ) => Promise<Article[]>
 }
 
 export class ArticleService {
@@ -22,24 +47,18 @@ export class ArticleService {
    * @throws {HttpError} If the article is not found.
    */
 
-  public static async getArticle(
-    module: number,
-    id: number,
-    { skipModuleCheck, shouldThrow }: BaseConfig = {}
-  ) {
+  public static getArticle: ArticleService.GetArticle = async (module, id, config = {}) => {
     const [moduleExists, repoArticle] = await Promise.all([
-      skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
-      ArticleRepo.readArticle(module, id)
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      ArticleRepo.readArticleById(module, id)
     ])
 
-    if (!moduleExists && shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (!repoArticle && shouldThrow) {
+    if (!repoArticle) {
       throw HttpError.NOT_FOUND('Article not found.')
-    } else if (!repoArticle) {
-      return null
     }
 
     const article = ArticleService.createArticleFromRepo(repoArticle)
@@ -60,23 +79,17 @@ export class ArticleService {
    * @throws {HttpError} If the articles are not found.
    */
 
-  public static async getArticles(
-    module: number,
-    query: {
-      createdAfter?: Date
-      createdBefore?: Date
-      archived?: boolean
-      limit?: number
-      parts?: string[]
-    } = {},
-    { skipModuleCheck, shouldThrow }: BaseConfig = {}
-  ): Promise<Article[] | null> {
+  public static getArticles: ArticleService.GetArticles = async (
+    module,
+    query = {},
+    config = {}
+  ) => {
     const [moduleExists, repoArticles] = await Promise.all([
-      !skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
-      ArticleRepo.readArticles(module, omit(query, 'parts'))
+      !config.skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      ArticleRepo.readArticlesByModule(module, omit(query, 'parts'))
     ])
 
-    if (!moduleExists && shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
@@ -87,6 +100,10 @@ export class ArticleService {
     }
 
     return articles
+  }
+
+  public static countArticlesByModule: CountArticlesByModule = async (module, query) => {
+    return await ArticleRepo.countArticlesByModule(module, query)
   }
 
   private static async addArticleContent(article: Article): Promise<void> {
@@ -147,7 +164,6 @@ export class ArticleService {
 
     if (repoArticleContent.image) {
       articleContent.image = new Image()
-
       articleContent.image.src = repoArticleContent.image
       articleContent.image.description = repoArticleContent.imageDescription || ''
       articleContent.image.align = repoArticleContent.imageAlign

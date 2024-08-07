@@ -15,18 +15,13 @@ export default async (request: FastifyRequest) => {
   // Fetch user from cache
   if (keyClientStorage.has(apiKey)) {
     request.client = keyClientStorage.get(apiKey) as Client
-
-    request.log.info(`Serving Client "${request.client.login}" from cache`)
   }
   // Fetch user from database
   else {
     try {
-      request.client = (await ClientService.getClientByApiKey(apiKey, {
-        shouldThrow: true
-      })) as Client
+      request.client = await ClientService.getClientByApiKey(apiKey)
 
       keyClientStorage.set(apiKey, request.client)
-      request.log.info(`Serving User "${request.client.login}" from database`)
     } catch {
       throw HttpError.FORBIDDEN('Forbidden', 'Unknown API key.')
     }

@@ -1,31 +1,29 @@
 import { cacheControlNoStoreHandler } from '#utils/header-hooks.js'
+import { HttpError } from '#utils/http-error.js'
+import { OrderService } from '../services/order-service.js'
+import { PayPal } from '../entities/paypal.js'
+import { PayPalService } from '../services/paypal-service.js'
 
 import type { FastifyInstance } from 'fastify'
 import type { InferFastifyRequest } from '#libs/fastify.js'
-import {
-  createPayPalRequestSchema,
-  type CreatePayPalRequestSchema
-} from '../schemas/create-paypal-request-schema.js'
-import { PayPal } from '../entities/paypal.js'
-import { OrderService } from '../services/order-service.js'
-import { HttpError } from '#utils/http-error.js'
-import { PayPalService } from '../services/paypal-service.js'
-import {
-  capturePayPalRequestSchema,
-  type CapturePayPalRequestSchema
-} from '../schemas/capture-paypal-request-schema.js'
+import type { z } from 'zod'
+import { capturePayPalRequestSchema, createPayPalRequestSchema } from '../schemas/paypal-schema.js'
 
-export default async function (App: FastifyInstance) {
+type CreatePayPalRequestSchema = InferFastifyRequest<z.infer<typeof createPayPalRequestSchema>>
+type CapturePayPalRequestSchema = InferFastifyRequest<z.infer<typeof capturePayPalRequestSchema>>
+
+export default async function PaymentController(App: FastifyInstance) {
   App.addHook('onSend', cacheControlNoStoreHandler)
 
   App.post('/:module/payment/paypal/create', {
-    preValidation: async (request: InferFastifyRequest<CreatePayPalRequestSchema>) => {
+    preValidation: async (request: CreatePayPalRequestSchema) => {
       createPayPalRequestSchema.parse(request)
     },
-    handler: async (request: InferFastifyRequest<CreatePayPalRequestSchema>, reply) => {
+    handler: async (request, reply) => {
       const { params, body, session } = request
+
       session.paypal ??= new PayPal(params.module)
-      session.order = await OrderService.getOrder(params.module, body.transactionId)
+      session.order = await OrderService.getOrderByTransaction(params.module, body.transactionId)
 
       if (!session.order) {
         throw HttpError.BAD_REQUEST('No order in session')
@@ -41,12 +39,13 @@ export default async function (App: FastifyInstance) {
   })
 
   App.post('/:module/payment/paypal/capture', {
-    preValidation: async (request: InferFastifyRequest<CapturePayPalRequestSchema>) => {
+    preValidation: async (request: CapturePayPalRequestSchema) => {
       capturePayPalRequestSchema.parse(request)
     },
     handler: async ({ session }, reply) => {
       await PayPalService.captureOrder(session.paypal)
       await OrderService.updatePaymentStatus(session.order, 'paypal')
+
       reply.send(session.order.display())
       session.destroy()
     }

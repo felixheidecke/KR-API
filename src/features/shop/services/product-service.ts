@@ -9,86 +9,81 @@ import { PDF } from '#common/entities/pdf.js'
 
 type BaseConfig = {
   skipModuleCheck?: boolean
-  shouldThrow?: boolean
 }
 
-export interface ProductService {
-  getProduct(module: number, id: number, config?: BaseConfig): Promise<Product | null>
-  getProducts(
+export namespace ProductService {
+  export type GetProductById = (module: number, id: number, config?: BaseConfig) => Promise<Product>
+
+  export type GetProductsByModule = (
     module: number,
     query?: { limit?: number; frontpage?: boolean },
     config?: BaseConfig
-  ): Promise<Product[]>
-  getProductsByCategory(
+  ) => Promise<Product[]>
+
+  export type GetProductsByCategory = (
     module: number,
     group: number,
     query?: { limit?: number; frontpage?: boolean },
     config?: BaseConfig
-  ): Promise<Product[]>
+  ) => Promise<Product[]>
 }
 
 export class ProductService implements ProductService {
-  public static async getProduct(
-    module: number,
-    id: number,
-    { skipModuleCheck, shouldThrow }: BaseConfig = {}
-  ) {
+  public static getProductById: ProductService.GetProductById = async (
+    module,
+    id,
+    { skipModuleCheck } = {}
+  ) => {
     const [moduleExists, repoProduct] = await Promise.all([
       skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       ProductRepo.readProduct(module, id)
     ])
 
-    if (!moduleExists && shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
-    if (!repoProduct && shouldThrow) {
+    if (!repoProduct) {
       throw HttpError.NOT_FOUND('Product not found')
     }
 
-    return repoProduct ? this.createProductFromRepository(repoProduct) : null
+    return this.createProductFromRepository(repoProduct)
   }
 
-  public static async getProducts(
-    module: number,
-    query?: {
-      limit?: number
-      frontpage?: boolean
-    },
-    { skipModuleCheck, shouldThrow }: BaseConfig = {}
-  ): Promise<Product[]> {
+  public static getProductsByModule: ProductService.GetProductsByModule = async (
+    module,
+    query = {},
+    { skipModuleCheck } = {}
+  ) => {
     const [moduleExists, repoProducts] = await Promise.all([
       skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       ProductRepo.readProducts(module, query)
     ])
 
-    if (!moduleExists && shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
     return repoProducts.map(this.createProductFromRepository)
   }
 
-  public static async getProductsByCategory(
-    module: number,
-    group: number,
-    query?: {
-      limit?: number
-      frontpage?: boolean
-    },
-    { skipModuleCheck, shouldThrow }: BaseConfig = {}
-  ) {
+  public static getProductsByCategory: ProductService.GetProductsByCategory = async (
+    module,
+    group,
+    query = {},
+    { skipModuleCheck } = {}
+  ) => {
     const [moduleExists, categoryExists, repoCategoryProducts] = await Promise.all([
       skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.groupExists(module, group),
       ProductRepo.readProductsByGroup(module, group, query)
     ])
 
-    if (!moduleExists && shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found')
     }
 
-    if (!categoryExists && shouldThrow) {
+    if (!categoryExists) {
       throw HttpError.NOT_FOUND('Group not found')
     }
 

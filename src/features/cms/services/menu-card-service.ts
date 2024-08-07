@@ -1,39 +1,37 @@
-import { groupBy, head, isNull } from 'lodash-es'
+import { groupBy, head } from 'lodash-es'
 import { HttpError } from '#utils/http-error.js'
 import { Image } from '#common/entities/image.js'
 import { MenuCard } from '../entities/menu-card.js'
 import { MenuCardRepo } from '../providers/menu-card-repo.js'
 import { ModuleRepo } from '#common/providers/module-repo.js'
 
-import type { RepoMenuCard } from '../providers/menu-card-repo.js'
+type Config = {
+  skipModuleCheck?: boolean
+}
+
+export namespace MenuCardService {
+  export type GetMenuCardByModule = (module: number, config?: Config) => Promise<MenuCard[]>
+}
 
 export class MenuCardService {
-  public static async getMenuCard(
-    module: number,
-    config: {
-      shouldThrow?: boolean
-      skipModuleCheck?: boolean
-    } = {}
-  ) {
-    if (!config.skipModuleCheck && isNull(await ModuleRepo.readModule(module))) {
-      if (config.shouldThrow) {
-        throw HttpError.NOT_FOUND('Module not found.')
-      }
+  public static getMenuCardByModule: MenuCardService.GetMenuCardByModule = async (
+    module,
+    config = {}
+  ) => {
+    const [moduleExists, repoMenuCard] = await Promise.all([
+      config.skipModuleCheck ? ModuleRepo.moduleExists(module) : Promise.resolve(true),
+      MenuCardRepo.readMenuCard(module)
+    ])
 
-      return null
+    if (!moduleExists) {
+      throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    return await MenuCardRepo.readMenuCard(module).then(repoMenuCard => {
-      if (!repoMenuCard && config.shouldThrow) {
-        throw HttpError.NOT_FOUND('Menu card not found.')
-      }
+    if (!repoMenuCard) {
+      throw HttpError.NOT_FOUND('Menu card not found.')
+    }
 
-      if (!repoMenuCard) {
-        return null
-      }
-
-      return this.createMenuCardFromRepo(repoMenuCard)
-    })
+    return repoMenuCard.length ? this.createMenuCardFromRepo(repoMenuCard) : []
   }
 
   /**
@@ -44,7 +42,7 @@ export class MenuCardService {
    * @returns {MenuCard[]} An array of MenuCard objects.
    */
 
-  private static createMenuCardFromRepo(repoMenuCard: RepoMenuCard[]) {
+  private static createMenuCardFromRepo(repoMenuCard: MenuCardRepo.MenuCard[]) {
     return Object.values(groupBy(repoMenuCard, 'category_id')).map(card => {
       const menuCard = new MenuCard(head(card)?.module as number)
 

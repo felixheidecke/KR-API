@@ -1,5 +1,5 @@
 import expandPrice from '#utils/expand-price.js'
-import { handleText } from '../../cms/utils/handle-text.js'
+import { handleText } from '#utils/handle-text.js'
 
 export class SupplementalCost {
   constructor(readonly module: number) {}

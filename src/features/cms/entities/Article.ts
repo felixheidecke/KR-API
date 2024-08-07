@@ -2,7 +2,7 @@
 import { fromUnixTime } from 'date-fns'
 import { toUrlSlug } from '#utils/slugify.js'
 import { isNumber } from 'lodash-es'
-import { handleText } from '../utils/handle-text.js'
+import { handleText } from '#utils/handle-text.js'
 
 import type { ArticleContent } from './article-content.js'
 import type { Image } from '#common/entities/image.js'

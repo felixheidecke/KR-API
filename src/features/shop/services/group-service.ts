@@ -6,7 +6,16 @@ import { ModuleRepo } from '#common/providers/module-repo.js'
 
 type BaseConfig = {
   skipModuleCheck?: boolean
-  shouldThrow?: boolean
+}
+
+export namespace GroupService {
+  export type GetGroupById = (module: number, id: number, config?: BaseConfig) => Promise<Group>
+
+  export type GetGroupByProductId = (
+    module: number,
+    id: number,
+    config?: BaseConfig
+  ) => Promise<Group>
 }
 
 export class GroupService {
@@ -19,26 +28,22 @@ export class GroupService {
    * @returns {Promise<Group|null>} Returns a Group object or null if the group doesn't exist, based on the provided configurations.
    * @throws {HttpError} Throws an HTTP error if conditions defined in the config are met and the entity is not found.
    */
-  public static async getGroup(
-    module: number,
-    id: number,
-    { shouldThrow, skipModuleCheck }: BaseConfig = {}
-  ) {
+  public static getGroupById: GroupService.GetGroupById = async (
+    module,
+    id,
+    { skipModuleCheck } = {}
+  ) => {
     const [moduleExists, repoGroup] = await Promise.all([
       skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.readGroup(module, id)
     ])
 
-    if (!moduleExists && shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (!repoGroup && shouldThrow) {
-      throw HttpError.NOT_FOUND('Group not found.')
-    }
-
     if (!repoGroup) {
-      return null
+      throw HttpError.NOT_FOUND('Group not found.')
     }
 
     return this.createGroupFromRepo(repoGroup)
@@ -53,25 +58,25 @@ export class GroupService {
    * @returns {Promise<Group|null>} Returns a Group object or null if no group associated with the product ID exists, based on the provided configurations.
    * @throws {HttpError} Throws an HTTP error if conditions defined in the config are met and the entity is not found.
    */
-  public static async getGroupByProductId(
-    module: number,
-    id: number,
-    { shouldThrow, skipModuleCheck }: BaseConfig = {}
-  ) {
+  public static getGroupByProductId: GroupService.GetGroupByProductId = async (
+    module,
+    id,
+    { skipModuleCheck } = {}
+  ) => {
     const [moduleExists, repoGroup] = await Promise.all([
       skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.readGroupByProductId(module, id)
     ])
 
-    if (!moduleExists && shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (!repoGroup && shouldThrow) {
+    if (!repoGroup) {
       throw HttpError.NOT_FOUND('Group not found.')
     }
 
-    return repoGroup ? this.createGroupFromRepo(repoGroup) : null
+    return this.createGroupFromRepo(repoGroup)
   }
 
   /**
@@ -82,21 +87,21 @@ export class GroupService {
    * @returns {Promise<Array<Group>|null>} Returns an array of Group objects or null if no groups are found, based on the provided configurations.
    * @throws {HttpError} Throws an HTTP error if conditions defined in the config are met and the entity is not found.
    */
-  public static async getGroups(module: number, { shouldThrow, skipModuleCheck }: BaseConfig = {}) {
+  public static async getGroups(module: number, { skipModuleCheck }: BaseConfig = {}) {
     const [moduleExists, repoGroups] = await Promise.all([
       skipModuleCheck ? ModuleRepo.moduleExists(module, 'shop3') : Promise.resolve(true),
       GroupRepo.readGroups(module, null)
     ])
 
-    if (!moduleExists && shouldThrow) {
+    if (!moduleExists) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (!repoGroups && shouldThrow) {
+    if (!repoGroups) {
       throw HttpError.NOT_FOUND('Categories not found.')
     }
 
-    return repoGroups ? repoGroups.map(GroupService.createGroupFromRepo) : null
+    return repoGroups.map(GroupService.createGroupFromRepo)
   }
 
   /**

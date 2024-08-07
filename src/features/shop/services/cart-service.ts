@@ -5,12 +5,23 @@ import { ModuleRepo } from '#common/providers/module-repo.js'
 import { SupplementalCostService } from './supplemental-cost-service.js'
 import { ShippingCostService } from './shipping-cost-service.js'
 
-import type { Product } from '../entities/product.js'
+// --- [ Types ] -----------------------------------------------------------------------------------
 
-type BaseConfig = {
-  skipModuleCheck?: boolean
-  shouldThrow?: boolean
-}
+type AddProductById = (cart: Cart, productId: number) => Promise<void>
+
+type UpdateProductQuantity = (
+  cart: Cart,
+  products: { productId: number; quantity: number }[]
+) => Promise<void>
+
+type Initialise = (
+  cart: Cart,
+  config?: {
+    skipModuleCheck?: boolean
+  }
+) => Promise<void>
+
+// --- [ Class ] -----------------------------------------------------------------------------------
 
 export class CartService {
   /**
@@ -20,7 +31,7 @@ export class CartService {
    * @param {number} productId - The ID of the product to add.
    */
 
-  public static async addProductById(cart: Cart, productId: number) {
+  public static addProductById: AddProductById = async (cart, productId) => {
     this.hasCartCheck(cart)
 
     let quantity = (cart.getProduct(productId)?.quantity || 0) + 1 || 1
@@ -36,10 +47,7 @@ export class CartService {
    * @throws {HttpError} If one or more products are not found.
    */
 
-  public static async updateProductQuantity(
-    cart: Cart,
-    products: { productId: number; quantity: number }[]
-  ) {
+  public static updateProductQuantity: UpdateProductQuantity = async (cart, products) => {
     this.hasCartCheck(cart)
 
     // Remove products with quantity <= 0
@@ -54,17 +62,17 @@ export class CartService {
       products
         .filter(({ quantity }) => quantity > 0)
         .map(async ({ productId, quantity }) => {
-          const product = await ProductService.getProduct(cart.module, productId, {
-            skipModuleCheck: true
-          })
+          try {
+            const product = await ProductService.getProductById(cart.module, productId, {
+              skipModuleCheck: true
+            })
 
-          if (!product) {
+            return {
+              product,
+              quantity
+            }
+          } catch {
             throw HttpError.BAD_REQUEST('Unknown product ID.')
-          }
-
-          return {
-            product: product as Product,
-            quantity
           }
         })
     )
@@ -82,26 +90,24 @@ export class CartService {
    * @param {Cart} cart - The cart to initialise.
    */
 
-  public static async initialise(cart: Cart, config: BaseConfig = {}) {
-    const [moduleExists, supplementalCost, shippingCost] = await Promise.all([
-      config.skipModuleCheck
-        ? ModuleRepo.moduleExists(cart.module, 'shop3')
-        : Promise.resolve(true),
-      SupplementalCostService.getSupplementalCost(cart.module, { skipModuleCheck: true }),
-      ShippingCostService.getShippingCost(cart.module, { skipModuleCheck: true })
-    ])
-
-    if (!moduleExists && config.shouldThrow) {
+  public static initialise: Initialise = async (cart, config = {}) => {
+    if (!config.skipModuleCheck && !ModuleRepo.moduleExists(cart.module, 'shop3')) {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
-    if (supplementalCost) {
-      cart.supplementalCost = supplementalCost
-    }
+    await Promise.all([
+      SupplementalCostService.getSupplementalCost(cart.module, {
+        skipModuleCheck: true
+      })
+        .then(cart.setSupplementalCost)
+        .catch(), // Don't throw an error
 
-    if (shippingCost) {
-      cart.shippingCost = shippingCost
-    }
+      ShippingCostService.getShippingCost(cart.module, {
+        skipModuleCheck: true
+      })
+        .then(cart.setShippingCost)
+        .catch() // Don't throw an error
+    ])
 
     cart.calculate()
   }

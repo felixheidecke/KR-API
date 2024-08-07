@@ -16,4 +16,8 @@ export const updateCartRequestSchema = z.object({
   )
 })
 
-export type UpdateCartRequestSchema = z.infer<typeof updateCartRequestSchema>
+export const getCartRequestSchema = z.object({
+  params: z.object({
+    module: z.coerce.number().gt(0)
+  })
+})

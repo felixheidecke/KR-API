@@ -11,7 +11,7 @@ export namespace ShippingRatesRepo {
 }
 
 export class ShippingRatesRepo {
-  static async readShippingRates(module: number): Promise<ShippingRatesRepo.ShippingRate[] | null> {
+  static async readShippingRates(module: number): Promise<ShippingRatesRepo.ShippingRate[]> {
     const response = await knex('Shop3ShippingCharges AS charges')
       .select({
         price: 'weight.charge',
@@ -31,7 +31,7 @@ export class ShippingRatesRepo {
       .where('charges.module', module)
       .orderBy('weight.upToWeight', 'asc')
 
-    return response.length ? response : null
+    return response
   }
 }
 

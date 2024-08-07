@@ -1,4 +1,4 @@
-import { handleText } from '../utils/handle-text.js'
+import { handleText } from '#utils/handle-text.js'
 
 import type { Image } from '#common/entities/image.js'
 

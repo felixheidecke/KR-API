@@ -1,23 +1,20 @@
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import {
-  patchOrderRequestSchema,
-  type PatchOrderRequestSchema
-} from '../schemas/patch-order-request-schema.js'
-import {
-  postOrderRequestSchema,
-  type PostOrderRequestSchema
-} from '../schemas/post-order-request-schema.js'
 import { OrderService } from '../services/order-service.js'
+import { cacheControlNoStoreHandler } from '#utils/header-hooks.js'
+import { Order } from '../entities/order.js'
 import {
   getOrderRequestSchema,
-  type GetOrderRequestSchema
-} from '../schemas/get-order-request-schema.js'
-import { cacheControlNoStoreHandler } from '#utils/header-hooks.js'
+  patchOrderRequestSchema,
+  postOrderRequestSchema
+} from '../schemas/order-request-schema.js'
 import type { InferFastifyRequest } from '#libs/fastify.js'
-import { HttpError } from '#utils/http-error.js'
-import { Order } from '../entities/order.js'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import type { z } from 'zod'
 
-export default async function (App: FastifyInstance) {
+type PatchOrderRequestSchema = InferFastifyRequest<z.infer<typeof patchOrderRequestSchema>>
+type PostOrderRequestSchema = InferFastifyRequest<z.infer<typeof postOrderRequestSchema>>
+type GetOrderRequestSchema = InferFastifyRequest<z.infer<typeof getOrderRequestSchema>>
+
+export default async function OrderController(App: FastifyInstance) {
   App.addHook('onSend', cacheControlNoStoreHandler)
 
   App.get('/:module/order', {
@@ -25,13 +22,13 @@ export default async function (App: FastifyInstance) {
       if (session.order) {
         reply.send(session.order.display())
       } else {
-        throw HttpError.BAD_REQUEST('No order in session.')
+        reply.code(204).send()
       }
     }
   })
 
   App.patch('/:module/order', {
-    preValidation: async function (request: InferFastifyRequest<PatchOrderRequestSchema>) {
+    preValidation: async function (request: PatchOrderRequestSchema) {
       const { body, params } = patchOrderRequestSchema.parse(request)
 
       request.body = body
@@ -59,13 +56,13 @@ export default async function (App: FastifyInstance) {
   })
 
   App.post('/:module/order', {
-    preValidation: async function (request: InferFastifyRequest<PostOrderRequestSchema>) {
-      postOrderRequestSchema.parse(request)
+    preValidation: async function (request: PostOrderRequestSchema) {
+      const { headers, params } = postOrderRequestSchema.parse(request)
+
+      request.headers = headers
+      request.params = params
     },
-    handler: async function (
-      { session, headers }: InferFastifyRequest<PostOrderRequestSchema>,
-      reply
-    ) {
+    handler: async function ({ session, headers }, reply) {
       OrderService.importCart(session.order, session.cart)
       await OrderService.saveOrder(session.order)
       await OrderService.sendOrderConfirmationMail(session.order, headers.origin as string)
@@ -77,12 +74,12 @@ export default async function (App: FastifyInstance) {
   })
 
   App.get('/:module/order/:transactionId', {
-    preValidation: async function (request: InferFastifyRequest<GetOrderRequestSchema>) {
+    preValidation: async function (request: GetOrderRequestSchema) {
       getOrderRequestSchema.parse(request)
     },
-    handler: async (request: InferFastifyRequest<GetOrderRequestSchema>, reply: FastifyReply) => {
+    handler: async (request, reply: FastifyReply) => {
       const { module, transactionId } = request.params
-      const order = await OrderService.getOrder(module, transactionId, { shouldThrow: true })
+      const order = await OrderService.getOrderByTransaction(module, transactionId)
 
       reply.send((order as Order).display())
     }

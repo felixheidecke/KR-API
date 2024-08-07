@@ -1,12 +1,13 @@
 import Fastify from 'fastify'
 import fs from 'fs'
-import pkg from '../../package.json' assert { type: 'json' }
+import pkg from '#utils/package-json.js'
 import { format } from 'date-fns'
 import type { FastifyRequest } from 'fastify'
 
 export function useFasitfy(config = {}) {
   const cert = process.env.APP_CERT || null
   const key = process.env.APP_KEY || null
+  const ca = process.env.APP_CA
   const producitonLogger = {
     level: 'info',
     mixin() {
@@ -50,6 +51,7 @@ export function useFasitfy(config = {}) {
         ? {
             cert: fs.readFileSync(cert),
             key: fs.readFileSync(key),
+            ca: ca ? fs.readFileSync(ca) : null,
             allowHTTP1: true
           }
         : false,

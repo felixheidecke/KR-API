@@ -2,7 +2,7 @@
 import expandPrice from '#utils/expand-price.js'
 
 import type { Image } from '#common/entities/image.js'
-import { handleText } from '../utils/handle-text.js'
+import { handleText } from '#utils/handle-text.js'
 
 export class MenuCard {
   constructor(readonly module: number) {}

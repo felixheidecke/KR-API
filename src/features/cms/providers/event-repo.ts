@@ -3,15 +3,35 @@ import { MEDIA_BASE_PATH } from '#utils/constants.js'
 import knex from '#libs/knex.js'
 import type { Knex } from 'knex'
 
+// --- [ Types ] -----------------------------------------------------------------------------------
+
+type Query = {
+  startsBefore?: Date | number
+  startsAfter?: Date | number
+  endsBefore?: Date | number
+  endsAfter?: Date | number
+  limit?: number
+  modules?: number[]
+}
+
+type ReadEventById = (module: number, id: number) => Promise<EventRepo.Event | null>
+
+type ReadEventsByModule = (module: number, query?: Query) => Promise<EventRepo.Event[]>
+
+// type CountEventsByModule = (module: number, query?: Query) => Promise<number>
+
+type ReadEventsWhereIn = (
+  whereIn: { modules?: number[]; communes?: string[] },
+  query?: Query
+) => Promise<EventRepo.Event[]>
+
+type ReadEventImages = (id: number) => Promise<EventRepo.EventImage[]>
+
+type ReadEventFlags = (module: number, id: number) => Promise<EventRepo.EventFlags>
+
+// --- [ Namespace ] -------------------------------------------------------------------------------
+
 export namespace EventRepo {
-  type Query = {
-    startsBefore?: Date | number
-    startsAfter?: Date | number
-    endsBefore?: Date | number
-    endsAfter?: Date | number
-    limit?: number
-    modules?: number[]
-  }
   export type Event = {
     _id: number
     module: number
@@ -33,21 +53,13 @@ export namespace EventRepo {
     lat: string
     lng: string
   }
+
   export type EventImage = {
     image: string
     description: string
   }
-  export type EventFlags = string[]
 
-  // Methods
-  export type ReadEventById = (module: number, id: number) => Promise<Event | null>
-  export type ReadEventsByModule = (module: number, query?: Query) => Promise<Event[]>
-  export type ReadEventsWhereIn = (
-    whereIn: { modules?: number[]; communes?: string[] },
-    query?: Query
-  ) => Promise<Event[]>
-  export type ReadEventImages = (id: number) => Promise<EventImage[]>
-  export type ReadEventFlags = (module: number, id: number) => Promise<EventFlags>
+  export type EventFlags = string[]
 }
 
 // --- [ Class ] -----------------------------------------------------------------------------------
@@ -61,7 +73,7 @@ export class EventRepo {
    * @returns {Promise<Event | null>} A promise that resolves to an Event object or null if not found.
    */
 
-  public static readEventById: EventRepo.ReadEventById = async (module, id) => {
+  public static readEventById: ReadEventById = async (module, id) => {
     return await new EventQueryBuilder().whereInModule([module]).whereInId([id]).readOne()
   }
 
@@ -72,7 +84,7 @@ export class EventRepo {
    * @param communes - An optional array of commune names to filter the events by.
    * @param query - An optional object containing additional query parameters
    */
-  public static readEventsWhereIn: EventRepo.ReadEventsWhereIn = (whereIn, query = {}) => {
+  public static readEventsWhereIn: ReadEventsWhereIn = (whereIn, query = {}) => {
     const builder = new EventQueryBuilder()
       .startsBefore(query.startsBefore)
       .startsAfter(query.startsAfter)
@@ -98,7 +110,7 @@ export class EventRepo {
    * @returns {Promise<Event[] | null>} A promise that resolves to an array of Event objects or null if the module doesn't exist.
    */
 
-  public static readEventsByModule: EventRepo.ReadEventsByModule = async (module, query = {}) => {
+  public static readEventsByModule: ReadEventsByModule = async (module, query = {}) => {
     return await new EventQueryBuilder()
       .whereInModule([module])
       .startsBefore(query.startsBefore)
@@ -109,13 +121,31 @@ export class EventRepo {
   }
 
   /**
+   * Reads and returns multiple events based on the provided module and query parameters.
+   *
+   * @param {number} module - The module identifier.
+   * @param {object} [query] - Optional query parameters to filter events.
+   * @returns {Promise<Event[] | null>} A promise that resolves to an array of Event objects or null if the module doesn't exist.
+   */
+
+  // public static countEventsByModule: CountEventsByModule = async (module, query = {}) => {
+  //   return await new EventQueryBuilder()
+  //     .whereInModule([module])
+  //     .startsBefore(query.startsBefore)
+  //     .startsAfter(query.startsAfter)
+  //     .endsBefore(query.endsBefore)
+  //     .endsAfter(query.endsAfter)
+  //     .readMany(query.limit)
+  // }
+
+  /**
    * Reads and returns images associated with a specific event.
    *
    * @param {number} id - The event identifier.
    * @returns {Promise<{ image: string; description: string }[]>} A promise that resolves to an array of images and their descriptions.
    */
 
-  public static readEventImages: EventRepo.ReadEventImages = async id => {
+  public static readEventImages: ReadEventImages = async id => {
     return knex('EventImage')
       .select(knex.raw(`CONCAT('${MEDIA_BASE_PATH}/', image)as image`), 'description')
       .where({ event: id })
@@ -129,7 +159,7 @@ export class EventRepo {
    * @returns {Promise<string[]>} A promise that resolves to an array of flag titles.
    */
 
-  public static readEventFlags: EventRepo.ReadEventFlags = async (module: number, id: number) => {
+  public static readEventFlags: ReadEventFlags = async (module: number, id: number) => {
     return knex
       .select('Flag.title')
       .from('Event')

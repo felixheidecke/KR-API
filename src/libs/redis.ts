@@ -1,6 +1,7 @@
 import { captureException } from '@sentry/node'
 import { createClient } from 'redis'
 import { toMilliseconds } from '../utils/convert-time.js'
+import fastify from '#libs/fastify.js'
 
 export async function useRedis(config = {}) {
   const client = await createClient({
@@ -18,11 +19,11 @@ export async function useRedis(config = {}) {
 
   client
     .on('ready', () => {
-      console.log('Redis ready on', process.env.REDIS_HOST)
+      fastify.log.info(`Redis ready on ${process.env.REDIS_HOST}`)
     })
     .on('error', error => {
       captureException(error)
-      console.error('Redis connection error', error)
+      fastify.log.error(error)
     })
     .connect()
 

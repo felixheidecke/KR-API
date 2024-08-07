@@ -1,5 +1,3 @@
-import slugify from 'slugify'
-
 export class Flags {
   constructor(flags: string[] = []) {
     this.flags = flags

@@ -6,5 +6,3 @@ export const getAlbumRequestSchema = z.object({
     id: z.coerce.number().gt(0)
   })
 })
-
-export type GetAlbumRequestSchema = z.infer<typeof getAlbumRequestSchema>

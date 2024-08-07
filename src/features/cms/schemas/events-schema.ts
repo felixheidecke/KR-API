@@ -11,6 +11,11 @@ const querySchema = z.object({
   endsBefore: z.coerce.date().optional(),
   endsAfter: z.coerce.date().optional(),
   limit: z.coerce.number().gt(0).optional(),
+  offset: z.coerce
+    .number()
+    .gte(0, { message: 'Offset must be greater than or equal to 0' })
+    .optional()
+    .default(0),
   parts: stringToArraySchema
 })
 
@@ -20,8 +25,6 @@ export const getEventsRequestSchema = z.object({
   }),
   query: querySchema.optional()
 })
-
-export type GetEventsRequestSchema = z.infer<typeof getEventsRequestSchema>
 
 export const getEventsQueryRequestSchema = z.object({
   query: querySchema
@@ -38,13 +41,9 @@ export const getEventsQueryRequestSchema = z.object({
     })
 })
 
-export type GetEventsQueryRequestSchema = z.infer<typeof getEventsQueryRequestSchema>
-
 export const getEventRequestSchema = z.object({
   params: z.object({
     module: z.coerce.number().gt(0),
     id: z.coerce.number().gt(0)
   })
 })
-
-export type GetEventRequestSchema = z.infer<typeof getEventRequestSchema>

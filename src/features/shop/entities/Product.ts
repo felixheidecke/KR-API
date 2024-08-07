@@ -1,6 +1,6 @@
 import { formatCurrency, formatNumber } from '#utils/number-format.js'
 import { GroupPath } from './group-path.js'
-import { handleText } from '#features/cms/utils/handle-text.js'
+import { handleText } from '#utils/handle-text.js'
 import { isNumber, round } from 'lodash-es'
 import { toUrlSlug } from '#utils/slugify.js'
 import { UNIT } from '../utils/constants.js'
