@@ -99,13 +99,13 @@ export class CartService {
       SupplementalCostService.getSupplementalCost(cart.module, {
         skipModuleCheck: true
       })
-        .then(cart.setSupplementalCost)
+        .then(supplementalCost => (cart.supplementalCost = supplementalCost))
         .catch(), // Don't throw an error
 
       ShippingCostService.getShippingCost(cart.module, {
         skipModuleCheck: true
       })
-        .then(cart.setShippingCost)
+        .then(shippingCost => (cart.shippingCost = shippingCost))
         .catch() // Don't throw an error
     ])
 
