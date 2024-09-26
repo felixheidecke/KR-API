@@ -10,7 +10,7 @@ export class MenuCard {
   public name: string = ''
   public description?: string = ''
   public items: {
-    title: string
+    name: string
     description?: string
     price: number
     image?: Image
@@ -23,7 +23,7 @@ export class MenuCard {
       name: this.name.trim(),
       description: this.description ? handleText(this.description) : null,
       items: this.items.map(item => ({
-        title: item.title.trim(),
+        name: item.name.trim(),
         description: item.description ? handleText(item.description) : null,
         price: expandPrice(item.price),
         image: item.image ? item.image.display() : undefined

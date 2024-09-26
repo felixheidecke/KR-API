@@ -6,7 +6,8 @@ export default function cms(App: FastifyInstance, _: { prefix: string }, done: F
 
     // Caching
     .register(import('#plugins/caching/index.js'), {
-      browserTTL: toSeconds({ minutes: 30 })
+      browserTTL: toSeconds({ minutes: 30 }),
+      redisTTL: toSeconds({ minutes: 1 })
     })
 
     // Authenitcation

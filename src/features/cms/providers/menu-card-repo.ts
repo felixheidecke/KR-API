@@ -1,4 +1,5 @@
 import knex from '#libs/knex.js'
+import { MEDIA_BASE_PATH } from '#utils/constants.js'
 
 export namespace MenuCardRepo {
   export type MenuCard = {
@@ -30,7 +31,7 @@ export class MenuCardRepo {
         title: 'Item.title',
         description: 'Item.description',
         price: 'Item.price',
-        image: 'Item.image',
+        image: knex.raw(`IF(Item.Image = "", NULL, CONCAT('${MEDIA_BASE_PATH}/', Item.Image))`),
         category: 'Section.title',
         category_description: 'Section.description',
         category_id: 'Section._id'

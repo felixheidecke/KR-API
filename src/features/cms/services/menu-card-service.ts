@@ -50,7 +50,7 @@ export class MenuCardService {
       menuCard.description = head(card)?.category_description as string
       menuCard.items = card.map(item => {
         return {
-          title: item.title,
+          name: item.title,
           description: item.description,
           price: item.price,
           image: item.image ? new Image(item.image, item.title) : undefined
