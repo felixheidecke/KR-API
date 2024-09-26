@@ -2,7 +2,7 @@
   "name": "kr-api",
   "version": "5.11.4",
   "private": true,
-  "description": "Klickrhein Feature API (Freepy Sapling)",
+  "description": "Klickrhein Feature API (Excited Emu)",
   "main": "dist/index.js",
   "scripts": {
     "reset-dist": "node .develop/reset-dist.js",
