@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import detectHTML from '../utils/detect-html.js'
 
 export const addressSchema = z.object(
   {
@@ -15,9 +16,14 @@ export const addressSchema = z.object(
       .min(5, { message: 'Die Adresse muss mindestens 2 Buchstaben lang sein' }),
     zip: z.string({ required_error: 'PLZ fehlt' }).regex(/^[0-9]{5}$/, { message: 'PLZ zu kurz' }),
     city: z.string({ required_error: 'Stadt fehlt' }),
-    phone: z.string({ required_error: 'Telefonnummer fehlt' }).regex(/^([\d\s]{6,})$/, {
-      message: 'Telefonnummer darf nur Zahlen und Leerzeichen beinhalten'
-    }),
+    phone: z
+      .string()
+      .min(5, { message: 'Die Telefonnummer ist zu kurz' })
+      .max(15, { message: 'Die Telefonnummer ist zu lang' })
+      .regex(/^([\d\s]+)$/, {
+        message: 'Telefonnummer darf nur Zahlen und Leerzeichen beinhalten'
+      })
+      .optional(),
     email: z
       .string({ required_error: 'Mail Adresse fehlt' })
       .email('Mail Adresse ungültig')
@@ -27,9 +33,3 @@ export const addressSchema = z.object(
 )
 
 export type AddressSchema = z.infer<typeof addressSchema>
-
-// Helper
-
-function detectHTML(value: any) {
-  return !/<[^>]*>/.test(value)
-}

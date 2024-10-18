@@ -41,12 +41,10 @@ export class HttpError extends Error {
   }
 
   public static fromZodError(error: ZodError) {
-    console.log(error)
-
     const { formErrors, fieldErrors } = error.flatten()
     const details = formErrors.length ? formErrors : fieldErrors
 
-    return new HttpError('Request Validation Error', 400, 'VALIDATION_ERROR', details)
+    return new HttpError('Validation Error', 400, 'VALIDATION_ERROR', details)
   }
 
   public static fromError(error: Error) {
