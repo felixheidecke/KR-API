@@ -7,6 +7,7 @@ import { HttpError } from '#utils/http-error.js'
 import { omit } from 'lodash-es'
 import { Flags } from '../entities/flags.js'
 import { ModuleRepo } from '#common/providers/module-repo.js'
+import { TagRepo } from '../providers/tag-repo.js'
 
 type Config = {
   skipModuleCheck?: boolean
@@ -28,7 +29,7 @@ export namespace EventService {
   export type GetEventsByModule = (module: number, query?: Query) => Promise<Event[]>
 
   export type GetEventsWhereIn = (
-    whereIn: { modules?: number[]; communes?: string[] },
+    whereIn: { modules?: number[]; communes?: string[]; tags?: number[] },
     query?: Query
   ) => Promise<Event[]>
 }
@@ -55,7 +56,8 @@ export class EventService {
     // prettier-ignore
     await Promise.all([
       EventService.addImages(event),
-      EventService.addFlags(event)
+      EventService.addFlags(event),
+      EventService.addTags(event)
     ])
 
     return event
@@ -77,6 +79,10 @@ export class EventService {
       await Promise.all(events.map(EventService.addFlags))
     }
 
+    if (query.parts?.includes('tags')) {
+      await Promise.all(events.map(EventService.addTags))
+    }
+
     return events
   }
 
@@ -93,6 +99,10 @@ export class EventService {
     }
 
     return events
+  }
+
+  private static async addTags(event: Event): Promise<void> {
+    event.tags = await TagRepo.readTagsByEventId(event.id)
   }
 
   private static async addFlags(event: Event): Promise<void> {

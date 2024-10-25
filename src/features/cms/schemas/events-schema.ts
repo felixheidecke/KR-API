@@ -33,9 +33,13 @@ export const getEventsQueryRequestSchema = z.object({
         .string()
         .transform(parts => parts.split(',').map(Number))
         .optional(),
-      communes: stringToArraySchema
+      communes: stringToArraySchema,
+      tags: z
+        .string()
+        .transform(parts => parts.split(',').map(Number))
+        .optional()
     })
-    .refine(data => data.modules || data.communes, {
+    .refine(data => data.modules || data.communes || data.tags, {
       message: 'At least one of modules or communes must be provided',
       path: ['modules', 'communes']
     })

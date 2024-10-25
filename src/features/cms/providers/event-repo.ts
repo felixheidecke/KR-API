@@ -21,7 +21,7 @@ type ReadEventsByModule = (module: number, query?: Query) => Promise<EventRepo.E
 // type CountEventsByModule = (module: number, query?: Query) => Promise<number>
 
 type ReadEventsWhereIn = (
-  whereIn: { modules?: number[]; communes?: string[] },
+  whereIn: { modules?: number[]; communes?: string[]; tags?: number[] },
   query?: Query
 ) => Promise<EventRepo.Event[]>
 
@@ -97,6 +97,14 @@ export class EventRepo {
 
     if (whereIn.communes) {
       builder.query.whereIn('Event.commune', whereIn.communes)
+    }
+
+    if (whereIn.tags) {
+      builder.query.whereIn('Event.taggable', function () {
+        this.select('taggables')
+          .from('Taggable_tags_Term_taggables')
+          .whereIn('tags', whereIn.tags as number[])
+      })
     }
 
     return builder.readMany(query.limit)

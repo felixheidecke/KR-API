@@ -27,6 +27,7 @@ export class Event {
   public pdf?: PDF
   public ticketshop?: string
   public website?: string
+  public tags?: { id: number; name: string }[]
 
   // --- [ Getter ] --------------------------------------------------------------------------------
 
@@ -97,6 +98,7 @@ export class Event {
       organizer: this.organizer,
       coordinates: this.coodinates,
       flags: this.flags?.display(),
+      tags: this.tags || undefined,
       images: this.images?.map(image => image.display())
     })
   }

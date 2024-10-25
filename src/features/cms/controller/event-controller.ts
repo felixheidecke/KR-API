@@ -28,8 +28,8 @@ export default async function (App: FastifyInstance) {
       request.query = query
     },
     handler: async function (request, reply) {
-      const whereIn = pick(request.query, 'modules', 'communes')
-      const query = omit(request.query, 'modules', 'communes')
+      const whereIn = pick(request.query, 'modules', 'communes', 'tags')
+      const query = omit(request.query, 'modules', 'communes', 'tags')
       const events = await EventService.getEventsWhereIn(whereIn, query)
 
       request.data = events.map(event => event.display())
