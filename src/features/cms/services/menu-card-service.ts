@@ -50,6 +50,7 @@ export class MenuCardService {
       menuCard.description = head(card)?.category_description as string
       menuCard.items = card.map(item => {
         return {
+          id: item.id,
           name: item.title,
           description: item.description,
           price: item.price,

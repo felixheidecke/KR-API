@@ -10,6 +10,7 @@ export class MenuCard {
   public name: string = ''
   public description?: string = ''
   public items: {
+    id: number
     name: string
     description?: string
     price: number
@@ -23,6 +24,7 @@ export class MenuCard {
       name: this.name.trim(),
       description: this.description ? handleText(this.description) : null,
       items: this.items.map(item => ({
+        id: item.id,
         name: item.name.trim(),
         description: item.description ? handleText(item.description) : null,
         price: expandPrice(item.price),

@@ -1,6 +1,6 @@
 {
   "name": "kr-api",
-  "version": "5.11.6",
+  "version": "5.11.7",
   "private": true,
   "description": "Klickrhein Feature API (Excited Emu)",
   "main": "dist/index.js",
@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
-    "@types/node": "^22.7.9",
+    "@types/node": "^22.8.1",
     "concurrently": "^9.0.1",
     "eslint": "^9.13.0",
     "node-fetch": "^3.3.2",
