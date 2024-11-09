@@ -25,6 +25,8 @@ export class GalleryService {
       throw HttpError.NOT_FOUND('Module not found.')
     }
 
+    console.log({ repoGallery })
+
     return repoGallery.length ? GalleryService.createGalleryFromRepo(repoGallery) : []
   }
 
@@ -54,7 +56,7 @@ export class GalleryService {
    */
 
   private static createGalleryFromRepo(repoGallery: GalleryRepo.Album[]) {
-    return uniqBy(repoGallery, 'id').map(repoAlbum => {
+    return uniqBy(repoGallery, '_id').map(repoAlbum => {
       const album = new Album(repoAlbum.module)
 
       album.id = repoAlbum._id
