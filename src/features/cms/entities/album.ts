@@ -7,7 +7,7 @@ export class Album {
   protected _slug: string | null = null
   protected _title: string | null = null
   public id: number = 0
-  public images?: Image[]
+  public images: Image[] = []
 
   // --- [ Getter ] --------------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@ export class Album {
       module: +this.module,
       title: this.title,
       slug: this.slug,
-      images: this.images?.map(image => image.display()) || null
+      images: this.images?.map(image => image.display())
     })
   }
 }

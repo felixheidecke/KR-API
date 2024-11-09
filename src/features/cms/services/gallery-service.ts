@@ -89,13 +89,16 @@ export class GalleryService {
 
     album.id = first(repoAlbum)?._id as number
     album.title = first(repoAlbum)?.title as string
-    album.images = repoAlbum.map(photo => {
-      const image = new Image(photo.image, photo.description)
+    album.images =
+      repoAlbum.length > 1
+        ? repoAlbum.map(photo => {
+            const image = new Image(photo.image, photo.description)
 
-      image.addSrc(photo.thumb, 'small')
+            image.addSrc(photo.thumb, 'small')
 
-      return image
-    })
+            return image
+          })
+        : []
 
     return album
   }
