@@ -24,9 +24,8 @@ export function useFasitfy(config = {}) {
       req(request: Fastify.FastifyRequest) {
         return {
           method: request.method,
-          origin: request.headers.origin || request.headers.host || 'unknown',
-          url: request.url,
-          params: request.params
+          origin: request.headers.origin || request.headers.host || request.ip || 'unknown',
+          url: request.url
         }
       }
     }
