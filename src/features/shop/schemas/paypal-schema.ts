@@ -41,6 +41,6 @@ export const createPayPalRequestSchema = z.object({
     module: z.coerce.number().gt(0)
   }),
   body: z.object({
-    transactionId: z.string().length(8)
+    transactionId: z.string().min(8).max(12)
   })
 })
