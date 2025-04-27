@@ -40,6 +40,10 @@ export class HttpError extends Error {
     return new HttpError(message, 409, 'CONFLICT', details)
   }
 
+  public static NOT_IMPLEMENTED(message = 'Not Implemented', details?: any) {
+    return new HttpError(message, 501, 'NOT_IMPLEMENTED', details)
+  }
+
   public static fromZodError(error: ZodError) {
     const { formErrors, fieldErrors } = error.flatten()
     const details = formErrors.length ? formErrors : fieldErrors

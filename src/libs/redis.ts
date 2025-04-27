@@ -4,10 +4,12 @@ import { toMilliseconds } from '../utils/convert-time.js'
 import fastify from '#libs/fastify.js'
 
 export async function useRedis(config = {}) {
+  const host = process.env.REDIS_HOST || 'localhost'
+  const port = +(process.env.REDIS_PORT || 6379)
   const client = await createClient({
     socket: {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: +(process.env.REDIS_PORT || 6379),
+      host,
+      port,
       reconnectStrategy: (retries: number) => {
         return Math.min(retries * 1500, toMilliseconds({ minutes: 1 }))
       }
@@ -19,7 +21,7 @@ export async function useRedis(config = {}) {
 
   client
     .on('ready', () => {
-      fastify.log.info(`Redis ready on ${process.env.REDIS_HOST}`)
+      fastify.log.info(`Redis ready on ${host}:${port}`)
     })
     .on('error', error => {
       captureException(error)
