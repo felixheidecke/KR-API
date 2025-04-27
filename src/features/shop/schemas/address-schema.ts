@@ -1,9 +1,8 @@
 import { z } from 'zod'
-import detectHTML from '../utils/detect-html.js'
 
 export const addressSchema = z.object(
   {
-    company: z.string().optional().refine(detectHTML, { message: 'Kein HTML erlaubt' }),
+    company: z.string().optional(),
     salutation: z.enum(['Herr', 'Frau']),
     name: z
       .string({ required_error: 'Nachname fehlt' })

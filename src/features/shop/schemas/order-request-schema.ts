@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { addressSchema } from './address-schema.js'
 import { deliveryAddressSchema } from './delivery-address-schema.js'
-import detectHTML from '../utils/detect-html.js'
 
 export const getOrderRequestSchema = z.object({
   params: z.object({
@@ -19,7 +18,7 @@ export const patchOrderRequestSchema = z.object({
   body: z.object({
     address: addressSchema.nullish(),
     deliveryAddress: deliveryAddressSchema.nullish(),
-    message: z.string().refine(detectHTML, { message: 'Kein HTML erlaubt' }).nullish()
+    message: z.string().optional().nullish()
   })
 })
 
