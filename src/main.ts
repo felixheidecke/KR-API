@@ -38,7 +38,6 @@ fastify.addHook('onRequest', async (_: any, response: FastifyReply) => {
 
 // --- [ Features ] --------------------------------------------------------------------------------
 
-fastify.register(import('./features/cms/index.js'), { prefix: 'cms' })
 fastify.register(import('./features/shop/index.js'), { prefix: 'shop' })
 
 // --- [ Error Handler ] ---------------------------------------------------------------------------
