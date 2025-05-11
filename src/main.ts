@@ -14,7 +14,8 @@ import { HttpError } from '#utils/http-error.js'
 
 fastify.register(import('@fastify/cors'), {
   credentials: true,
-  origin: true
+  origin: true,
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH']
 })
 
 fastify.addHook('onClose', async () => {
