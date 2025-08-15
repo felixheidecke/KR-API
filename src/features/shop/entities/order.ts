@@ -211,8 +211,8 @@ class OrderDisplay {
     this.address = order.address.display()
     this.deliveryAddress = order.deliveryAddress
       ? pick(order.deliveryAddress?.display(), ['company', 'name', 'address', 'zip', 'city'])
-      : undefined
-    this.message = order.message || undefined
+      : null
+    this.message = order.message || ''
     this.total = expandPrice(order.total)
     this.shippingCost = expandPrice(order.shippingCost)
     this.cart = order.cart.map(product => ({
@@ -226,8 +226,8 @@ class OrderDisplay {
   readonly transactionId: string | null
   readonly paymentType: Order['paymentType']
   readonly address: { [k: string]: string | null }
-  readonly deliveryAddress: { [k: string]: string | null } | undefined
-  readonly message: string | undefined
+  readonly deliveryAddress: { [k: string]: string | null } | null
+  readonly message: string
   readonly total: ExpandedPrice
   readonly shippingCost: ExpandedPrice
   readonly cart: {
