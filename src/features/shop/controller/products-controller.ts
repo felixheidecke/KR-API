@@ -5,9 +5,7 @@ import { toSeconds } from '#utils/convert-time.js'
 import caching from '#plugins/caching/index.js'
 
 import type { FastifyInstance } from 'fastify'
-import type { Group } from '../entities/group.js'
 import type { InferFastifyRequest } from '#libs/fastify.js'
-import type { Product } from '../entities/product.js'
 import type { z } from 'zod'
 
 type GetProductsRequestSchema = InferFastifyRequest<z.infer<typeof getProductsRequestSchema>>

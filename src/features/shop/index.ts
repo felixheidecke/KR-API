@@ -22,6 +22,7 @@ export default function shop(App: FastifyInstance, _: { prefix: string }, done: 
     })
 
     // Routes
+    .register(import('./controller/info-controller.js'))
     .register(import('./controller/cart-controller.js'))
     .register(import('./controller/group-controller.js'))
     .register(import('./controller/order-controller.js'))
