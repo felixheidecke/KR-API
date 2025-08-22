@@ -7,7 +7,6 @@ export class SupplementalCost {
   // --- [ Member ] --------------------------------------------------------------------------------
 
   public price = 0
-  public title = ''
   public description = ''
 
   public display() {
@@ -20,14 +19,10 @@ class SupplementalCostDisplay {
     const { value, formatted } = expandPrice(supplementalCost.price)
     this.value = value
     this.formatted = formatted
-    this.title = supplementalCost.title
-    this.description = supplementalCost.description
-      ? handleText(supplementalCost.description)
-      : null
+    this.description = supplementalCost.description.trim()
   }
 
   readonly value: number
   readonly formatted: string
-  readonly title: string
   readonly description: string | null
 }

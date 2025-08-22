@@ -1,5 +1,5 @@
 import { head } from 'lodash-es'
-import { ShippingRatesRepo } from '../providers/shipping-rates-repo.js'
+import { ShippingChargesRepo } from '../providers/shipping-rates-repo.js'
 import { ShippingCost } from '../entities/shipping-cost.js'
 import { ModuleRepo } from '#common/providers/module-repo.js'
 import { HttpError } from '#utils/http-error.js'
@@ -19,7 +19,7 @@ export class ShippingCostService {
   ) => {
     const [moduleExists, repoShippingCost] = await Promise.all([
       skipModuleCheck ? ModuleRepo.moduleExists(moduleId) : Promise.resolve(true),
-      ShippingRatesRepo.readShippingRates(moduleId)
+      ShippingChargesRepo.readShippingRates(moduleId)
     ])
 
     if (!moduleExists) {
@@ -30,10 +30,11 @@ export class ShippingCostService {
   }
 }
 
-function createShippingCostFromRepo(repoShippingCost: ShippingRatesRepo.ShippingRate[]) {
+function createShippingCostFromRepo(repoShippingCost: ShippingChargesRepo.ShippingRate[]) {
   const shippingCost = new ShippingCost(head(repoShippingCost)?.module as number)
 
   shippingCost.freeShippingThreshold = head(repoShippingCost)?.freeShippingThreshold as number
+  shippingCost.text = head(repoShippingCost)?.text as string
 
   if (repoShippingCost[0]?.unit) {
     shippingCost.unit = head(repoShippingCost)?.unit as string

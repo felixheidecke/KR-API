@@ -4,8 +4,7 @@ export namespace SupplementalCostRepo {
   export type SupplementalCost = {
     module: number
     price: number
-    title: string | null
-    description: string | null
+    description: string
   }
 }
 
@@ -17,8 +16,7 @@ export class SupplementalCostRepo {
       .select({
         module: 'charges.module',
         price: 'charges.extracostAmount',
-        title: 'charges.extracostTitle',
-        description: 'charges.text'
+        description: 'charges.extracostTitle'
       })
       .join('Shop3ShippingChargesWeight AS weight', 'charges._id', '=', 'weight.charges')
       .where('charges.module', module)

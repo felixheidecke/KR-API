@@ -41,7 +41,6 @@ export class SupplementalCostService {
     const cost = new SupplementalCost(repoSupplementalCost.module)
 
     cost.price = repoSupplementalCost.price
-    cost.title = repoSupplementalCost.title || ''
     cost.description = repoSupplementalCost.description || ''
 
     return cost

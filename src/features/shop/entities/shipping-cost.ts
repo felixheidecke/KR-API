@@ -11,9 +11,9 @@ export class ShippingCost {
 
   private _rates: Map<number, number> = new Map()
   public module: number
-  public id: number = 0
   public freeShippingThreshold: number | null = null
   public unit = UNIT.kg
+  public text = ''
 
   // --- [ Getter ] --------------------------------------------------------------------------------
 
@@ -49,20 +49,22 @@ export class ShippingCost {
 
 class ShippingCostDisplay {
   constructor(shippingCost: ShippingCost) {
-    this.id = shippingCost.id
     this.rates = shippingCost.rates.map(({ threshold, rate }) => ({
       threshold,
       rate: expandPrice(rate)
     }))
     this.freeShippingThreshold = shippingCost.freeShippingThreshold
+      ? expandPrice(shippingCost.freeShippingThreshold)
+      : null
     this.unit = shippingCost.unit
+    this.text = shippingCost.text
   }
 
-  readonly id: number
   readonly rates: {
     threshold: number
     rate: ReturnType<typeof expandPrice>
   }[]
-  readonly freeShippingThreshold: number | null
+  readonly freeShippingThreshold: ReturnType<typeof expandPrice> | null
   readonly unit: string
+  readonly text: string
 }
