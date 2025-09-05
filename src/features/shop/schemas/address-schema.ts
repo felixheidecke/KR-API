@@ -19,9 +19,6 @@ export const addressSchema = z.object(
       .string()
       .min(5, { message: 'Die Telefonnummer ist zu kurz' })
       .max(15, { message: 'Die Telefonnummer ist zu lang' })
-      .regex(/^([\d\s]+)$/, {
-        message: 'Telefonnummer darf nur Zahlen und Leerzeichen beinhalten'
-      })
       .optional(),
     email: z
       .string({ required_error: 'Mail Adresse fehlt' })
