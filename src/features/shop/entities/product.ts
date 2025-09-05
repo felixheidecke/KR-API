@@ -41,16 +41,16 @@ export class Product {
     this._code = code?.toString()
   }
 
-  public set quantity(quantity: { value: number; unit?: string }) {
+  public set quantity(quantity: { value: number; unit: string }) {
     this._quantity = {
-      unit: getUnit('ea'),
+      unit: getUnit(quantity.unit),
       value: quantity.value
     }
   }
 
-  public set weight(weight: { value: number; unit?: string }) {
+  public set weight(weight: { value: number; unit: string }) {
     this._weight = {
-      unit: getUnit('kg'),
+      unit: getUnit(weight.unit),
       value: weight.value
     }
   }
@@ -79,7 +79,7 @@ export class Product {
     let pricePerUnit = 0
 
     pricePerUnit = this.quantity.value !== 1 ? this.price / this.quantity.value : this.price
-    pricePerUnit = round(pricePerUnit)
+    pricePerUnit = round(pricePerUnit, 2)
 
     return pricePerUnit
   }
