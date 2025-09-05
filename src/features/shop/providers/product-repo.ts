@@ -134,8 +134,6 @@ class RepoProductBuilder {
         repoProduct.path = await GroupRepo.readGroupPath(+repoProduct.group)
       }
 
-      console.log(repoProduct)
-
       return this._mapRawProduct(repoProduct)
     } catch (error) {
       console.error(error)
