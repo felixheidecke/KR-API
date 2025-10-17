@@ -1,6 +1,6 @@
 {
   "name": "kr-api",
-  "version": "5.12.4",
+  "version": "5.12.5",
   "private": true,
   "description": "Klickrhein Feature API (Excited Emu)",
   "main": "dist/index.js",
