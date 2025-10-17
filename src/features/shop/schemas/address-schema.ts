@@ -18,7 +18,7 @@ export const addressSchema = z.object(
     phone: z
       .string()
       .min(5, { message: 'Die Telefonnummer ist zu kurz' })
-      .max(15, { message: 'Die Telefonnummer ist zu lang' })
+      .max(50, { message: 'Die Telefonnummer ist zu lang' })
       .optional(),
     email: z
       .string({ required_error: 'Mail Adresse fehlt' })
