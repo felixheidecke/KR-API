@@ -11,8 +11,8 @@ export const addressSchema = z.object(
       .string({ required_error: 'Vorname fehlt' })
       .min(2, { message: 'Der Nachname muss mindestens 2 Buchstaben lang sein' }),
     address: z
-      .string({ required_error: 'Adresse fehlt' })
-      .min(5, { message: 'Die Adresse muss mindestens 2 Buchstaben lang sein' }),
+      .string({ required_error: 'Straße & Hausnummer fehlen' })
+      .min(5, { message: 'Straße & Hausnummer müssen mindestens 5 Buchstaben lang sein' }),
     zip: z.string({ required_error: 'PLZ fehlt' }).regex(/^[0-9]{5}$/, { message: 'PLZ zu kurz' }),
     city: z.string({ required_error: 'Stadt fehlt' }),
     phone: z
