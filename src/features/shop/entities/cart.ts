@@ -119,7 +119,13 @@ export class Cart {
     total = gross
     total += this.supplementalCost.price || 0
 
-    shipping = this.shippingCost.getRateByWeight(weight) ?? 0
+    if (
+      this.shippingCost.freeShippingThreshold &&
+      gross < this.shippingCost.freeShippingThreshold
+    ) {
+      shipping = this.shippingCost.getRateByWeight(weight) ?? 0
+    }
+
     total += shipping
 
     this._gross = round(gross)
