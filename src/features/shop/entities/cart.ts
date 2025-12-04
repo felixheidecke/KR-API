@@ -23,16 +23,16 @@ export class Cart {
 
   // --- [ Member ] --------------------------------------------------------------------------------
 
+  private _gross = 0
   private _isCalculated = false
+  private _total = 0
+  private _weight = 0
   protected _products: CartProducts = new Map()
 
-  public supplementalCost: SupplementalCost
-  public shippingCost: ShippingCost
-  private _gross = 0
-  private _total = 0
   public shipping = 0
+  public shippingCost: ShippingCost
   public shippingUnit = ''
-  private _weight = 0
+  public supplementalCost: SupplementalCost
 
   // --- [ Setter ] --------------------------------------------------------------------------------
 
@@ -118,12 +118,13 @@ export class Cart {
     gross = gross // fix rounding error
     total = gross
     total += this.supplementalCost.price || 0
+    shipping = this.shippingCost.getRateByWeight(weight) ?? 0
 
     if (
       this.shippingCost.freeShippingThreshold &&
-      gross < this.shippingCost.freeShippingThreshold
+      gross >= this.shippingCost.freeShippingThreshold
     ) {
-      shipping = this.shippingCost.getRateByWeight(weight) ?? 0
+      shipping = 0
     }
 
     total += shipping
